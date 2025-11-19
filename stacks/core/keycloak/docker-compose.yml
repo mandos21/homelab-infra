@@ -42,7 +42,9 @@ services:
       - keycloak-net
 
 volumes:
-  keycloak-db-data: {}
+  keycloak-db-data:
+    external: true
+    name: keycloak_keycloak-db-data
 
 networks:
   keycloak-net:
