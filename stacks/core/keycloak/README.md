@@ -1,4 +1,3 @@
-markdown
 # Keycloak Stack
 
 This stack runs Keycloak and its Postgres database.
