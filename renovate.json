@@ -9,7 +9,7 @@
   "dependencyDashboard": true,
 
   "includePaths": [
-    "stacks/"
+    "stacks/**"
   ],
 
   "packageRules": [
