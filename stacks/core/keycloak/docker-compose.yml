@@ -1,6 +1,6 @@
 services:
   keycloak-db:
-    image: postgres:16
+    image: postgres:18
     container_name: keycloak-db
     restart: unless-stopped
     environment:
