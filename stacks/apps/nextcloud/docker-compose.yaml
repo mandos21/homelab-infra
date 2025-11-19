@@ -1,0 +1,45 @@
+services:
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: nc-mariadb
+    restart: unless-stopped
+    environment:
+      PUID: "99"
+      PGID: "100"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - /mnt/user/appdata/mariadb:/config
+    ports:
+      - "3306:3306"
+    networks:
+      - nextcloud-net
+
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    environment:
+      PUID: "99"
+      PGID: "100"
+      TZ: "America/New_York"
+      PHP_MEMORY_LIMIT: "2048M"
+      PHP_UPLOAD_LIMIT: "2048M"
+      # Optional LSIO settings
+      # DOCKER_MODS: "linuxserver/mods:nextcloud-libreoffice"
+    volumes:
+      - /mnt/user/appdata/nextcloud:/config
+      - /mnt/user/nextData:/data
+    ports:
+      - "444:443"
+    networks:
+      - nextcloud-net
+
+networks:
+  nextcloud-net:
+    driver: bridge
+
