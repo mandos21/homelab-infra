@@ -4,13 +4,15 @@
   "onboarding": true,
   "extends": [
     "config:recommended",
-    "docker:pinDigestsDisabled"
+    ":pinDigestsDisabled"
   ],
   "timezone": "America/New_York",
   "dependencyDashboard": true,
-  "fileMatch": [
-    "^stacks/.+/docker-compose\\.ya?ml$"
+
+  "includePaths": [
+    "stacks/"
   ],
+
   "packageRules": [
     {
       "matchDatasources": ["docker"],
