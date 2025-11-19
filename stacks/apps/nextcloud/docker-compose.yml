@@ -1,6 +1,6 @@
 services:
   mariadb:
-    image: lscr.io/linuxserver/mariadb:latest
+    image: lscr.io/linuxserver/mariadb:11.4.8-r0-ls199
     container_name: nc-mariadb
     restart: unless-stopped
     environment:
@@ -17,18 +17,31 @@ services:
     networks:
       - nextcloud-net
 
+  redis:
+    # If you prefer a different Redis 7.x tag, swap it here
+    image: redis:7.2-alpine
+    container_name: nc-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    # No volume: we only use Redis for caching/locking, not durable data
+    networks:
+      - nextcloud-net
+
   nextcloud:
-    image: lscr.io/linuxserver/nextcloud:latest
+    image: lscr.io/linuxserver/nextcloud:32.0.1-ls403
     container_name: apps-nextcloud
     restart: unless-stopped
     depends_on:
       - mariadb
+      - redis
     environment:
       PUID: "99"
       PGID: "100"
       TZ: "America/New_York"
       PHP_MEMORY_LIMIT: "2048M"
       PHP_UPLOAD_LIMIT: "2048M"
+      # Tell Nextcloud how to reach Redis (hostname = service name above)
+      REDIS_HOST: redis
       # Optional LSIO settings
       # DOCKER_MODS: "linuxserver/mods:nextcloud-libreoffice"
     volumes:
