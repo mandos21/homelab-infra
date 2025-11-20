@@ -7,6 +7,9 @@ services:
       PUID: "99"
       PGID: "100"
       TZ: "America/New_York"
+      WHISPER_MODEL: "tiny-int8"
+      WHISPER_BEAM: "1"
+      WHISPER_LANG: "en"
     ports:
       - "10300:10300"
     volumes:
