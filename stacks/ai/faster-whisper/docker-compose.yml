@@ -1,0 +1,20 @@
+services:
+  faster-whisper:
+    image: lscr.io/linuxserver/faster-whisper:latest
+    container_name: faster-whisper
+    restart: unless-stopped
+    environment:
+      PUID: "99"
+      PGID: "100"
+      TZ: "America/New_York"
+    ports:
+      - "10300:10300"
+    volumes:
+      - /mnt/user/appdata/faster-whisper:/config
+    networks:
+      - faster-whisper-net
+
+networks:
+  faster-whisper-net:
+    driver: bridge
+

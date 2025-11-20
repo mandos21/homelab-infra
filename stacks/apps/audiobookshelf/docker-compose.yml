@@ -1,0 +1,21 @@
+services:
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+      PUID: "99"
+      PGID: "100"
+    ports:
+      - "13378:80"
+    volumes:
+      - /mnt/user/appdata/audiobookshelf:/config
+      - /mnt/user/audiobooks:/audiobooks
+    networks:
+      - audiobookshelf-net
+
+networks:
+  audiobookshelf-net:
+    driver: bridge
+

@@ -1,0 +1,19 @@
+services:
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+    ports:
+      - "8084:80"
+    volumes:
+      - /mnt/user/appdata/freshrss/www/data:/var/www/FreshRSS/data
+      - /mnt/user/appdata/freshrss/www/extensions:/var/www/FreshRSS/extensions
+    networks:
+      - freshrss-net
+
+networks:
+  freshrss-net:
+    driver: bridge
+

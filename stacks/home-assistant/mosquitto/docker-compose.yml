@@ -1,0 +1,18 @@
+services:
+  mosquitto:
+    image: cmccambridge/mosquitto-unraid:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    volumes:
+      - /mnt/user/appdata/mosquitto:/mosquitto/config
+    networks:
+      - mosquitto-net
+
+networks:
+  mosquitto-net:
+    driver: bridge

@@ -1,0 +1,25 @@
+services:
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    container_name: speaches
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+    ports:
+      - "8333:8000"
+    volumes:
+      - /mnt/user/appdata/speeches/cache:/home/ubuntu/.cache/huggingface/hub
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: ["gpu"]
+    #           driver: "nvidia"
+    #           device_ids: ["0"]
+    networks:
+      - speaches-net
+
+networks:
+  speaches-net:
+    driver: bridge
+
