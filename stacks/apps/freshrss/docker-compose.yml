@@ -10,6 +10,7 @@ services:
     volumes:
       - /mnt/user/appdata/freshrss/www/data:/var/www/FreshRSS/data
       - /mnt/user/appdata/freshrss/www/extensions:/var/www/FreshRSS/extensions
+      - /mnt/user/appdata/freshrss:/config
     networks:
       - freshrss-net
 
