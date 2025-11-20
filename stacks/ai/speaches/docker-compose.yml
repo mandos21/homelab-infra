@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: "America/New_York"
+      _UNSTABLE_VAD_FILTER: "False"
     ports:
       - "8333:8000"
     volumes:
