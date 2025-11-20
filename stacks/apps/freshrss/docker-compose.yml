@@ -5,6 +5,14 @@ services:
     restart: unless-stopped
     environment:
       TZ: "America/New_York"
+      OIDC_ENABLED: "${OIDC_ENABLED}"
+      OIDC_PROVIDER_METADATA_URL: "${OIDC_PROVIDER_METADATA_URL}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
+      OIDC_CLIENT_CRYPTO_KEY: "${OIDC_CLIENT_CRYPTO_KEY}"
+      OIDC_REMOTE_USER_CLAIM: "${OIDC_REMOTE_USER_CLAIM}"
+      OIDC_SCOPES: "${OIDC_SCOPES}"
+      OIDC_X_FORWARDED_HEADERS: "${OIDC_X_FORWARDED_HEADERS}"
     ports:
       - "8084:80"
     volumes:
