@@ -12,6 +12,7 @@ services:
     volumes:
       - /mnt/user/appdata/audiobookshelf:/config
       - /mnt/user/audiobooks:/audiobooks
+      - /mnt/user/appdata/audiobookshelf/metadata:/metadata
     networks:
       - audiobookshelf-net
 
