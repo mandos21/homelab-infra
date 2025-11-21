@@ -1,0 +1,16 @@
+services:
+  openwakeword:
+    image: rhasspy/wyoming-openwakeword:latest
+    container_name: openwakeword
+    restart: unless-stopped
+
+    ports:
+      - "10400:10400"
+
+    networks:
+      - openwakeword-net
+
+networks:
+  openwakeword-net:
+    driver: bridge
+

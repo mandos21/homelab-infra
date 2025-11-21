@@ -1,0 +1,26 @@
+services:
+  mqtt-explorer:
+    image: smeagolworms4/mqtt-explorer:latest
+    container_name: mqtt-explorer
+    restart: unless-stopped
+
+    environment:
+      # HTTP port MQTT Explorer will bind to inside the container
+      HTTP_PORT: "4000"
+
+      HTTP_USER: "${HTTP_USER}"
+      HTTP_PASSWORD: "${HTTP_PASSWORD}"
+
+    ports:
+      - "4000:4000"
+
+    volumes:
+      - /mnt/user/appdata/mqtt-explorer:/mqtt-explorer/config
+
+    networks:
+      - mqtt-explorer-net
+
+networks:
+  mqtt-explorer-net:
+    driver: bridge
+

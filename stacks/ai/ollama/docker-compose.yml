@@ -1,0 +1,23 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+
+    # Allow browser / other hosts to access Ollama
+    environment:
+      OLLAMA_ORIGINS: "192.168.1.0/24"
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - /mnt/user/appdata/ollama:/root/.ollama
+
+    networks:
+      - ollama-net
+
+networks:
+  ollama-net:
+    driver: bridge
+
