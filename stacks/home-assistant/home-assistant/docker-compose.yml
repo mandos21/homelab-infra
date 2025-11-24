@@ -7,7 +7,7 @@ services:
         TZ: "America/New_York"
         PUID: "99"
         PGID: "100"
-        UMASK : "022"
+        UMASK: "022"
     ports:
       - "8123:8123"
     volumes: 
