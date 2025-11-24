@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
         TZ: "America/New_York"
-        PIPER_VOICE: "en_US_noaatom-medium"
+        PIPER_VOICE: "en_US-noaatom-medium"
         PIPER_LENGTH: "0.8"
         PIPER_NOISE: "0.667"
         PIPER_NOISEW: "0.333"
