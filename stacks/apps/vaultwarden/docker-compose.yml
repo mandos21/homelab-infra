@@ -12,7 +12,7 @@ services:
     ports:
       - "4743:80"
     volumes:
-      - "/mnt/user/appdata/vaultwarden"
+      - "/mnt/user/appdata/vaultwarden:/data"
     networks:
       - ha-net
 
