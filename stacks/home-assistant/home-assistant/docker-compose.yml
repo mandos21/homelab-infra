@@ -15,6 +15,8 @@ services:
       - /mnt/cache/tmp/piper:/media
     devices:
       - /dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230830190144-if00
+    networks:
+      - ha-net
 
 networks:
   ha-net:
