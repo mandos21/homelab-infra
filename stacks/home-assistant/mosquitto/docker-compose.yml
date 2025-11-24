@@ -6,7 +6,7 @@ services:
     environment:
       TZ: "America/New_York"
     ports:
-      - "1883:1883"
+      - "18833:1883"
       - "8883:8883"
     volumes:
       - /mnt/user/appdata/mosquitto:/mosquitto/config
