@@ -1,0 +1,21 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+      SIGNUPS_ALLOWED: "false"
+      INVITATIONS_ALLOWED: "false"
+      WEBSOCKET_ENABLED: "true"
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+    ports:
+      - "4743:80"
+    volumes:
+      - "/mnt/user/appdata/vaultwarden"
+    networks:
+      - ha-net
+
+networks:
+  ha-net:
+    external: true
