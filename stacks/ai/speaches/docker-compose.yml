@@ -18,9 +18,8 @@ services:
     #           driver: "nvidia"
     #           device_ids: ["0"]
     networks:
-      - speaches-net
+      - ha-net
 
 networks:
-  speaches-net:
-    driver: bridge
-
+  ha-net:
+    external: true

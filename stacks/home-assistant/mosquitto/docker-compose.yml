@@ -11,8 +11,8 @@ services:
     volumes:
       - /mnt/user/appdata/mosquitto:/mosquitto/config
     networks:
-      - mosquitto-net
+      - ha-net
 
 networks:
-  mosquitto-net:
-    driver: bridge
+  ha-net:
+    external: true

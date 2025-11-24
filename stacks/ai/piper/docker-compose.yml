@@ -1,0 +1,28 @@
+services:
+  piper:
+    image: lscr.io/linuxserver/piper
+    container_name: piper
+    restart: unless-stopped
+    environment:
+        TZ: "America/New_York"
+        PIPER_VOICE: "en_US_noaatom-medium"
+        PIPER_LENGTH: "0.8"
+        PIPER_NOISE: "0.667"
+        PIPER_NOISEW: "0.333"
+        PIPER_SPEAKER: "0"
+        PIPER_PROCS: "1"
+        PUID: "99"
+        PGID: "100"
+        UMASK: "022"
+    ports:
+      - "10200:10200"
+    volumes:
+      - /mnt/user/appdata/piper:/config
+
+    networks:
+      - ha-net
+
+networks:
+  ha-net:
+    external: true
+

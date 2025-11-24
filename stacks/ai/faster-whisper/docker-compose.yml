@@ -15,9 +15,9 @@ services:
     volumes:
       - /mnt/user/appdata/faster-whisper:/config
     networks:
-      - faster-whisper-net
+      - ha-net
 
 networks:
-  faster-whisper-net:
-    driver: bridge
+  ha-net:
+    external: true
 

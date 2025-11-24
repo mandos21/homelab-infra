@@ -15,9 +15,9 @@ services:
       - /mnt/user/appdata/ollama:/root/.ollama
 
     networks:
-      - ollama-net
+      - ha-net
 
 networks:
-  ollama-net:
-    driver: bridge
+  ha-net:
+    external: true
 

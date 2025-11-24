@@ -8,9 +8,8 @@ services:
       - "10400:10400"
 
     networks:
-      - openwakeword-net
+      - ha-net
 
 networks:
-  openwakeword-net:
-    driver: bridge
-
+  ha-net:
+    external: true

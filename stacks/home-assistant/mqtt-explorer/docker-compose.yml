@@ -18,9 +18,9 @@ services:
       - /mnt/user/appdata/mqtt-explorer:/mqtt-explorer/config
 
     networks:
-      - mqtt-explorer-net
+      - ha-net
 
 networks:
-  mqtt-explorer-net:
-    driver: bridge
+  ha-net:
+    external: true
 
