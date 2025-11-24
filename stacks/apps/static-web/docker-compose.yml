@@ -1,0 +1,19 @@
+services:
+  binhex-nginx:
+    image: binhex/arch-nginx
+    container_name: binhex-nginx
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+      UMASK: "000"
+      PUID: "PUID"
+      PGID: "100"
+    ports:
+      - "8082:8080"
+    volumes:
+      - "/mnt/user/appdata/binhex-nginx:/config"
+    networks:
+      - static-web-net
+networks:
+  static-web-net:
+    driver: bridge
