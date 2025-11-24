@@ -14,7 +14,7 @@ services:
       - /mnt/user/appdata/homeassistant:/config
       - /mnt/cache/tmp/piper:/media
     devices:
-      - /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_6e4730db3386ec11ab665d1719c2d21c-if00
+      - /dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230830190144-if00
 
 networks:
   ha-net:
