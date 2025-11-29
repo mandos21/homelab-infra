@@ -1,0 +1,18 @@
+services:
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes: 
+      - /mnt/user/appdata/homarr:/appdata
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY}
+    ports:
+      - "7575:7575"
+    networks:
+      - homarr-net
+
+networks:
+  homarr-net:
+    driver: bridge
