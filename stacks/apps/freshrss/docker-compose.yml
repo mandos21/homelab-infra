@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: "America/New_York"
+      CRON_MIN: "13,43”
       OIDC_ENABLED: "${OIDC_ENABLED}"
       OIDC_PROVIDER_METADATA_URL: "${OIDC_PROVIDER_METADATA_URL}"
       OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
