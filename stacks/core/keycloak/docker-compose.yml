@@ -13,7 +13,7 @@ services:
       - keycloak-net
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4.6
+    image: quay.io/keycloak/keycloak:26.4.7
     container_name: keycloak
     restart: unless-stopped
     depends_on:
