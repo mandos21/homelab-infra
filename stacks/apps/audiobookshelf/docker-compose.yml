@@ -7,6 +7,13 @@ services:
       TZ: "America/New_York"
       PUID: "99"
       PGID: "100"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.audiobooks.rule: Host(`audiobooks.mdegenaro.com`)
+      traefik.http.routers.audiobooks.entrypoints: websecure
+      traefik.http.routers.audiobooks.tls.certresolver: letsencrypt
+      traefik.http.services.audiobooks.loadbalancer.server.port: 80
     ports:
       - "13378:80"
     volumes:
@@ -15,8 +22,10 @@ services:
       - /mnt/user/appdata/audiobookshelf/metadata:/metadata
     networks:
       - audiobookshelf-net
+      - traefik-proxy
 
 networks:
   audiobookshelf-net:
     driver: bridge
-
+  traefik-proxy:
+    external: true

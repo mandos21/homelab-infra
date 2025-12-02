@@ -1,0 +1,46 @@
+http:
+  serversTransports:
+    plex-insecure:
+      insecureSkipVerify: true
+
+  routers:
+    photos:
+      rule: Host(`photos.mdegenaro.com`)
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: photos
+
+    plex:
+      rule: Host(`plex.mdegenaro.com`)
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: plex
+
+    theborocrew:
+      rule: Host(`theborocrew.com`, `www.theborocrew.com`)
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: theborocrew
+
+  services:
+    photos:
+      loadBalancer:
+        servers:
+          - url: http://192.168.1.199:80
+
+    plex:
+      loadBalancer:
+        serversTransport: plex-insecure
+        servers:
+          - url: https://192.168.1.231:32400
+
+    theborocrew:
+      loadBalancer:
+        servers:
+          - url: http://192.168.1.96:8065

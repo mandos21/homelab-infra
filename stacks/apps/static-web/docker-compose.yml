@@ -8,12 +8,22 @@ services:
       UMASK: "000"
       PUID: "99"
       PGID: "100"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.static-web.rule: Host(`mdegenaro.com`, `www.mdegenaro.com`)
+      traefik.http.routers.static-web.entrypoints: websecure
+      traefik.http.routers.static-web.tls.certresolver: letsencrypt
+      traefik.http.services.static-web.loadbalancer.server.port: 8080
     ports:
       - "8082:8080"
     volumes:
       - "/mnt/user/appdata/binhex-nginx:/config"
     networks:
       - static-web-net
+      - traefik-proxy
 networks:
   static-web-net:
     driver: bridge
+  traefik-proxy:
+    external: true

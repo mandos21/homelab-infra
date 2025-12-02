@@ -9,13 +9,23 @@ services:
       INVITATIONS_ALLOWED: "false"
       WEBSOCKET_ENABLED: "true"
       ADMIN_TOKEN: ${ADMIN_TOKEN}
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.vaultwarden.rule: Host(`vault.mdegenaro.com`)
+      traefik.http.routers.vaultwarden.entrypoints: websecure
+      traefik.http.routers.vaultwarden.tls.certresolver: letsencrypt
+      traefik.http.services.vaultwarden.loadbalancer.server.port: 80
     ports:
       - "4743:80"
     volumes:
       - "/mnt/user/appdata/vaultwarden:/data"
     networks:
       - ha-net
+      - traefik-proxy
 
 networks:
   ha-net:
+    external: true
+  traefik-proxy:
     external: true
