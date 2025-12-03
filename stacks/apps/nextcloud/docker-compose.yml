@@ -47,13 +47,16 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik-proxy
-      traefik.http.routers.nextcloud.rule: Host(`cloud.mdegenaro.com`)
+
+      traefik.http.routers.nextcloud.rule: "Host(`cloud.mdegenaro.com`)"
       traefik.http.routers.nextcloud.entrypoints: websecure
+      traefik.http.routers.nextcloud.tls: "true"
       traefik.http.routers.nextcloud.tls.certresolver: letsencrypt
+
       traefik.http.services.nextcloud.loadbalancer.server.port: 443
       traefik.http.services.nextcloud.loadbalancer.server.scheme: https
-      traefik.http.services.nextcloud.loadbalancer.serverstransport: nextcloud-insecure
-      traefik.http.serversTransports.nextcloud-insecure.insecureSkipVerify: "true"
+      traefik.http.services.nextcloud.loadbalancer.serverstransport: nextcloud-insecure@file 
+    
     volumes:
       - /mnt/user/appdata/nextcloud:/config
       - /mnt/user/nextData:/data

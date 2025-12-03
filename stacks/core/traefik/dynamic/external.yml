@@ -2,6 +2,8 @@ http:
   serversTransports:
     plex-insecure:
       insecureSkipVerify: true
+    nextcloud-insecure:
+      insecureSkipVerify: true
 
   routers:
     photos:
