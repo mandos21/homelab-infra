@@ -52,7 +52,7 @@ services:
       traefik.http.routers.nextcloud.tls.certresolver: letsencrypt
       traefik.http.services.nextcloud.loadbalancer.server.port: 443
       traefik.http.services.nextcloud.loadbalancer.server.scheme: https
-      traefik.http.services.nextcloud.loadbalancer.serversTransport: nextcloud-insecure
+      traefik.http.services.nextcloud.loadbalancer.serversTransport: plex-insecure
       traefik.http.serversTransports.nextcloud-insecure.insecureSkipVerify: "true"
     volumes:
       - /mnt/user/appdata/nextcloud:/config

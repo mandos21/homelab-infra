@@ -21,7 +21,7 @@ http:
       service: plex
 
     theborocrew:
-      rule: Host(`theborocrew.com`, `www.theborocrew.com`)
+      rule: Host(`theborocrew.com`) || ( `www.theborocrew.com`)
       entryPoints:
         - websecure
       tls:
