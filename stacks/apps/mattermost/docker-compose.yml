@@ -28,7 +28,7 @@ services:
     ports:
       - "8065:8065"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.docker.network: traefik-proxy
       traefik.http.routers.mattermost.rule: Host(`theborocrew.com`)
       traefik.http.routers.mattermost.entrypoints: websecure
