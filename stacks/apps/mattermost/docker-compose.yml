@@ -25,6 +25,8 @@ services:
       MM_FILESETTINGS_DRIVERNAME: local
       MM_LOGSETTINGS_ENABLECONSOLE: "true"
       MM_LOGSETTINGS_CONSOLELEVEL: INFO
+    ports:
+      - "8065:8065"
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik-proxy
