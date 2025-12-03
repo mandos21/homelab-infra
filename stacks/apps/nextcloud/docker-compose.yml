@@ -55,7 +55,6 @@ services:
 
       traefik.http.services.nextcloud.loadbalancer.server.port: 443
       traefik.http.services.nextcloud.loadbalancer.server.scheme: https
-      traefik.http.services.nextcloud.loadbalancer.serverstransport: nextcloud-insecure@file 
     
     volumes:
       - /mnt/user/appdata/nextcloud:/config
