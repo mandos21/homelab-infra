@@ -39,6 +39,7 @@ services:
       - /mnt/user/mattermost/data:/mattermost/data
       - /mnt/user/mattermost/plugins:/mattermost/plugins
       - /mnt/user/mattermost/client/plugins/:/mattermost/client/plugins
+      - /mnt/user/backups/mattermost:/mattermost/imports
     networks:
       - mm-net
       - traefik-proxy
