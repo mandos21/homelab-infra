@@ -30,7 +30,7 @@ services:
     labels:
       traefik.enable: "false"
       traefik.docker.network: traefik-proxy
-      traefik.http.routers.mattermost.rule: Host(`theborocrew.com`)
+      traefik.http.routers.mattermost.rule: Host(`test.theborocrew.com`)
       traefik.http.routers.mattermost.entrypoints: websecure
       traefik.http.routers.mattermost.tls.certresolver: letsencrypt
       traefik.http.services.mattermost.loadbalancer.server.port: 8065
