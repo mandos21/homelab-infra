@@ -13,7 +13,7 @@ services:
       - mm-net
 
   app:
-    image: ghcr.io/this-is-tobi/mirror/mostlymatter:11.2.0
+    image: ghcr.io/this-is-tobi/mirror/mostlymatter:11.0.4
     container_name: mattermost
     restart: unless-stopped
     depends_on:
