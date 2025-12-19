@@ -1,0 +1,64 @@
+services:
+  bookstack-db:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: bookstack-db
+    restart: unless-stopped
+    environment:
+      - PUID=99
+      - PGID=100
+      - TZ=America/New_York
+      - MYSQL_ROOT_PASSWORD=${BOOKSTACK_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=bookstack
+      - MYSQL_USER=bookstack
+      - MYSQL_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - /mnt/user/appdata/bookstack/db:/config
+    networks:
+      - bookstack-internal
+
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: bookstack
+    restart: unless-stopped
+    depends_on:
+      - bookstack-db
+    environment:
+      - PUID=99
+      - PGID=100
+      - TZ=America/New_York
+      - APP_URL=https://docs.mdegenaro.com
+      - DB_HOST=bookstack-db
+      - DB_DATABASE=bookstack
+      - DB_USERNAME=bookstack
+      - DB_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - /mnt/user/appdata/bookstack/config:/config
+    networks:
+      - traefik-proxy
+      - bookstack-internal
+    labels:
+      - traefik.enable=true
+
+      # Router (HTTPS)
+      - traefik.http.routers.bookstack.rule=Host(`docs.mdegenaro.com`)
+      - traefik.http.routers.bookstack.entrypoints=websecure
+      - traefik.http.routers.bookstack.tls=true
+      - traefik.http.routers.bookstack.tls.certresolver=letsencrypt
+
+      # Service -> container port
+      - traefik.http.services.bookstack.loadbalancer.server.port=80
+
+      # Optional: some sane security headers (safe to remove)
+      - traefik.http.middlewares.bookstack-headers.headers.browserXssFilter=true
+      - traefik.http.middlewares.bookstack-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.bookstack-headers.headers.frameDeny=true
+      - traefik.http.routers.bookstack.middlewares=bookstack-headers
+
+networks:
+  traefik-proxy:
+    external: true
+    name: traefik-proxy
+
+  bookstack-internal:
+    name: bookstack-internal
+
