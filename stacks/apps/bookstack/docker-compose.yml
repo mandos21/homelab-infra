@@ -23,6 +23,7 @@ services:
     depends_on:
       - bookstack-db
     environment:
+      - APP_KEY=${APP_KEY}
       - PUID=99
       - PGID=100
       - TZ=America/New_York
