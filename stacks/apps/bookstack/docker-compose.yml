@@ -32,6 +32,7 @@ services:
       - DB_DATABASE=bookstack
       - DB_USERNAME=bookstack
       - DB_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+      - APP_PROXIES=*
     volumes:
       - /mnt/user/appdata/bookstack/config:/config
     networks:
