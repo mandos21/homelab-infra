@@ -39,7 +39,7 @@ services:
       - traefik-proxy
       - bookstack-internal
     ports:
-      - 6785:6785
+      - 6875:6875
     labels:
       - traefik.enable=true
 
