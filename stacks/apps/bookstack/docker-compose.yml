@@ -38,7 +38,7 @@ services:
       - OIDC_CLIENT_ID=bookstack
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
       - OIDC_DISPLAY_NAME_CLAIMS=name
-      - OIDC_ISSUER=https://id.mdegenaro.com
+      - OIDC_ISSUER=https://id.mdegenaro.com/realms/theborocrew
     volumes:
       - /mnt/user/appdata/bookstack/config:/config
     networks:
