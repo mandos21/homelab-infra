@@ -28,9 +28,13 @@ services:
     networks:
       - ha-net
       - traefik-proxy
+      - br0:
+        ipv4_address: 192.168.1.166
 
 networks:
   ha-net:
     external: true
   traefik-proxy:
+    external: true
+  br0:
     external: true
