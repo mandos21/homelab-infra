@@ -29,7 +29,7 @@ services:
       - ha-net
       - traefik-proxy
       - br0:
-        ipv4_address: 192.168.1.166
+        ipv4_address: "192.168.1.166"
 
 networks:
   ha-net:
