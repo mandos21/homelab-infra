@@ -9,7 +9,7 @@ services:
     ports:
       - "8333:8000"
     volumes:
-      - /mnt/user/appdata/speeches/cache:/home/ubuntu/.cache/huggingface/hub
+      - /mnt/user/appdata/speaches/cache:/home/ubuntu/.cache/huggingface/hub
     # deploy:
     #   resources:
     #     reservations:
