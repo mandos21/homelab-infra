@@ -6,6 +6,7 @@ services:
     environment:
       TZ: "America/New_York"
       _UNSTABLE_VAD_FILTER: "False"
+      PIPER_MODELS_DIR: "/home/ubuntu/.cache/huggingface/hub"
     ports:
       - "8333:8000"
     volumes:
