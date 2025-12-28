@@ -26,10 +26,10 @@ services:
       traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
       traefik.http.services.homeassistant.loadbalancer.server.port: 8123
     networks:
-      ha-net: {}
-      traefik-proxy: {}
       br0:
         ipv4_address: "192.168.1.166"
+      ha-net: {}
+      traefik-proxy: {}
 
 networks:
   ha-net:
