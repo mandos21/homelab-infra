@@ -40,7 +40,7 @@ services:
       - OIDC_DISPLAY_NAME_CLAIMS=name
       - OIDC_ISSUER=https://id.mdegenaro.com/realms/theborocrew
       - OIDC_ISSUER_DISCOVER=true
-      - ALLOWED_IFRAME_SOURCES=https://spotify.com
+      - ALLOWED_IFRAME_SOURCES=https://open.spotify.com
     volumes:
       - /mnt/user/appdata/bookstack/config:/config
     networks:
