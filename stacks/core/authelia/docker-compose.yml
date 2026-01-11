@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: docker.io/postgres:16-alpine
+    container_name: authentik-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DB:-authentik}
+      POSTGRES_USER: ${PG_USER:-authentik}
+      POSTGRES_PASSWORD: ${PG_PASS}
+    volumes:
+      - authentik-postgres:/var/lib/postgresql/data
+    # If you want to access Postgres directly from host for debugging, uncomment:
+    # ports:
+    #   - "54321:5432"
+
+  redis:
+    image: docker.io/redis:7-alpine
+    container_name: authentik-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    volumes:
+      - authentik-redis:/data
+
+  server:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-server
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@example.com}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-changeme}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-changemetoken}
+
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__PORT: 5432
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__PORT: 6379
+
+      # Optional: email config (recommended to set up eventually)
+      # AUTHENTIK_EMAIL__HOST: ${AUTHENTIK_EMAIL__HOST}
+      # AUTHENTIK_EMAIL__PORT: ${AUTHENTIK_EMAIL__PORT}
+      # AUTHENTIK_EMAIL__USERNAME: ${AUTHENTIK_EMAIL__USERNAME}
+      # AUTHENTIK_EMAIL__PASSWORD: ${AUTHENTIK_EMAIL__PASSWORD}
+      # AUTHENTIK_EMAIL__USE_TLS: "true"
+      # AUTHENTIK_EMAIL__FROM: ${AUTHENTIK_EMAIL__FROM}
+
+      # Optional: set external host for correct redirects later
+      # AUTHENTIK_HOST: auth.mysite.com
+
+    # Internal access only for now
+    ports:
+      - "9000:9000"   # HTTP
+      - "9443:9443"   # HTTPS
+
+    volumes:
+      - authentik-media:/media
+      - authentik-templates:/templates
+
+    # When you’re ready to expose via Traefik, uncomment and adjust:
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.authentik.rule=Host(`auth.mysite.com`)"
+    #   - "traefik.http.routers.authentik.entrypoints=websecure"
+    #   - "traefik.http.routers.authentik.tls.certresolver=lets-encrypt"
+    #   - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+    # networks:
+    #   - proxy
+
+  worker:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-worker
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    command: ["worker"]
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__PORT: 5432
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__PORT: 6379
+    volumes:
+      - authentik-media:/media
+      - authentik-templates:/templates
+
+volumes:
+  authentik-postgres:
+  authentik-redis:
+  authentik-media:
+  authentik-templates:
+
+# When you’re ready to wire to Traefik’s shared network, uncomment:
+# networks:
+#   proxy:
+#     external: true
+
