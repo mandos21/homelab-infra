@@ -59,7 +59,7 @@ services:
       AUTHENTIK_HOST: id2.mdegenaro.com
 
     ports:
-      - "9000:9000"   # HTTP
+      - "9009:9000"   # HTTP
       - "9443:9443"   # HTTPS (self-signed)
 
     volumes:
