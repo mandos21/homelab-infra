@@ -107,8 +107,6 @@ services:
 
 volumes:
   authentik-db-data:
-    external: true
-    name: authentik_authentik-db-data
 
 networks:
   authentik:
