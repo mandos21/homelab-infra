@@ -28,6 +28,7 @@ services:
     image: ghcr.io/goauthentik/server:latest
     container_name: authentik-server
     restart: unless-stopped
+    command: ["server"] 
     depends_on:
       - authentik-postgres
       - authentik-redis
