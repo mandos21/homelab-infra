@@ -15,7 +15,7 @@ services:
       - authentik
 
   authentik-redis:
-    image: docker.io/redis:7-alpine
+    image: docker.io/redis:8-alpine
     container_name: authentik-redis
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no"]
