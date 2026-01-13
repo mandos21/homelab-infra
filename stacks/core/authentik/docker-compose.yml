@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: ${PG_USER:-authentik}
       POSTGRES_PASSWORD: ${PG_PASS}
     volumes:
-      - authentik-db-data:/var/lib/postgresql/data
+      - /mnt/user/appdata/authentik/postgres:/var/lib/postgresql/data
     networks:
       - authentik
 
@@ -104,9 +104,6 @@ services:
 
     networks:
       - authentik
-
-volumes:
-  authentik-db-data:
 
 networks:
   authentik:
