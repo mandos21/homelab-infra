@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  postgres:
+  authentik-postgres:
     image: postgres:16-alpine
     container_name: authentik-postgres
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
     networks:
       - authentik
 
-  redis:
+  authentik-redis:
     image: docker.io/redis:7-alpine
     container_name: authentik-redis
     restart: unless-stopped
@@ -24,13 +24,13 @@ services:
     networks:
       - authentik
 
-  server:
+  authentik-server:
     image: ghcr.io/goauthentik/server:latest
     container_name: authentik-server
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      - authentik-postgres
+      - authentik-redis
     environment:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
 
@@ -39,13 +39,13 @@ services:
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
       AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN}
 
-      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
       AUTHENTIK_POSTGRESQL__PORT: 5432
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
 
-      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_REDIS__PORT: 6379
 
       AUTHENTIK_EMAIL__HOST: ${AUTHENTIK_EMAIL__HOST}
@@ -78,24 +78,24 @@ services:
     #   traefik.http.routers.authentik.tls.certresolver: letsencrypt
     #   traefik.http.services.authentik.loadbalancer.server.port: 9000
 
-  worker:
+  authentik-worker:
     image: ghcr.io/goauthentik/server:latest
     container_name: authentik-worker
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      - authentik-postgres
+      - authentik-redis
     command: ["worker"]
     environment:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
 
-      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
       AUTHENTIK_POSTGRESQL__PORT: 5432
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
 
-      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_REDIS__PORT: 6379
 
     volumes:
