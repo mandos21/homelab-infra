@@ -10,7 +10,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik-proxy
-      traefik.http.routers.audiobooks.rule: Host(`audiobooks.mdegenaro.com`)
+      traefik.http.routers.audiobooks.rule: Host(`audiobooks.dege.app`)
       traefik.http.routers.audiobooks.entrypoints: websecure
       traefik.http.routers.audiobooks.tls.certresolver: letsencrypt
       traefik.http.services.audiobooks.loadbalancer.server.port: 80
