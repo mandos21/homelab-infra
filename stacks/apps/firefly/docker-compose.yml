@@ -30,7 +30,7 @@ services:
       APP_ENV: "production"
       APP_DEBUG: "false"
       APP_KEY: "${APP_KEY}"                 # 32 chars as in your example
-      APP_URL: "https://fin.mdegenaro.com"      # change later to https://firefly.yourdomain.tld
+      APP_URL: "https://finances.dege.app"      # change later to https://firefly.yourdomain.tld
       SITE_OWNER: "${SITE_OWNER}"
       TZ: "${TZ:-America/New_York}"
 
@@ -66,13 +66,13 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik-proxy
-      traefik.http.routers.firefly.rule: Host(`fin.mdegenaro.com`)
+      traefik.http.routers.firefly.rule: Host(`finances.dege.app`)
       traefik.http.routers.firefly.entrypoints: websecure
       traefik.http.routers.firefly.tls.certresolver: letsencrypt
       traefik.http.services.firefly.loadbalancer.server.port: 8080
       traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Proto: "https"
       traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Port: "443"
-      traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Host: "fin.mdegenaro.com"
+      traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Host: "finances.dege.app"
 
   cron:
     image: alpine:3
@@ -103,7 +103,7 @@ services:
       TZ: "${TZ:-America/New_York}"
 
       # Minimum for local use:
-      FIREFLY_III_URL: "https://fin.mdegenaro.com"
+      FIREFLY_III_URL: "https://finances.dege.app"
       # Most auth details can be entered in the importer UI, but you CAN also set:
       # FIREFLY_III_ACCESS_TOKEN: "${FIREFLY_III_ACCESS_TOKEN}"
       # FIREFLY_III_CLIENT_ID: "${FIREFLY_III_CLIENT_ID}"
