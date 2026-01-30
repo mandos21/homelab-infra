@@ -56,7 +56,7 @@ services:
       MAIL_VERIFY_PEER: "${MAIL_VERIFY_PEER:-true}"
       MAIL_VERIFY_PEER_NAME: "${MAIL_VERIFY_PEER_NAME:-true}"
 
-      TRUSTED_PROXIES: "traefik-proxy"
+      TRUSTED_PROXIES: "**"
       COOKIE_SECURE: "true"
 
     networks:
@@ -70,6 +70,9 @@ services:
       traefik.http.routers.firefly.entrypoints: websecure
       traefik.http.routers.firefly.tls.certresolver: letsencrypt
       traefik.http.services.firefly.loadbalancer.server.port: 8080
+      traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Proto: "https"
+      traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Port: "443"
+      traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Host: "fin.mdegenaro.com"
 
   cron:
     image: alpine:3
