@@ -75,7 +75,7 @@ services:
       - "traefik.http.routers.firefly.rule=Host(`fin.mdegenaro.com`)"
       - "traefik.http.routers.firefly.entrypoints=websecure"
       - "traefik.http.routers.firefly.tls=true"
-      - "traefik.http.services.firefly.loadbalancer.server.port=8086"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
   cron:
     image: alpine:3
