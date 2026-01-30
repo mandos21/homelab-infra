@@ -72,8 +72,6 @@ services:
       traefik.http.routers.firefly.tls.certresolver: letsencrypt
       traefik.http.services.firefly.loadbalancer.server.port: 8080
 
-
-
   cron:
     image: alpine:3
     container_name: firefly_iii_cron
@@ -103,7 +101,7 @@ services:
       TZ: "${TZ:-America/New_York}"
 
       # Minimum for local use:
-      FIREFLY_III_URL: "http://app:8086"
+      FIREFLY_III_URL: "https://fin.mdegenaro.com"
       # Most auth details can be entered in the importer UI, but you CAN also set:
       # FIREFLY_III_ACCESS_TOKEN: "${FIREFLY_III_ACCESS_TOKEN}"
       # FIREFLY_III_CLIENT_ID: "${FIREFLY_III_CLIENT_ID}"
@@ -111,68 +109,6 @@ services:
     networks:
       - firefly_iii
       # - traefik-proxy
-
-    # --- Traefik (COMMENTED OUT until you’re ready) ---
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.docker.network=traefik"
-    #   - "traefik.http.routers.firefly-importer.rule=Host(`importer.example.com`)"
-    #   - "traefik.http.routers.firefly-importer.entrypoints=websecure"
-    #   - "traefik.http.routers.firefly-importer.tls=true"
-    #   - "traefik.http.services.firefly-importer.loadbalancer.server.port=8080"
-    #   - "traefik.http.routers.firefly-importer.middlewares=oidc@docker"
-
-  # --------------------------------------------------------------------
-  # OIDC / Keycloak protection (COMMENTED OUT until you’re ready)
-  #
-  # Traefik (OSS) does NOT do OIDC by itself; the usual pattern is
-  # forwardAuth -> oauth2-proxy -> Keycloak. This also lets you restrict
-  # access to a Keycloak group.
-  # --------------------------------------------------------------------
-  # oauth2-proxy:
-  #   image: quay.io/oauth2-proxy/oauth2-proxy:latest
-  #   container_name: firefly_oidc
-  #   restart: unless-stopped
-  #   environment:
-  #     # Provider
-  #     OAUTH2_PROXY_PROVIDER: "oidc"
-  #     OAUTH2_PROXY_OIDC_ISSUER_URL: "https://keycloak.example.com/realms/YOUR_REALM"
-  #     OAUTH2_PROXY_CLIENT_ID: "firefly-traefik"
-  #     OAUTH2_PROXY_CLIENT_SECRET: "${OAUTH2_PROXY_CLIENT_SECRET}"
-  #
-  #     # Cookie/session security (set these before exposing publicly)
-  #     OAUTH2_PROXY_COOKIE_SECRET: "${OAUTH2_PROXY_COOKIE_SECRET}"  # 32-byte base64 strongly recommended
-  #     OAUTH2_PROXY_COOKIE_SECURE: "true"
-  #
-  #     # Listen
-  #     OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
-  #
-  #     # This must match your public callback URL in Keycloak client settings:
-  #     # https://firefly.example.com/oauth2/callback  (and same for importer if you use a different host)
-  #     OAUTH2_PROXY_REDIRECT_URL: "https://firefly.example.com/oauth2/callback"
-  #
-  #     # Pass identity headers to the upstream (Traefik uses forwardAuth)
-  #     OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
-  #     OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
-  #
-  #     # Group restriction:
-  #     # Make sure Keycloak includes groups in the ID token or userinfo (mapper).
-  #     OAUTH2_PROXY_ALLOWED_GROUPS: "firefly-admins"
-  #     OAUTH2_PROXY_OIDC_GROUPS_CLAIM: "groups"
-  #
-  #     # Optional: tighten who can log in
-  #     # OAUTH2_PROXY_EMAIL_DOMAINS: "yourcompany.com"
-  #
-  #   networks:
-  #     - traefik
-  #
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.docker.network=traefik"
-  #     # This defines the middleware Traefik routers reference as oidc@docker
-  #     - "traefik.http.middlewares.oidc.forwardauth.address=http://oauth2-proxy:4180/oauth2/auth"
-  #     - "traefik.http.middlewares.oidc.forwardauth.trustForwardHeader=true"
-  #     - "traefik.http.middlewares.oidc.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Groups,Authorization"
 
 volumes:
   firefly_iii_db:
@@ -182,7 +118,6 @@ networks:
   firefly_iii:
     driver: bridge
 
-  # Traefik external network (COMMENTED OUT until you’re ready)
   traefik-proxy:
     external: true
 
