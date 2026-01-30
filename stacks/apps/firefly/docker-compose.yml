@@ -30,7 +30,7 @@ services:
       APP_ENV: "production"
       APP_DEBUG: "false"
       APP_KEY: "${APP_KEY}"                 # 32 chars as in your example
-      APP_URL: "http://localhost:8086"      # change later to https://firefly.yourdomain.tld
+      APP_URL: "https://fin.mdegenaro.com"      # change later to https://firefly.yourdomain.tld
       SITE_OWNER: "${SITE_OWNER}"
       TZ: "${TZ:-America/New_York}"
 
