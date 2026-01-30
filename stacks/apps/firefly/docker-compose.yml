@@ -67,19 +67,15 @@ services:
 
     networks:
       - firefly_iii
-      # - traefik-proxy
+      - traefik-proxy
 
-    # --- Traefik (COMMENTED OUT until you’re ready) ---
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.docker.network=traefik"
-    #   - "traefik.http.routers.firefly.rule=Host(`firefly.example.com`)"
-    #   - "traefik.http.routers.firefly.entrypoints=websecure"
-    #   - "traefik.http.routers.firefly.tls=true"
-    #   - "traefik.http.services.firefly.loadbalancer.server.port=8080"
-    #
-    #   # OIDC protection via forwardAuth middleware (see oauth2-proxy service below)
-    #   - "traefik.http.routers.firefly.middlewares=oidc@docker"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.firefly.rule=Host(`fin.mdegenaro.com`)"
+      - "traefik.http.routers.firefly.entrypoints=websecure"
+      - "traefik.http.routers.firefly.tls=true"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8086"
 
   cron:
     image: alpine:3
@@ -190,6 +186,6 @@ networks:
     driver: bridge
 
   # Traefik external network (COMMENTED OUT until you’re ready)
-  # traefik-proxy:
-  #   external: true
+  traefik-proxy:
+    external: true
 
