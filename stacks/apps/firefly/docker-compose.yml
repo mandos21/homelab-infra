@@ -65,12 +65,12 @@ services:
       - traefik-proxy
 
     labels:
-      - traefik.enable: "true"
-      - traefik.docker.network: traefik-proxy
-      - traefik.http.routers.homeassistant.rule: Host(`fin.mdegenaro.com`)
-      - traefik.http.routers.homeassistant.entrypoints: websecure
-      - traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
-      - traefik.http.services.homeassistant.loadbalancer.server.port: 8080
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.firefly.rule: Host(`fin.mdegenaro.com`)
+      traefik.http.routers.firefly.entrypoints: websecure
+      traefik.http.routers.firefly.tls.certresolver: letsencrypt
+      traefik.http.services.firefly.loadbalancer.server.port: 8080
 
 
 
