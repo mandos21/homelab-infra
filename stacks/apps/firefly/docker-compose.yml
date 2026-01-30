@@ -56,9 +56,8 @@ services:
       MAIL_VERIFY_PEER: "${MAIL_VERIFY_PEER:-true}"
       MAIL_VERIFY_PEER_NAME: "${MAIL_VERIFY_PEER_NAME:-true}"
 
-      # If you enable Traefik later, you will likely want:
-      # TRUSTED_PROXIES: "**"
-      # COOKIE_SECURE: "true"
+      TRUSTED_PROXIES: "traefik-proxy"
+      COOKIE_SECURE: "true"
 
     networks:
       - firefly_iii
