@@ -1,76 +1,195 @@
-#
-# The Firefly III Data Importer will ask you for the Firefly III URL and a "Client ID".
-# You can generate the Client ID at http://localhost/profile (after registering)
-# The Firefly III URL is: http://app:8080
-#
-# Other URL's will give 500 | Server Error
-#
+version: "3.8"
 
 services:
-  app:
-    image: fireflyiii/core:latest
-    hostname: app
-    container_name: firefly_iii_core
-    networks:
-      - firefly_iii
-    restart: always
-    volumes:
-      - firefly_iii_upload:/var/www/html/storage/upload
-    env_file: .env
-    ports:
-      - '8086:8080'
-    depends_on:
-      - db
   db:
     image: mariadb:lts
-    hostname: db
     container_name: firefly_iii_db
-    networks:
-      - firefly_iii
-    restart: always
-    env_file: .db.env
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: "firefly"
+      MYSQL_USER: "firefly"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - firefly_iii_db:/var/lib/mysql
+    networks:
+      - firefly_iii
+
+  app:
+    image: fireflyiii/core:latest
+    container_name: firefly_iii_core
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8086:8080"  # local access
+    volumes:
+      - firefly_iii_upload:/var/www/html/storage/upload
+    environment:
+      # --- Core required ---
+      APP_ENV: "production"
+      APP_DEBUG: "false"
+      APP_KEY: "${APP_KEY}"                 # 32 chars as in your example
+      APP_URL: "http://localhost:8086"      # change later to https://firefly.yourdomain.tld
+      SITE_OWNER: "${SITE_OWNER}"
+      TZ: "${TZ:-America/New_York}"
+
+      DEFAULT_LANGUAGE: "${DEFAULT_LANGUAGE:-en_US}"
+      # NOTE: your pasted env had DEFAULT_LOCALE=equal (likely a typo).
+      # If you don't know what to set, omit it; Firefly uses DEFAULT_LANGUAGE/LOCALE defaults.
+      # DEFAULT_LOCALE: "en_US"
+
+      LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
+      APP_LOG_LEVEL: "${APP_LOG_LEVEL:-notice}"
+
+      DB_CONNECTION: "mysql"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_DATABASE: "firefly"
+      DB_USERNAME: "firefly"
+      DB_PASSWORD: "${DB_PASSWORD}"
+
+      # --- Mail (fill these out in Portainer env vars) ---
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: "${MAIL_HOST}"
+      MAIL_PORT: "${MAIL_PORT:-587}"
+      MAIL_FROM: "${MAIL_FROM}"
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
+      MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
+      MAIL_ALLOW_SELF_SIGNED: "${MAIL_ALLOW_SELF_SIGNED:-false}"
+      MAIL_VERIFY_PEER: "${MAIL_VERIFY_PEER:-true}"
+      MAIL_VERIFY_PEER_NAME: "${MAIL_VERIFY_PEER_NAME:-true}"
+
+      # If you enable Traefik later, you will likely want:
+      # TRUSTED_PROXIES: "**"
+      # COOKIE_SECURE: "true"
+
+    networks:
+      - firefly_iii
+      # - traefik-proxy
+
+    # --- Traefik (COMMENTED OUT until you’re ready) ---
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.docker.network=traefik"
+    #   - "traefik.http.routers.firefly.rule=Host(`firefly.example.com`)"
+    #   - "traefik.http.routers.firefly.entrypoints=websecure"
+    #   - "traefik.http.routers.firefly.tls=true"
+    #   - "traefik.http.services.firefly.loadbalancer.server.port=8080"
+    #
+    #   # OIDC protection via forwardAuth middleware (see oauth2-proxy service below)
+    #   - "traefik.http.routers.firefly.middlewares=oidc@docker"
+
+  cron:
+    image: alpine:3
+    container_name: firefly_iii_cron
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      TZ: "${TZ:-America/New_York}"
+      STATIC_CRON_TOKEN: "${STATIC_CRON_TOKEN}"  # 32 chars
+    command: >
+      sh -c "apk add --no-cache tzdata wget &&
+             (ln -fs /usr/share/zoneinfo/$TZ /etc/localtime || true) &&
+             echo '0 3 * * * wget -qO- http://app:8080/api/v1/cron/'$STATIC_CRON_TOKEN'; echo' | crontab - &&
+             crond -f -L /dev/stdout"
+    networks:
+      - firefly_iii
 
   importer:
     image: fireflyiii/data-importer:latest
-    hostname: importer
-    restart: always
     container_name: firefly_iii_importer
-    networks:
-      - firefly_iii
-    volumes:
-      - /mnt/user/appdata/firefly/import:/import
+    restart: unless-stopped
+    depends_on:
+      - app
     ports:
-      - '8181:8080'
-    depends_on:
-      - app
-    env_file: .importer.env
+      - "8181:8080"  # local access
+    environment:
+      TZ: "${TZ:-America/New_York}"
 
-  cron:
-    #
-    # To make this work, set STATIC_CRON_TOKEN in your .env file or as an environment variable
-    # The STATIC_CRON_TOKEN must be *exactly* 32 characters long
-    # Use this URL for inspiration: https://www.random.org/strings/?num=1&len=32&digits=on&upperalpha=on&loweralpha=on&unique=on&format=html&rnd=new
-    #
-    image: alpine
-    container_name: firefly_iii_cron
-    restart: always
-    env_file: .env
-    command: sh -c "
-      apk add tzdata && \
-      (ln -fs /usr/share/zoneinfo/$$TZ /etc/localtime || true) && \
-      echo \"0 3 * * * wget -qO- http://app:8080/api/v1/cron/$$STATIC_CRON_TOKEN;echo\"
-      | crontab - && \
-      crond -f -L /dev/stdout"
+      # Minimum for local use:
+      FIREFLY_III_URL: "http://app:8086"
+      # Most auth details can be entered in the importer UI, but you CAN also set:
+      # FIREFLY_III_ACCESS_TOKEN: "${FIREFLY_III_ACCESS_TOKEN}"
+      # FIREFLY_III_CLIENT_ID: "${FIREFLY_III_CLIENT_ID}"
+
     networks:
       - firefly_iii
-    depends_on:
-      - app
+      # - traefik-proxy
+
+    # --- Traefik (COMMENTED OUT until you’re ready) ---
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.docker.network=traefik"
+    #   - "traefik.http.routers.firefly-importer.rule=Host(`importer.example.com`)"
+    #   - "traefik.http.routers.firefly-importer.entrypoints=websecure"
+    #   - "traefik.http.routers.firefly-importer.tls=true"
+    #   - "traefik.http.services.firefly-importer.loadbalancer.server.port=8080"
+    #   - "traefik.http.routers.firefly-importer.middlewares=oidc@docker"
+
+  # --------------------------------------------------------------------
+  # OIDC / Keycloak protection (COMMENTED OUT until you’re ready)
+  #
+  # Traefik (OSS) does NOT do OIDC by itself; the usual pattern is
+  # forwardAuth -> oauth2-proxy -> Keycloak. This also lets you restrict
+  # access to a Keycloak group.
+  # --------------------------------------------------------------------
+  # oauth2-proxy:
+  #   image: quay.io/oauth2-proxy/oauth2-proxy:latest
+  #   container_name: firefly_oidc
+  #   restart: unless-stopped
+  #   environment:
+  #     # Provider
+  #     OAUTH2_PROXY_PROVIDER: "oidc"
+  #     OAUTH2_PROXY_OIDC_ISSUER_URL: "https://keycloak.example.com/realms/YOUR_REALM"
+  #     OAUTH2_PROXY_CLIENT_ID: "firefly-traefik"
+  #     OAUTH2_PROXY_CLIENT_SECRET: "${OAUTH2_PROXY_CLIENT_SECRET}"
+  #
+  #     # Cookie/session security (set these before exposing publicly)
+  #     OAUTH2_PROXY_COOKIE_SECRET: "${OAUTH2_PROXY_COOKIE_SECRET}"  # 32-byte base64 strongly recommended
+  #     OAUTH2_PROXY_COOKIE_SECURE: "true"
+  #
+  #     # Listen
+  #     OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+  #
+  #     # This must match your public callback URL in Keycloak client settings:
+  #     # https://firefly.example.com/oauth2/callback  (and same for importer if you use a different host)
+  #     OAUTH2_PROXY_REDIRECT_URL: "https://firefly.example.com/oauth2/callback"
+  #
+  #     # Pass identity headers to the upstream (Traefik uses forwardAuth)
+  #     OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+  #     OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+  #
+  #     # Group restriction:
+  #     # Make sure Keycloak includes groups in the ID token or userinfo (mapper).
+  #     OAUTH2_PROXY_ALLOWED_GROUPS: "firefly-admins"
+  #     OAUTH2_PROXY_OIDC_GROUPS_CLAIM: "groups"
+  #
+  #     # Optional: tighten who can log in
+  #     # OAUTH2_PROXY_EMAIL_DOMAINS: "yourcompany.com"
+  #
+  #   networks:
+  #     - traefik
+  #
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=traefik"
+  #     # This defines the middleware Traefik routers reference as oidc@docker
+  #     - "traefik.http.middlewares.oidc.forwardauth.address=http://oauth2-proxy:4180/oauth2/auth"
+  #     - "traefik.http.middlewares.oidc.forwardauth.trustForwardHeader=true"
+  #     - "traefik.http.middlewares.oidc.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Groups,Authorization"
+
 volumes:
-   firefly_iii_upload:
-   firefly_iii_db:
+  firefly_iii_db:
+  firefly_iii_upload:
 
 networks:
   firefly_iii:
     driver: bridge
+
+  # Traefik external network (COMMENTED OUT until you’re ready)
+  # traefik-proxy:
+  #   external: true
+
