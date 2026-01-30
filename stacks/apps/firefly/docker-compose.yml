@@ -34,11 +34,6 @@ services:
       SITE_OWNER: "${SITE_OWNER}"
       TZ: "${TZ:-America/New_York}"
 
-      DEFAULT_LANGUAGE: "${DEFAULT_LANGUAGE:-en_US}"
-      # NOTE: your pasted env had DEFAULT_LOCALE=equal (likely a typo).
-      # If you don't know what to set, omit it; Firefly uses DEFAULT_LANGUAGE/LOCALE defaults.
-      # DEFAULT_LOCALE: "en_US"
-
       LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
       APP_LOG_LEVEL: "${APP_LOG_LEVEL:-notice}"
 
@@ -70,12 +65,12 @@ services:
       - traefik-proxy
 
     labels:
-      traefik.enable: "true"
-      traefik.docker.network: traefik-proxy
-      traefik.http.routers.homeassistant.rule: Host(`fin.mdegenaro.com`)
-      traefik.http.routers.homeassistant.entrypoints: websecure
-      traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
-      traefik.http.services.homeassistant.loadbalancer.server.port: 8080
+      - traefik.enable: "true"
+      - traefik.docker.network: traefik-proxy
+      - traefik.http.routers.homeassistant.rule: Host(`fin.mdegenaro.com`)
+      - traefik.http.routers.homeassistant.entrypoints: websecure
+      - traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
+      - traefik.http.services.homeassistant.loadbalancer.server.port: 8080
 
 
 
