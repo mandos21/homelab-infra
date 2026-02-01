@@ -17,7 +17,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik-proxy
-      traefik.http.routers.freshrss.rule: Host(`rss.mdegenaro.com`)
+      traefik.http.routers.freshrss.rule: Host(`rss.dege.app`)
       traefik.http.routers.freshrss.entrypoints: websecure
       traefik.http.routers.freshrss.tls.certresolver: letsencrypt
       traefik.http.services.freshrss.loadbalancer.server.port: 80

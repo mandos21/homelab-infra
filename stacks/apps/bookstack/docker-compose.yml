@@ -27,7 +27,7 @@ services:
       - PUID=99
       - PGID=100
       - TZ=America/New_York
-      - APP_URL=https://docs.mdegenaro.com
+      - APP_URL=https://docs.dege.app
       - DB_HOST=bookstack-db
       - DB_DATABASE=bookstack
       - DB_USERNAME=bookstack
@@ -52,7 +52,7 @@ services:
       - traefik.enable=true
 
       # Router (HTTPS)
-      - traefik.http.routers.bookstack.rule=Host(`docs.mdegenaro.com`)
+      - traefik.http.routers.bookstack.rule=Host(`docs.dege.app`)
       - traefik.http.routers.bookstack.entrypoints=websecure
       - traefik.http.routers.bookstack.tls=true
       - traefik.http.routers.bookstack.tls.certresolver=letsencrypt
