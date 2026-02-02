@@ -1,0 +1,44 @@
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=99
+      - PGID=100
+      - TZ=America/New_York
+
+      # Enables built-in ebook conversion support (Calibre binaries)
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+
+      # Helpful when multiple contributors are writing into the library share
+      - UMASK=002
+
+    volumes:
+      # App settings/db
+      - /mnt/user/appdata/calibre-web:/config
+
+      # Your Calibre library (must contain metadata.db).
+      # IMPORTANT: must be writable if you want in-UI uploads/contributions.
+      - /mnt/user/ebooks:/books
+
+    restart: unless-stopped
+
+    ports:
+      - 8883:8083
+
+    networks:
+      - traefik
+
+    # labels:
+    #   - "traefik.enable=true"
+
+    #   # Router
+    #   - "traefik.http.routers.calibreweb.rule=Host(`ebooks.dege.app`)"
+    #   - "traefik.http.routers.calibreweb.entrypoints=websecure"
+    #   - "traefik.http.routers.calibreweb.tls=true"
+    #   - "traefik.http.routers.calibreweb.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.calibreweb.loadbalancer.server.port=8083"
+
+networks:
+  traefik:
+    external: true
