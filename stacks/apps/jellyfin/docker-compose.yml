@@ -1,0 +1,39 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: apps-jellyfin
+    restart: unless-stopped
+    environment:
+      PUID: "99"
+      PGID: "100"
+      TZ: "America/New_York"
+      # If you expose Jellyfin via HTTPS, let it know the published URL:
+      JELLYFIN_PublishedServerUrl: "https://music.dege.app"
+      JELLYFIN_PublishedServerUrlUsesHttps: "true"
+    volumes:
+      - /mnt/user/appdata/jellyfin:/config
+      - /mnt/user/jfData:/media
+      - /mnt/cache/jellyfin-transcode:/transcode
+    ports:
+      - "8096:8096"  # HTTP access inside the LAN
+      - "8920:8920"  # HTTPS access inside the LAN (LinuxServer image provides SSL)
+    networks:
+      - jellyfin-net
+      - traefik-proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.jellyfin.rule: Host(`music.dege.app`)
+      traefik.http.routers.jellyfin.entrypoints: websecure
+      traefik.http.routers.jellyfin.tls.certresolver: letsencrypt
+      traefik.http.services.jellyfin.loadbalancer.server.port: 8096
+      traefik.http.routers.jellyfin.middlewares: jellyfin-forward
+      traefik.http.middlewares.jellyfin-forward.headers.customrequestheaders.X-Forwarded-Proto: "https"
+      traefik.http.middlewares.jellyfin-forward.headers.customrequestheaders.X-Forwarded-Port: "443"
+      traefik.http.middlewares.jellyfin-forward.headers.customrequestheaders.X-Forwarded-Host: "music.dege.app"
+
+networks:
+  jellyfin-net:
+    driver: bridge
+  traefik-proxy:
+    external: true
