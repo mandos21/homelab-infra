@@ -1,25 +1,17 @@
 services:
-  calibre-web:
-    image: lscr.io/linuxserver/calibre-web:nightly
-    container_name: calibre-web
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
     environment:
       - PUID=99
       - PGID=100
       - TZ=America/New_York
-
-      # Enables built-in ebook conversion support (Calibre binaries)
-      - DOCKER_MODS=linuxserver/mods:universal-calibre
-
-      # Helpful when multiple contributors are writing into the library share
       - UMASK=002
 
     volumes:
-      # App settings/db
-      - /mnt/user/appdata/calibre-web:/config
-
-      # Your Calibre library (must contain metadata.db).
-      # IMPORTANT: must be writable if you want in-UI uploads/contributions.
-      - /mnt/user/ebooks:/books
+      - /mnt/user/appdata/calibre-web-automated:/config
+      - /mnt/user/ebooks:/calibre-library
+      - /mnt/cache/ebook_uploads:/cwa-book-ingest
 
     restart: unless-stopped
 
@@ -41,7 +33,7 @@ services:
     #   - "traefik.http.services.calibreweb.loadbalancer.server.port=8083"
 
 networks:
-  # traefik:
+  # traefik-proxy:
   #   external: true
   calibre:
     driver: bridge

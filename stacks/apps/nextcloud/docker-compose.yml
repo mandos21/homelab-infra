@@ -59,6 +59,7 @@ services:
     volumes:
       - /mnt/user/appdata/nextcloud:/config
       - /mnt/user/nextData:/data
+      - /mnt/cache/ebook_uploads:/ebook_uploads
     ports:
       - "444:443"
     networks:
