@@ -20,20 +20,20 @@ services:
 
     networks:
       - calibre
-      #- traefik-proxy
+      - traefik-proxy
 
-    # labels:
-    #   - "traefik.enable=true"
+    labels:
+      - "traefik.enable=true"
 
-    #   # Router
-    #   - "traefik.http.routers.calibreweb.rule=Host(`ebooks.dege.app`)"
-    #   - "traefik.http.routers.calibreweb.entrypoints=websecure"
-    #   - "traefik.http.routers.calibreweb.tls=true"
-    #   - "traefik.http.routers.calibreweb.tls.certresolver=letsencrypt"
-    #   - "traefik.http.services.calibreweb.loadbalancer.server.port=8083"
+      # Router
+      - "traefik.http.routers.calibreweb.rule=Host(`ebooks.dege.app`)"
+      - "traefik.http.routers.calibreweb.entrypoints=websecure"
+      - "traefik.http.routers.calibreweb.tls=true"
+      - "traefik.http.routers.calibreweb.tls.certresolver=letsencrypt"
+      - "traefik.http.services.calibreweb.loadbalancer.server.port=8083"
 
 networks:
-  # traefik-proxy:
-  #   external: true
+  traefik-proxy:
+    external: true
   calibre:
     driver: bridge
