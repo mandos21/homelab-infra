@@ -27,7 +27,8 @@ services:
       - 8883:8083
 
     networks:
-      - traefik
+      - calibre
+      #- traefik-proxy
 
     # labels:
     #   - "traefik.enable=true"
@@ -40,5 +41,7 @@ services:
     #   - "traefik.http.services.calibreweb.loadbalancer.server.port=8083"
 
 networks:
-  traefik:
-    external: true
+  # traefik:
+  #   external: true
+  calibre:
+    driver: bridge
