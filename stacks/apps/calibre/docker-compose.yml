@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - 8883:8083
+      - 8873:8083
 
     networks:
       - calibre
