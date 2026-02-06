@@ -1,0 +1,67 @@
+services:
+  picard:
+    image: jlesage/musicbrainz-picard:latest
+    container_name: apps-picard
+    restart: unless-stopped
+    environment:
+      USER_ID: "99"
+      GROUP_ID: "100"
+      TZ: "America/New_York"
+    volumes:
+      - /mnt/user/appdata/picard:/config
+      - /mnt/user/jfData/music:/config/home/Music
+    ports:
+      - "5800:5800"
+    networks:
+      - traefik-proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.picard.rule: Host(`tags.dege.app`)
+      traefik.http.routers.picard.priority: 10
+      traefik.http.routers.picard.entrypoints: websecure
+      traefik.http.routers.picard.tls.certresolver: letsencrypt
+      traefik.http.services.picard.loadbalancer.server.port: 5800
+      traefik.http.routers.picard.middlewares: picard-auth-errors,picard-auth
+      traefik.http.middlewares.picard-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
+      traefik.http.middlewares.picard-auth.forwardauth.trustforwardheader: "true"
+      traefik.http.middlewares.picard-auth.forwardauth.authresponseheaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
+      traefik.http.middlewares.picard-auth-errors.errors.status: "401-403"
+      traefik.http.middlewares.picard-auth-errors.errors.service: picard-oauth
+      traefik.http.middlewares.picard-auth-errors.errors.query: "/oauth2/sign_in?rd={url}"
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: apps-picard-oauth2-proxy
+    restart: unless-stopped
+    environment:
+      OAUTH2_PROXY_PROVIDER: "keycloak-oidc"
+      OAUTH2_PROXY_OIDC_ISSUER_URL: "https://id.mdegenaro.com/realms/theborocrew"
+      OAUTH2_PROXY_CLIENT_ID: ${OAUTH2_PROXY_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
+      OAUTH2_PROXY_REDIRECT_URL: "https://tags.dege.app/oauth2/callback"
+      OAUTH2_PROXY_PROXY_PREFIX: "/oauth2"
+      OAUTH2_PROXY_UPSTREAMS: "http://picard:5800/"
+      OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
+      OAUTH2_PROXY_COOKIE_SECURE: "true"
+      OAUTH2_PROXY_COOKIE_SAMESITE: "lax"
+      OAUTH2_PROXY_ALLOWED_ROLES: "picard:access"
+    networks:
+      - traefik-proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.picard-oauth.rule: Host(`tags.dege.app`) && PathPrefix(`/oauth2`)
+      traefik.http.routers.picard-oauth.priority: 100
+      traefik.http.routers.picard-oauth.entrypoints: websecure
+      traefik.http.routers.picard-oauth.tls.certresolver: letsencrypt
+      traefik.http.services.picard-oauth.loadbalancer.server.port: 4180
+      traefik.http.routers.picard-oauth.middlewares: picard-auth-headers
+      traefik.http.middlewares.picard-auth-headers.headers.customrequestheaders.X-Forwarded-Proto: "https"
+
+networks:
+  traefik-proxy:
+    external: true
