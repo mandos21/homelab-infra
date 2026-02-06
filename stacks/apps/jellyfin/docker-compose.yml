@@ -21,7 +21,7 @@ services:
       - jellyfin-net
       - traefik-proxy
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.docker.network: traefik-proxy
       traefik.http.routers.jellyfin.rule: Host(`music.dege.app`)
       traefik.http.routers.jellyfin.entrypoints: websecure

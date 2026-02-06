@@ -1,0 +1,26 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: apps-navidrome
+    user: 99:100
+    ports:
+      - "4533:4533"
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+    volumes:
+      - "/mnt/user/appdata/navidrome:/data"
+      - "/mnt/user/jfData/music:/music"
+    networks:
+      - traefik-proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-proxy
+      traefik.http.routers.navidrome.rule: Host(`music.dege.app`)
+      traefik.http.routers.navidrome.entrypoints: websecure
+      traefik.http.routers.navidrome.tls.certresolver: letsencrypt
+      traefik.http.services.navidrome.loadbalancer.server.port: 4533
+
+networks:
+  traefik-proxy:
+    external: true
