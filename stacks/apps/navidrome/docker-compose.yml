@@ -8,6 +8,10 @@ services:
     restart: unless-stopped
     environment:
       TZ: "America/New_York"
+      ND_LASTFM_ENABLED: "true"
+      ND_LASTFM_APIKEY: ${LASTFM_APIKEY}
+      ND_LASTFM_SECRET: ${LASTFM_SECRET}
+      ND_PLUGINS_AUTORELOAD: "true"
     volumes:
       - "/mnt/user/appdata/navidrome:/data"
       - "/mnt/user/jfData/music:/music"
