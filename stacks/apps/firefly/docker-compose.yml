@@ -11,7 +11,7 @@ services:
       MYSQL_USER: "firefly"
       MYSQL_PASSWORD: "${DB_PASSWORD}"
     volumes:
-      - firefly_iii_db:/var/lib/mysql
+      - /mnt/user/appdata/firefly-iii-db:/var/lib/mysql
     networks:
       - firefly_iii
 
@@ -24,7 +24,7 @@ services:
     ports:
       - "8086:8080"  # local access
     volumes:
-      - firefly_iii_upload:/var/www/html/storage/upload
+      - /mnt/user/appdata/firefly-iii-upload:/var/www/html/storage/upload
     environment:
       # --- Core required ---
       APP_ENV: "production"
@@ -111,10 +111,6 @@ services:
     networks:
       - firefly_iii
       # - traefik-proxy
-
-volumes:
-  firefly_iii_db:
-  firefly_iii_upload:
 
 networks:
   firefly_iii:

@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - keycloak-db-data:/var/lib/postgresql/data
+      - /mnt/user/appdata/keycloak-db-data:/var/lib/postgresql/data
     networks:
       - keycloak-net
 
@@ -49,10 +49,6 @@ services:
       - keycloak-net
       - traefik-proxy
 
-volumes:
-  keycloak-db-data:
-    external: true
-    name: keycloak_keycloak-db-data
 
 networks:
   keycloak-net:
