@@ -20,11 +20,12 @@ USAGE
 }
 
 list_services() {
-  python3 - <<PY
+  REPO_ROOT_ENV="${REPO_ROOT}" python3 - <<'PY'
+import os
 import re
 from pathlib import Path
 
-root = Path("${REPO_ROOT}")
+root = Path(os.environ["REPO_ROOT_ENV"])
 pattern = re.compile(r"traefik\.http\.routers\.([^\.\s]+)\.rule")
 host_re = re.compile(r"Host\(`([^`]+)`\)")
 services = set()
@@ -48,15 +49,16 @@ PY
 
 get_host_for_service() {
   local service="$1"
-  python3 - <<PY
+  REPO_ROOT_ENV="${REPO_ROOT}" SERVICE_ENV="${service}" python3 - <<'PY'
+import os
 import re
 from pathlib import Path
 
-root = Path("${REPO_ROOT}")
+root = Path(os.environ["REPO_ROOT_ENV"])
 pattern = re.compile(r"traefik\.http\.routers\.([^\.\s]+)\.rule")
 host_re = re.compile(r"Host\(`([^`]+)`\)")
 
-wanted = "${service}"
+wanted = os.environ["SERVICE_ENV"]
 for path in root.rglob("docker-compose.yml"):
     try:
         text = path.read_text(encoding="utf-8")
