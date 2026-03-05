@@ -4,6 +4,7 @@ http:
       entryPoints:
         - websecure
       rule: "Host(`REPLACE_HOST`)"
+      tls: true
       priority: 1000
       service: error-pages
   services:
