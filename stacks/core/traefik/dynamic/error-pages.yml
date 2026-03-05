@@ -1,0 +1,32 @@
+http:
+  services:
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: http://traefik-error-pages:80
+
+  middlewares:
+    maintenance-errors:
+      errors:
+        status: "503"
+        service: error-pages
+        query: /maintenance.html
+    error-pages-base:
+      errors:
+        status: "400-599"
+        service: error-pages
+        query: /error.html
+    error-pages:
+      chain:
+        middlewares:
+          - maintenance-errors
+          - error-pages-base
+
+  # Optional: catch-all router for unknown hosts. Keep priority low so real routers win.
+  # routers:
+  #   fallback:
+  #     entryPoints:
+  #       - websecure
+  #     rule: "HostRegexp(`{host:.+}`)"
+  #     priority: 1
+  #     service: error-pages

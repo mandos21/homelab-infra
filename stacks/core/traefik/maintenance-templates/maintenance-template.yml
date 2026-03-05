@@ -1,0 +1,13 @@
+http:
+  routers:
+    maintenance-REPLACE_SERVER:
+      entryPoints:
+        - websecure
+      rule: "Host(`REPLACE_HOST`)"
+      priority: 1000
+      service: error-pages
+  services:
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: http://traefik-error-pages:80
