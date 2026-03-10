@@ -1,0 +1,134 @@
+- name: Bootstrap Ubuntu nodes for k3s
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  serial: 1
+
+  tasks:
+    - name: Ensure hostname matches inventory name
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Ensure NIC vars are defined
+      ansible.builtin.assert:
+        that:
+          - mgmt_ip is defined
+          - stor_ip is defined
+          - mgmt_mac is defined
+          - stor_mac is defined
+        fail_msg: "Set mgmt_ip/stor_ip/mgmt_mac/stor_mac for {{ inventory_hostname }} (or use --limit)."
+
+    - name: Write udev rules for stable NIC names
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/70-k3s-net.rules
+        mode: "0644"
+        content: |
+          {% if mgmt_mac is defined %}
+          SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="{{ mgmt_mac | lower }}", NAME="{{ mgmt_iface_name }}"
+          {% endif %}
+          {% if stor_mac is defined %}
+          SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="{{ stor_mac | lower }}", NAME="{{ stor_iface_name }}"
+          {% endif %}
+      register: udev_rules
+
+    - name: Reload udev rules
+      ansible.builtin.command: udevadm control --reload-rules
+      changed_when: false
+      when: udev_rules.changed
+
+    - name: Trigger udev for net devices
+      ansible.builtin.command: udevadm trigger --subsystem-match=net
+      changed_when: false
+      when: udev_rules.changed
+
+    - name: Write netplan configuration
+      ansible.builtin.copy:
+        dest: /etc/netplan/50-k3s.yaml
+        mode: "0644"
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              {{ mgmt_iface_name }}:
+                addresses:
+                  - {{ mgmt_ip }}/{{ mgmt_prefix }}
+                routes:
+                  - to: default
+                    via: {{ mgmt_gateway }}
+                nameservers:
+                  addresses:
+                    {% for dns in mgmt_dns %}
+                    - {{ dns }}
+                    {% endfor %}
+              {{ stor_iface_name }}:
+                addresses:
+                  - {{ stor_ip }}/{{ stor_prefix }}
+      register: netplan_cfg
+
+    - name: Reboot to apply NIC renaming
+      ansible.builtin.reboot:
+        reboot_timeout: 900
+      when: udev_rules.changed
+
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: false
+      when:
+        - netplan_cfg.changed
+        - not udev_rules.changed
+
+    - name: Disable swap immediately
+      ansible.builtin.command: swapoff -a
+      changed_when: false
+
+    - name: Remove swap entries from /etc/fstab
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^([^#].*\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+
+    - name: Install baseline packages
+      ansible.builtin.apt:
+        name: "{{ bootstrap_packages }}"
+        state: present
+        update_cache: true
+
+    - name: Enable and start iscsid
+      ansible.builtin.systemd:
+        name: iscsid
+        enabled: true
+        state: started
+
+    - name: Install unattended-upgrades
+      ansible.builtin.apt:
+        name: unattended-upgrades
+        state: present
+        update_cache: false
+      when: bootstrap_install_unattended_upgrades
+
+    - name: Ensure unattended-upgrades enabled
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+      when: bootstrap_install_unattended_upgrades
+
+    - name: Enable systemd-timesyncd
+      ansible.builtin.systemd:
+        name: systemd-timesyncd
+        enabled: true
+        state: started
+      when: bootstrap_configure_timesyncd
+
+    - name: Validate stor network connectivity to peers
+      ansible.builtin.command: "ping -c1 -W1 {{ hostvars[item].stor_ip }}"
+      register: stor_ping
+      changed_when: false
+      failed_when: stor_ping.rc != 0
+      when:
+        - bootstrap_validate_stor
+        - hostvars[item].stor_ip is defined
+        - item != inventory_hostname
+      loop: "{{ groups['k3s_servers'] | default([]) }}"

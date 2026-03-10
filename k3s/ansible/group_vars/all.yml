@@ -1,0 +1,39 @@
+# Global k3s + bootstrap defaults
+K3S_VERSION: "v1.30.5+k3s1"
+
+# Which host should initialize the embedded etcd cluster
+k3s_init_host: "minandras"
+
+# API address or VIP you will use to access the cluster
+k3s_api_tls_san: "192.168.1.101"
+# Endpoint used by servers to join the cluster (API address or VIP)
+k3s_api_endpoint: "192.168.1.101"
+
+# Optional k3s server flags
+k3s_disable_servicelb: true
+k3s_disable_traefik: false
+k3s_write_kubeconfig_mode: "644"
+
+# Network layout
+mgmt_iface_name: "mgmt0"
+stor_iface_name: "stor0"
+mgmt_prefix: 24
+stor_prefix: 24
+mgmt_gateway: "192.168.1.1"
+mgmt_dns:
+  - "192.168.1.1"
+  - "1.1.1.1"
+
+# Validate storage network connectivity during bootstrap
+bootstrap_validate_stor: true
+
+# Bootstrap toggles
+bootstrap_install_unattended_upgrades: true
+bootstrap_configure_timesyncd: true
+
+# Baseline packages
+bootstrap_packages:
+  - curl
+  - jq
+  - open-iscsi
+  - nfs-common

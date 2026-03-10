@@ -1,0 +1,174 @@
+# k3s Runbook
+
+Assumptions:
+- Control machine is Linux (Ubuntu 24.04 or similar)
+- Repo cloned locally and you run commands from repo root
+- Nodes: minandras, tadandras, nelandras (Ubuntu 24.04)
+
+## 0) One-time prep
+
+1. Update inventory + vars:
+   - `k3s/ansible/inventory/hosts.yml`
+   - `k3s/ansible/group_vars/all.yml`
+
+2. Network layout (per node):
+   - `mgmt` (1GbE) for SSH/Internet: `192.168.1.0/24`
+   - `stor` (2.5GbE) for k3s/Longhorn east-west: `192.168.2.0/24`
+   - Ensure you set `mgmt_ip`, `stor_ip`, and MACs in inventory.
+
+3. Ensure SSH access to all nodes:
+
+```bash
+ssh ubuntu@minandras
+ssh ubuntu@tadandras
+ssh ubuntu@nelandras
+```
+
+## 1) Install control-machine tooling
+
+```bash
+sudo apt update
+sudo apt install -y ansible curl jq git
+
+# kubectl
+curl -fsSL https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl \
+  -o /usr/local/bin/kubectl
+sudo chmod +x /usr/local/bin/kubectl
+
+# helm
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# flux
+curl -fsSL https://fluxcd.io/install.sh | sudo bash
+
+# sops
+sudo apt install -y sops
+
+# age
+sudo apt install -y age
+```
+
+## 2) Bootstrap nodes (swap off, packages, iscsid, etc)
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootstrap.yml
+```
+
+If a node is not ready (e.g., missing MACs), use `--limit`:
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootstrap.yml --limit minandras,tadandras
+```
+
+Note: If udev rules changed, nodes will reboot to apply stable NIC names.
+
+## 3) Install k3s HA (embedded etcd)
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-ha.yml
+```
+
+This installs k3s with `--node-ip` and `--flannel-iface` set to the stor network.
+
+## 4) Configure kubeconfig on control machine
+
+1. Copy kubeconfig from `minandras`:
+
+```bash
+scp ubuntu@minandras:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+```
+
+2. Update the server address in kubeconfig:
+
+```bash
+sed -i 's/127.0.0.1/192.168.1.101/' ~/.kube/config
+```
+
+3. Verify:
+
+```bash
+kubectl get nodes
+kubectl get pods -A
+```
+
+## 5) SOPS + age setup
+
+1. Create an age keypair:
+
+```bash
+age-keygen -o age.key
+```
+
+2. Export public key for `.sops.yaml`:
+
+```bash
+age-keygen -y age.key
+```
+
+3. Update `k3s/cluster/.sops.yaml` with your public key.
+
+4. Create the in-cluster age key secret:
+
+```bash
+kubectl -n flux-system create secret generic sops-age \
+  --from-file=age.agekey=age.key
+```
+
+5. Encrypt a secret (example):
+
+```bash
+sops --encrypt --in-place k3s/cluster/secrets/example-secret.sops.yaml
+```
+
+## 6) Flux bootstrap (GitHub)
+
+1. Create a GitHub PAT with repo access (or use a GitHub App).
+
+2. Bootstrap Flux (replace placeholders):
+
+```bash
+export GITHUB_TOKEN=YOUR_PAT
+flux bootstrap github \
+  --owner=<GITHUB_OWNER> \
+  --repository=homelab-infra \
+  --branch=main \
+  --path=./k3s/cluster/flux \
+  --personal
+```
+
+Note: Flux will commit manifests into `k3s/cluster/flux`. Keep the sample files consistent with your repo URL, branch, and path.
+
+3. Verify Flux:
+
+```bash
+flux get kustomizations -A
+kubectl get pods -n flux-system
+```
+
+## 7) Apply initial infra manifests
+
+Flux will reconcile `k3s/cluster/infra` automatically. Ensure cert-manager installs:
+
+```bash
+kubectl get pods -n cert-manager
+```
+
+## 8) Longhorn and MetalLB (later)
+
+Do not enable Longhorn or MetalLB until you have:
+- MetalLB address pool decided
+- Disks prepped for Longhorn
+
+Use the mgmt LAN for MetalLB (e.g., `192.168.1.0/24`). Keep the stor network internal.
+
+## 9) Add apps
+
+Create app folders under `k3s/cluster/apps/<app>` and add HelmReleases.
+
+## 10) Backups and restore
+
+See `k3s/docs/backups.md`.
+
+## 11) Add nodes later
+
+See `k3s/docs/adding-nodes.md`.
