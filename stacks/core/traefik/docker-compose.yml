@@ -13,10 +13,12 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --entrypoints.websecure.forwardedheaders.trustedips=192.168.1.78/32
+      - --entrypoints.web.forwardedheaders.trustedips=192.168.1.78/322
+      #- --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      #- --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      #- --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      #- --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
       - --serversTransport.insecureSkipVerify=true
     ports:
       - "80:80"
@@ -27,15 +29,15 @@ services:
       - "${TRAEFIK_DYNAMIC_DIR:-/mnt/user/appdata/traefik/dynamic}:/etc/traefik/dynamic"
     networks:
       - traefik-proxy
-  error-pages:
-    image: nginx:alpine
-    container_name: traefik-error-pages
-    restart: unless-stopped
-    volumes:
-      - "./error-pages:/usr/share/nginx/html:ro"
-      - "./error-pages/default.conf:/etc/nginx/conf.d/default.conf:ro"
-    networks:
-      - traefik-proxy
+#  error-pages:
+#    image: nginx:alpine
+#    container_name: traefik-error-pages
+#    restart: unless-stopped
+#    volumes:
+#      - "./error-pages:/usr/share/nginx/html:ro"
+#      - "./error-pages/default.conf:/etc/nginx/conf.d/default.conf:ro"
+#    networks:
+#      - traefik-proxy
 
 networks:
   traefik-proxy:

@@ -1,0 +1,6 @@
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /boot/traefik/certs/traefik.crt
+        keyFile: /boot/traefil/certs/traefik.key

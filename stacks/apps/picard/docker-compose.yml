@@ -20,7 +20,7 @@ services:
       traefik.http.routers.picard.rule: Host(`tags.dege.app`)
       traefik.http.routers.picard.priority: 10
       traefik.http.routers.picard.entrypoints: websecure
-      traefik.http.routers.picard.tls.certresolver: letsencrypt
+      #traefik.http.routers.picard.tls.certresolver: letsencrypt
       traefik.http.services.picard.loadbalancer.server.port: 5800
       traefik.http.routers.picard.middlewares: picard-auth-errors,picard-auth
       traefik.http.middlewares.picard-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth

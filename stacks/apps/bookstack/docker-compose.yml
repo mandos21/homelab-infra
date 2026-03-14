@@ -55,7 +55,7 @@ services:
       - traefik.http.routers.bookstack.rule=Host(`docs.dege.app`)
       - traefik.http.routers.bookstack.entrypoints=websecure
       - traefik.http.routers.bookstack.tls=true
-      - traefik.http.routers.bookstack.tls.certresolver=letsencrypt
+      #- traefik.http.routers.bookstack.tls.certresolver=letsencrypt
 
       # Service -> container port
       - traefik.http.services.bookstack.loadbalancer.server.port=80

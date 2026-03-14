@@ -22,7 +22,7 @@ services:
       traefik.docker.network: traefik-proxy
       traefik.http.routers.navidrome.rule: Host(`music.dege.app`)
       traefik.http.routers.navidrome.entrypoints: websecure
-      traefik.http.routers.navidrome.tls.certresolver: letsencrypt
+      #traefik.http.routers.navidrome.tls.certresolver: letsencrypt
       traefik.http.services.navidrome.loadbalancer.server.port: 4533
 
 networks:

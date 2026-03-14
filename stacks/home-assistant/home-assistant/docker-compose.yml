@@ -23,7 +23,7 @@ services:
       traefik.docker.network: traefik-proxy
       traefik.http.routers.homeassistant.rule: Host(`home.dege.app`)
       traefik.http.routers.homeassistant.entrypoints: websecure
-      traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
+      #traefik.http.routers.homeassistant.tls.certresolver: letsencrypt
       traefik.http.services.homeassistant.loadbalancer.server.port: 8123
     networks:
       br0:

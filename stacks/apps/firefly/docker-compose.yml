@@ -68,7 +68,7 @@ services:
       traefik.docker.network: traefik-proxy
       traefik.http.routers.firefly.rule: Host(`finances.dege.app`)
       traefik.http.routers.firefly.entrypoints: websecure
-      traefik.http.routers.firefly.tls.certresolver: letsencrypt
+      #traefik.http.routers.firefly.tls.certresolver: letsencrypt
       traefik.http.services.firefly.loadbalancer.server.port: 8080
       traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Proto: "https"
       traefik.http.middlewares.firefly-forwarded.headers.customrequestheaders.X-Forwarded-Port: "443"
