@@ -4,8 +4,8 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
-      - --accesslog=true
-      - --accesslog.format=json
+      #- --accesslog=true
+      #- --accesslog.format=json
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=traefik-proxy
