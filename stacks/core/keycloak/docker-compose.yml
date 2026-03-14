@@ -38,14 +38,6 @@ services:
       - start
     ports:
       - "8085:8080"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: traefik-proxy
-      traefik.http.routers.keycloak.rule: Host(`id.mdegenaro.com`)
-      traefik.http.routers.keycloak.entrypoints: websecure
-      #traefik.http.routers.keycloak.tls.certresolver: letsencrypt
-      traefik.http.routers.keycloak.tls: "true"
-      traefik.http.services.keycloak.loadbalancer.server.port: 8080
     networks:
       - keycloak-net
       - traefik-proxy

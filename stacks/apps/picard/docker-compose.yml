@@ -14,22 +14,6 @@ services:
       - "5800:5800"
     networks:
       - traefik-proxy
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: traefik-proxy
-      traefik.http.routers.picard.rule: Host(`tags.dege.app`)
-      traefik.http.routers.picard.priority: 10
-      traefik.http.routers.picard.entrypoints: websecure
-      traefik.http.routers.picard.tls: "true"
-      #traefik.http.routers.picard.tls.certresolver: letsencrypt
-      traefik.http.services.picard.loadbalancer.server.port: 5800
-      traefik.http.routers.picard.middlewares: picard-auth-errors,picard-auth
-      traefik.http.middlewares.picard-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
-      traefik.http.middlewares.picard-auth.forwardauth.trustforwardheader: "true"
-      traefik.http.middlewares.picard-auth.forwardauth.authresponseheaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
-      traefik.http.middlewares.picard-auth-errors.errors.status: "401-403"
-      traefik.http.middlewares.picard-auth-errors.errors.service: picard-oauth
-      traefik.http.middlewares.picard-auth-errors.errors.query: "/oauth2/sign_in?rd={url}"
 
   oauth2-proxy:
     image: quay.io/oauth2-proxy/oauth2-proxy:latest
@@ -52,18 +36,6 @@ services:
       OAUTH2_PROXY_ALLOWED_ROLES: "picard:access"
     networks:
       - traefik-proxy
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: traefik-proxy
-      traefik.http.routers.picard-oauth.rule: Host(`tags.dege.app`) && PathPrefix(`/oauth2`)
-      traefik.http.routers.picard-oauth.priority: 100
-      traefik.http.routers.picard-oauth.entrypoints: websecure
-      traefik.http.routers.picardi-oauth.tls: "true"
-      #traefik.http.routers.picard-oauth.tls.certresolver: letsencrypt
-      traefik.http.services.picard-oauth.loadbalancer.server.port: 4180
-      traefik.http.routers.picard-oauth.middlewares: picard-auth-headers
-      traefik.http.middlewares.picard-auth-headers.headers.customrequestheaders.X-Forwarded-Proto: "https"
-
 networks:
   traefik-proxy:
     external: true

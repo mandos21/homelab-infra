@@ -48,24 +48,6 @@ services:
       - bookstack-internal
     ports:
       - "6875:80"
-    labels:
-      - traefik.enable=true
-
-      # Router (HTTPS)
-      - traefik.http.routers.bookstack.rule=Host(`docs.dege.app`)
-      - traefik.http.routers.bookstack.entrypoints=websecure
-      - traefik.http.routers.bookstack.tls=true
-      #- traefik.http.routers.bookstack.tls.certresolver=letsencrypt
-
-      # Service -> container port
-      - traefik.http.services.bookstack.loadbalancer.server.port=80
-
-      # Optional: some sane security headers (safe to remove)
-      - traefik.http.middlewares.bookstack-headers.headers.browserXssFilter=true
-      - traefik.http.middlewares.bookstack-headers.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.bookstack-headers.headers.frameDeny=true
-      - traefik.http.routers.bookstack.middlewares=bookstack-headers
-
 networks:
   traefik-proxy:
     external: true
@@ -73,4 +55,3 @@ networks:
 
   bookstack-internal:
     name: bookstack-internal
-

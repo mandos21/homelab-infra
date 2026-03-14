@@ -44,18 +44,6 @@ services:
       REDIS_HOST: redis
       # Optional LSIO settings
       # DOCKER_MODS: "linuxserver/mods:nextcloud-libreoffice"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: traefik-proxy
-
-      traefik.http.routers.nextcloud.rule: "Host(`cloud.dege.app`)"
-      traefik.http.routers.nextcloud.entrypoints: websecure
-      traefik.http.routers.nextcloud.tls: "true"
-      #traefik.http.routers.nextcloud.tls.certresolver: letsencrypt
-
-      traefik.http.services.nextcloud.loadbalancer.server.port: 443
-      traefik.http.services.nextcloud.loadbalancer.server.scheme: https
-    
     volumes:
       - /mnt/user/appdata/nextcloud:/config
       - /mnt/user/nextData:/data

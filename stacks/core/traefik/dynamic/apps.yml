@@ -1,0 +1,208 @@
+http:
+  routers:
+    calibreweb:
+      rule: Host(`ebooks.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: calibreweb
+
+    nextcloud:
+      rule: Host(`cloud.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: nextcloud
+
+    vaultwarden:
+      rule: Host(`passwords.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: vaultwarden
+
+    picard:
+      rule: Host(`tags.dege.app`)
+      priority: 10
+      entryPoints:
+        - websecure
+      middlewares:
+        - picard-auth-errors
+        - picard-auth
+      tls: {}
+      service: picard
+
+    picard-oauth:
+      rule: Host(`tags.dege.app`) && PathPrefix(`/oauth2`)
+      priority: 100
+      entryPoints:
+        - websecure
+      middlewares:
+        - picard-auth-headers
+      tls: {}
+      service: picard-oauth
+
+    audiobooks:
+      rule: Host(`audiobooks.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: audiobooks
+
+    bookstack:
+      rule: Host(`docs.dege.app`)
+      entryPoints:
+        - websecure
+      middlewares:
+        - bookstack-headers
+      tls: {}
+      service: bookstack
+
+    navidrome:
+      rule: Host(`music.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: navidrome
+
+    static-web:
+      rule: Host(`mdegenaro.com`) || Host(`www.mdegenaro.com`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: static-web
+
+    freshrss:
+      rule: Host(`rss.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: freshrss
+
+    firefly:
+      rule: Host(`finances.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: firefly
+
+    mattermost:
+      rule: Host(`theborocrew.com`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: mattermost
+
+    keycloak:
+      rule: Host(`id.mdegenaro.com`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: keycloak
+
+    homeassistant:
+      rule: Host(`home.dege.app`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: homeassistant
+
+  services:
+    calibreweb:
+      loadBalancer:
+        servers:
+          - url: http://calibre-web-automated:8083
+
+    nextcloud:
+      loadBalancer:
+        serversTransport: nextcloud-insecure
+        servers:
+          - url: https://apps-nextcloud:443
+
+    vaultwarden:
+      loadBalancer:
+        servers:
+          - url: http://vaultwarden:80
+
+    picard:
+      loadBalancer:
+        servers:
+          - url: http://apps-picard:5800
+
+    picard-oauth:
+      loadBalancer:
+        servers:
+          - url: http://apps-picard-oauth2-proxy:4180
+
+    audiobooks:
+      loadBalancer:
+        servers:
+          - url: http://audiobookshelf:80
+
+    bookstack:
+      loadBalancer:
+        servers:
+          - url: http://bookstack:80
+
+    navidrome:
+      loadBalancer:
+        servers:
+          - url: http://apps-navidrome:4533
+
+    static-web:
+      loadBalancer:
+        servers:
+          - url: http://binhex-nginx:8080
+
+    freshrss:
+      loadBalancer:
+        servers:
+          - url: http://freshrss:80
+
+    firefly:
+      loadBalancer:
+        servers:
+          - url: http://firefly_iii_core:8080
+
+    mattermost:
+      loadBalancer:
+        servers:
+          - url: http://mattermost:8065
+
+    keycloak:
+      loadBalancer:
+        servers:
+          - url: http://keycloak:8080
+
+    homeassistant:
+      loadBalancer:
+        servers:
+          - url: http://home-assistant:8123
+
+  middlewares:
+    picard-auth:
+      forwardAuth:
+        address: http://apps-picard-oauth2-proxy:4180/oauth2/auth
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+          - Authorization
+
+    picard-auth-errors:
+      errors:
+        status:
+          - "401-403"
+        service: picard-oauth
+        query: /oauth2/sign_in?rd={url}
+
+    picard-auth-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+
+    bookstack-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
