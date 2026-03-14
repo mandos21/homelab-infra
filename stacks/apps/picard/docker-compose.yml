@@ -57,7 +57,7 @@ services:
       traefik.http.routers.picard-oauth.rule: Host(`tags.dege.app`) && PathPrefix(`/oauth2`)
       traefik.http.routers.picard-oauth.priority: 100
       traefik.http.routers.picard-oauth.entrypoints: websecure
-      traefik.http.routers.picard-oauth.tls.certresolver: letsencrypt
+      #traefik.http.routers.picard-oauth.tls.certresolver: letsencrypt
       traefik.http.services.picard-oauth.loadbalancer.server.port: 4180
       traefik.http.routers.picard-oauth.middlewares: picard-auth-headers
       traefik.http.middlewares.picard-auth-headers.headers.customrequestheaders.X-Forwarded-Proto: "https"
