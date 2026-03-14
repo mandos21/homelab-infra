@@ -33,7 +33,7 @@ services:
       traefik.http.routers.mattermost.rule: Host(`theborocrew.com`)
       traefik.http.routers.mattermost.entrypoints: websecure
       #traefik.http.routers.mattermost.tls.certresolver: letsencrypt
-      traefik.http.routers.mattermost.tls: true
+      traefik.http.routers.mattermost.tls: "true"
       traefik.http.services.mattermost.loadbalancer.server.port: 8065
     volumes:
       - /mnt/user/mattermost/config:/mattermost/config
