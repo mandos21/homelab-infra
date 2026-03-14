@@ -27,6 +27,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/mnt/user/appdata/traefik/letsencrypt:/letsencrypt"
       - "${TRAEFIK_DYNAMIC_DIR:-/mnt/user/appdata/traefik/dynamic}:/etc/traefik/dynamic"
+      - "boot/config/traefil/certs:/boot/config/traefik/certs:ro"
     networks:
       - traefik-proxy
 #  error-pages:
