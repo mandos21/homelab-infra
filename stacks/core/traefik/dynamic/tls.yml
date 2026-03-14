@@ -2,5 +2,5 @@ tls:
   stores:
     default:
       defaultCertificate:
-        certFile: /boot/traefik/certs/traefik.crt
-        keyFile: /boot/traefil/certs/traefik.key
+        certFile: /etc/traefik/dynamic/certs/traefik.crt
+        keyFile: /etc/traefil/dynamic/certs/traefik.key
