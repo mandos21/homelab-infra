@@ -3,4 +3,4 @@ tls:
     default:
       defaultCertificate:
         certFile: /etc/traefik/dynamic/certs/traefik.crt
-        keyFile: /etc/traefil/dynamic/certs/traefik.key
+        keyFile: /etc/traefik/dynamic/certs/traefik.key
