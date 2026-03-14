@@ -14,6 +14,7 @@ services:
       traefik.http.routers.static-web.rule: Host(`mdegenaro.com`) || Host( `www.mdegenaro.com`)
       traefik.http.routers.static-web.entrypoints: websecure
       # traefik.http.routers.static-web.tls.certresolver: letsencrypt
+      traefik.http.routers.static-web.tls: "true"
       traefik.http.services.static-web.loadbalancer.server.port: 8080
     ports:
       - "8082:8080"
