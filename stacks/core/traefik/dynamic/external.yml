@@ -10,16 +10,12 @@ http:
       rule: Host(`photos.mdegenaro.com`)
       entryPoints:
         - websecure
-      tls:
-        certResolver: letsencrypt
       service: photos
 
     plex:
       rule: Host(`plex.mdegenaro.com`)
       entryPoints:
         - websecure
-      tls:
-        certResolver: letsencrypt
       service: plex
 
     #theborocrew:
