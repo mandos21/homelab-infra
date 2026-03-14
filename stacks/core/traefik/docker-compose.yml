@@ -14,7 +14,7 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.websecure.address=:443
       - --entrypoints.websecure.forwardedheaders.trustedips=192.168.1.78/32
-      - --entrypoints.web.forwardedheaders.trustedips=192.168.1.78/322
+      - --entrypoints.web.forwardedheaders.trustedips=192.168.1.78/32
       #- --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
       #- --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       #- --certificatesresolvers.letsencrypt.acme.httpchallenge=true
