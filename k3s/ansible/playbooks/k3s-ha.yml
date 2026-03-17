@@ -1,20 +1,23 @@
-- name: Install k3s HA (embedded etcd)
-  hosts: k3s_servers
+- name: Install k3s init server
+  hosts: "{{ k3s_init_host }}"
   become: true
   gather_facts: true
 
   vars:
-    k3s_init_ip: "{{ k3s_api_endpoint | default(hostvars[k3s_init_host].ansible_host) }}"
     k3s_disable_flags: >-
       {% set flags = [] -%}
       {% if k3s_disable_servicelb | default(false) %}{% set _ = flags.append('--disable servicelb') %}{% endif -%}
       {% if k3s_disable_traefik | default(false) %}{% set _ = flags.append('--disable traefik') %}{% endif -%}
       {{ flags | join(' ') }}
-    k3s_node_ip: "{{ stor_ip }}"
-    k3s_flannel_iface: "{{ stor_iface_name }}"
 
   tasks:
-    - name: Ensure k3s is not already installed
+    - name: Ensure init host is marked as a server
+      ansible.builtin.assert:
+        that:
+          - k3s_role == "server"
+        fail_msg: "{{ inventory_hostname }} must have k3s_role=server."
+
+    - name: Check whether k3s is already installed
       ansible.builtin.stat:
         path: /usr/local/bin/k3s
       register: k3s_bin
@@ -26,52 +29,77 @@
           sh -s - server \
           --cluster-init \
           --node-name {{ inventory_hostname }} \
-          --node-ip {{ k3s_node_ip }} \
-          --flannel-iface {{ k3s_flannel_iface }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
           --tls-san {{ k3s_api_tls_san }} \
           --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
           {{ k3s_disable_flags }}
       args:
         executable: /bin/bash
-      when:
-        - inventory_hostname == k3s_init_host
-        - not k3s_bin.stat.exists
+      when: not k3s_bin.stat.exists
 
     - name: Read k3s node token from init node
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: k3s_token
-      when: inventory_hostname == k3s_init_host
 
-    - name: Set fact for join token
+    - name: Set join token fact
       ansible.builtin.set_fact:
         k3s_join_token: "{{ k3s_token.content | b64decode | trim }}"
-      when: inventory_hostname == k3s_init_host
 
     - name: Wait for API to be reachable on init node
       ansible.builtin.wait_for:
-        host: "{{ k3s_init_ip }}"
+        host: "{{ k3s_api_endpoint }}"
         port: 6443
         timeout: 300
-      when: inventory_hostname == k3s_init_host
 
     - name: Ensure local artifacts directory exists
       ansible.builtin.file:
         path: k3s/ansible/artifacts
         state: directory
       delegate_to: localhost
-      run_once: true
 
-    - name: Install k3s on joining nodes
+    - name: Fetch kubeconfig from init node
+      ansible.builtin.fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: k3s/ansible/artifacts/k3s.yaml
+        flat: true
+
+- name: Install additional k3s servers
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    k3s_disable_flags: >-
+      {% set flags = [] -%}
+      {% if k3s_disable_servicelb | default(false) %}{% set _ = flags.append('--disable servicelb') %}{% endif -%}
+      {% if k3s_disable_traefik | default(false) %}{% set _ = flags.append('--disable traefik') %}{% endif -%}
+      {{ flags | join(' ') }}
+
+  tasks:
+    - name: Ensure host is marked as a server
+      ansible.builtin.assert:
+        that:
+          - k3s_role == "server"
+        fail_msg: "{{ inventory_hostname }} must have k3s_role=server."
+      when: inventory_hostname != k3s_init_host
+
+    - name: Check whether k3s is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_bin
+
+    - name: Install k3s on joining servers
       ansible.builtin.shell: |
         curl -sfL https://get.k3s.io | \
           INSTALL_K3S_VERSION={{ K3S_VERSION }} \
-          K3S_URL=https://{{ k3s_init_ip }}:6443 \
+          K3S_URL=https://{{ k3s_api_endpoint }}:6443 \
           K3S_TOKEN={{ hostvars[k3s_init_host].k3s_join_token }} \
           sh -s - server \
           --node-name {{ inventory_hostname }} \
-          --node-ip {{ k3s_node_ip }} \
-          --flannel-iface {{ k3s_flannel_iface }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
           --tls-san {{ k3s_api_tls_san }} \
           --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
           {{ k3s_disable_flags }}
@@ -81,9 +109,77 @@
         - inventory_hostname != k3s_init_host
         - not k3s_bin.stat.exists
 
-    - name: Fetch kubeconfig from init node
-      ansible.builtin.fetch:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: k3s/ansible/artifacts/k3s.yaml
-        flat: true
-      when: inventory_hostname == k3s_init_host
+- name: Install k3s agents on worker nodes
+  hosts: k3s_agents
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Ensure host is marked as an agent
+      ansible.builtin.assert:
+        that:
+          - k3s_role == "agent"
+        fail_msg: "{{ inventory_hostname }} must have k3s_role=agent."
+
+    - name: Check whether k3s agent is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s-agent
+      register: k3s_agent_bin
+
+    - name: Install k3s agent
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          K3S_URL=https://{{ k3s_api_endpoint }}:6443 \
+          K3S_TOKEN={{ hostvars[k3s_init_host].k3s_join_token }} \
+          sh -s - agent \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }}
+      args:
+        executable: /bin/bash
+      when: not k3s_agent_bin.stat.exists
+
+- name: Apply node labels and taints from inventory
+  hosts: k3s_cluster
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Wait for node to register with the cluster
+      ansible.builtin.command: >
+        k3s kubectl get node {{ inventory_hostname }}
+      delegate_to: "{{ k3s_init_host }}"
+      register: node_ready
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: node_ready.rc == 0
+
+    - name: Apply node labels
+      ansible.builtin.command: >
+        k3s kubectl label node {{ inventory_hostname }}
+        node-type={{ node_type }}
+        storage.longhorn.io/eligible={{ (longhorn_eligible | bool) | ternary('true', 'false') }}
+        --overwrite
+        {% if compute_tier is defined %}compute-tier={{ compute_tier }}{% endif %}
+      delegate_to: "{{ k3s_init_host }}"
+      changed_when: false
+
+    - name: Remove VM taint from bare metal nodes
+      ansible.builtin.command: >
+        k3s kubectl taint node {{ inventory_hostname }} node-type=vm:NoSchedule-
+      delegate_to: "{{ k3s_init_host }}"
+      register: taint_removed
+      changed_when: "'untainted' in taint_removed.stdout"
+      failed_when: taint_removed.rc not in [0, 1]
+      when: node_type == "baremetal"
+
+    - name: Apply VM taint to VM worker nodes
+      ansible.builtin.command: >
+        k3s kubectl taint node {{ inventory_hostname }} node-type=vm:NoSchedule --overwrite
+      delegate_to: "{{ k3s_init_host }}"
+      changed_when: false
+      when:
+        - node_type == "vm"
+        - vm_taint_enabled | default(true)

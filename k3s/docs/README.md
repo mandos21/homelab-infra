@@ -3,7 +3,8 @@
 Assumptions:
 - Control machine is Linux (Ubuntu 24.04 or similar)
 - Repo cloned locally and you run commands from repo root
-- Nodes: minandras, tadandras, nelandras (Ubuntu 24.04)
+- Bare-metal servers: minandras, tadandras, nelandras (Ubuntu 24.04)
+- Optional VM workers join as k3s agents only
 
 ## 0) One-time prep
 
@@ -13,8 +14,8 @@ Assumptions:
 
 2. Network layout (per node):
    - `mgmt` (1GbE) for SSH/Internet: `192.168.1.0/24`
-   - `stor` (2.5GbE) for k3s/Longhorn east-west: `192.168.2.0/24`
-   - Ensure you set `mgmt_ip`, `stor_ip`, and MACs in inventory.
+   - `stor` (2.5GbE) for k3s/Longhorn east-west: `192.168.3.0/24`
+   - Ensure you set `mgmt_ip`, `stor_ip`, MACs, `k3s_role`, `node_type`, and `longhorn_eligible` in inventory.
 
 3. Ensure SSH access to all nodes:
 
@@ -69,6 +70,7 @@ ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-ha
 ```
 
 This installs k3s with `--node-ip` and `--flannel-iface` set to the stor network.
+Servers join as embedded-etcd control-plane nodes. VM workers, if present in `k3s_agents`, join as agents only.
 
 ## 4) Configure kubeconfig on control machine
 
@@ -81,7 +83,7 @@ scp ubuntu@minandras:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 2. Update the server address in kubeconfig:
 
 ```bash
-sed -i 's/127.0.0.1/192.168.1.101/' ~/.kube/config
+sed -i 's/127.0.0.1/192.168.1.245/' ~/.kube/config
 ```
 
 3. Verify:
@@ -163,7 +165,17 @@ Use the mgmt LAN for MetalLB (e.g., `192.168.1.0/24`). Keep the stor network int
 
 ## 9) Add apps
 
-Create app folders under `k3s/cluster/apps/<app>` and add HelmReleases.
+Use the repo split consistently:
+- `k3s/cluster/apps/core/` for core or stateful workloads that must stay on bare metal
+- `k3s/cluster/apps/compute/` for VM-friendly lab workloads
+
+Scheduling defaults:
+- Core apps: `nodeSelector: { node-type: baremetal }`
+- Core apps: do not add the VM toleration
+- Compute apps: `nodeSelector: { node-type: vm }`
+- Compute apps: add toleration for `node-type=vm:NoSchedule`
+- Stateful core apps should use `storageClassName: longhorn`
+- VM workloads should avoid Longhorn unless there is a deliberate exception
 
 ## 10) Backups and restore
 

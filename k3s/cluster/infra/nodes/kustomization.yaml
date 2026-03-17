@@ -1,4 +1,4 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - labels.yaml
+# Node labels and taints are managed by Ansible after nodes join the cluster.
+resources: []

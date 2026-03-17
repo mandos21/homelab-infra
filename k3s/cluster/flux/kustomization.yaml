@@ -5,4 +5,5 @@ resources:
   - gitrepository.yaml
   - kustomization-infra.yaml
   - kustomization-secrets.yaml
-  - kustomization-apps.yaml
+  - kustomization-apps-core.yaml
+  - kustomization-apps-compute.yaml

@@ -5,14 +5,15 @@ K3S_VERSION: "v1.30.5+k3s1"
 k3s_init_host: "minandras"
 
 # API address or VIP you will use to access the cluster
-k3s_api_tls_san: "192.168.1.101"
+k3s_api_tls_san: "192.168.1.245"
 # Endpoint used by servers to join the cluster (API address or VIP)
-k3s_api_endpoint: "192.168.1.101"
+k3s_api_endpoint: "192.168.1.245"
 
 # Optional k3s server flags
 k3s_disable_servicelb: true
 k3s_disable_traefik: false
 k3s_write_kubeconfig_mode: "644"
+vm_taint_enabled: true
 
 # Network layout
 mgmt_iface_name: "mgmt0"
