@@ -140,7 +140,7 @@
         executable: /bin/bash
       when: not k3s_agent_bin.stat.exists
 
-- name: Apply node labels and taints from inventory
+- name: Apply node labels from inventory
   hosts: k3s_cluster
   become: true
   gather_facts: false
@@ -160,26 +160,9 @@
       ansible.builtin.command: >
         k3s kubectl label node {{ inventory_hostname }}
         node-type={{ node_type }}
+        longhorn={{ (longhorn_eligible | bool) | ternary('enabled', 'disabled') }}
         storage.longhorn.io/eligible={{ (longhorn_eligible | bool) | ternary('true', 'false') }}
         --overwrite
         {% if compute_tier is defined %}compute-tier={{ compute_tier }}{% endif %}
       delegate_to: "{{ k3s_init_host }}"
       changed_when: false
-
-    - name: Remove VM taint from bare metal nodes
-      ansible.builtin.command: >
-        k3s kubectl taint node {{ inventory_hostname }} node-type=vm:NoSchedule-
-      delegate_to: "{{ k3s_init_host }}"
-      register: taint_removed
-      changed_when: "'untainted' in taint_removed.stdout"
-      failed_when: taint_removed.rc not in [0, 1]
-      when: node_type == "baremetal"
-
-    - name: Apply VM taint to VM worker nodes
-      ansible.builtin.command: >
-        k3s kubectl taint node {{ inventory_hostname }} node-type=vm:NoSchedule --overwrite
-      delegate_to: "{{ k3s_init_host }}"
-      changed_when: false
-      when:
-        - node_type == "vm"
-        - vm_taint_enabled | default(true)

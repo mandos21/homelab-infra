@@ -13,7 +13,6 @@ k3s_api_endpoint: "192.168.1.245"
 k3s_disable_servicelb: true
 k3s_disable_traefik: false
 k3s_write_kubeconfig_mode: "644"
-vm_taint_enabled: true
 
 # Network layout
 mgmt_iface_name: "mgmt0"

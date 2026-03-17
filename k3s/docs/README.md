@@ -71,6 +71,9 @@ ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-ha
 
 This installs k3s with `--node-ip` and `--flannel-iface` set to the stor network.
 Servers join as embedded-etcd control-plane nodes. VM workers, if present in `k3s_agents`, join as agents only.
+Node labels applied by Ansible:
+- Bare metal storage nodes: `node-type=baremetal`, `longhorn=enabled`
+- VM workers: `node-type=vm`, `longhorn=disabled`
 
 ## 4) Configure kubeconfig on control machine
 
@@ -166,16 +169,15 @@ Use the mgmt LAN for MetalLB (e.g., `192.168.1.0/24`). Keep the stor network int
 ## 9) Add apps
 
 Use the repo split consistently:
-- `k3s/cluster/apps/core/` for core or stateful workloads that must stay on bare metal
-- `k3s/cluster/apps/compute/` for VM-friendly lab workloads
+- `k3s/cluster/apps/replicated/` for Longhorn-backed HA workloads
+- `k3s/cluster/apps/nas-attached/` for workloads coupled to Unraid or NAS storage
 
 Scheduling defaults:
-- Core apps: `nodeSelector: { node-type: baremetal }`
-- Core apps: do not add the VM toleration
-- Compute apps: `nodeSelector: { node-type: vm }`
-- Compute apps: add toleration for `node-type=vm:NoSchedule`
-- Stateful core apps should use `storageClassName: longhorn`
-- VM workloads should avoid Longhorn unless there is a deliberate exception
+- Replicated apps: `nodeSelector: { longhorn: "enabled" }`
+- Replicated apps: use `storageClassName: longhorn` for PVCs
+- NAS-attached apps: `nodeSelector: { node-type: "vm" }`
+- NAS-attached apps: use NFS-backed PVCs, static NFS PVs, or equivalent Unraid-backed storage
+- Secrets stay under `k3s/cluster/secrets/` for both app trees
 
 ## 10) Backups and restore
 
