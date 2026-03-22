@@ -59,14 +59,26 @@
                   - to: default
                     via: {{ mgmt_gateway }}
                 nameservers:
-                  addresses:
-                    {% for dns in mgmt_dns %}
-                    - {{ dns }}
-                    {% endfor %}
+                  addresses: [{{ mgmt_dns | map('quote') | join(', ') }}]
               {{ stor_iface_name }}:
                 addresses:
                   - {{ stor_ip }}/{{ stor_prefix }}
       register: netplan_cfg
+
+    - name: Validate netplan YAML syntax
+      ansible.builtin.command:
+        argv:
+          - python3
+          - -c
+          - "import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))"
+          - /etc/netplan/50-k3s.yaml
+      changed_when: false
+      when: netplan_cfg.changed
+
+    - name: Validate netplan configuration with netplan generate
+      ansible.builtin.command: netplan generate
+      changed_when: false
+      when: netplan_cfg.changed
 
     - name: Reboot to apply NIC renaming
       ansible.builtin.reboot:

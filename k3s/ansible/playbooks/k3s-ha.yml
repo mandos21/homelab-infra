@@ -64,15 +64,16 @@
 
     - name: Ensure local artifacts directory exists
       ansible.builtin.file:
-        path: k3s/ansible/artifacts
+        path: "{{ playbook_dir }}/../artifacts"
         state: directory
       delegate_to: localhost
+      become: false
       run_once: true
 
     - name: Fetch kubeconfig from init node
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: k3s/ansible/artifacts/k3s.yaml
+        dest: "{{ playbook_dir }}/../artifacts/k3s.yaml"
         flat: true
       when: inventory_hostname == k3s_init_host
 
