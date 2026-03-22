@@ -20,9 +20,9 @@ Assumptions:
 3. Ensure SSH access to all nodes:
 
 ```bash
-ssh ubuntu@minandras
-ssh ubuntu@tadandras
-ssh ubuntu@nelandras
+ssh ansible@192.168.1.245
+ssh ansible@192.168.1.153
+ssh ansible@192.168.1.243
 ```
 
 ## 1) Install control-machine tooling
@@ -80,7 +80,7 @@ Node labels applied by Ansible:
 1. Copy kubeconfig from `minandras`:
 
 ```bash
-scp ubuntu@minandras:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+scp ansible@192.168.1.245:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 ```
 
 2. Update the server address in kubeconfig:

@@ -1,5 +1,5 @@
 - name: Install k3s init server
-  hosts: "{{ k3s_init_host }}"
+  hosts: k3s_servers
   become: true
   gather_facts: true
 
@@ -16,11 +16,13 @@
         that:
           - k3s_role == "server"
         fail_msg: "{{ inventory_hostname }} must have k3s_role=server."
+      when: inventory_hostname == k3s_init_host
 
     - name: Check whether k3s is already installed
       ansible.builtin.stat:
         path: /usr/local/bin/k3s
       register: k3s_bin
+      when: inventory_hostname == k3s_init_host
 
     - name: Install k3s on init node
       ansible.builtin.shell: |
@@ -36,34 +38,41 @@
           {{ k3s_disable_flags }}
       args:
         executable: /bin/bash
-      when: not k3s_bin.stat.exists
+      when:
+        - inventory_hostname == k3s_init_host
+        - not k3s_bin.stat.exists
 
     - name: Read k3s node token from init node
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: k3s_token
+      when: inventory_hostname == k3s_init_host
 
     - name: Set join token fact
       ansible.builtin.set_fact:
         k3s_join_token: "{{ k3s_token.content | b64decode | trim }}"
+      when: inventory_hostname == k3s_init_host
 
     - name: Wait for API to be reachable on init node
       ansible.builtin.wait_for:
         host: "{{ k3s_api_endpoint }}"
         port: 6443
         timeout: 300
+      when: inventory_hostname == k3s_init_host
 
     - name: Ensure local artifacts directory exists
       ansible.builtin.file:
         path: k3s/ansible/artifacts
         state: directory
       delegate_to: localhost
+      run_once: true
 
     - name: Fetch kubeconfig from init node
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
         dest: k3s/ansible/artifacts/k3s.yaml
         flat: true
+      when: inventory_hostname == k3s_init_host
 
 - name: Install additional k3s servers
   hosts: k3s_servers
@@ -146,6 +155,16 @@
   gather_facts: false
 
   tasks:
+    - name: Check whether k3s server binary is installed locally
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_server_bin
+
+    - name: Check whether k3s agent binary is installed locally
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s-agent
+      register: k3s_agent_bin
+
     - name: Wait for node to register with the cluster
       ansible.builtin.command: >
         k3s kubectl get node {{ inventory_hostname }}
@@ -155,6 +174,15 @@
       retries: 30
       delay: 10
       until: node_ready.rc == 0
+      when:
+        - k3s_server_bin.stat.exists or k3s_agent_bin.stat.exists
+
+    - name: Skip labeling for hosts not yet joined to the cluster
+      ansible.builtin.debug:
+        msg: "Skipping labels for {{ inventory_hostname }} because k3s is not installed on this host yet."
+      when:
+        - not k3s_server_bin.stat.exists
+        - not k3s_agent_bin.stat.exists
 
     - name: Apply node labels
       ansible.builtin.command: >
@@ -166,3 +194,5 @@
         {% if compute_tier is defined %}compute-tier={{ compute_tier }}{% endif %}
       delegate_to: "{{ k3s_init_host }}"
       changed_when: false
+      when:
+        - k3s_server_bin.stat.exists or k3s_agent_bin.stat.exists
