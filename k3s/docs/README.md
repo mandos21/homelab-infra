@@ -9,8 +9,8 @@ Assumptions:
 ## 0) One-time prep
 
 1. Update inventory + vars:
-   - `k3s/ansible/inventory/hosts.yml`
-   - `k3s/ansible/group_vars/all.yml`
+   - `k3s/ansible/inventory/hosts.yaml`
+   - `k3s/ansible/group_vars/all.yaml`
 
 2. Network layout (per node):
    - `mgmt` (1GbE) for SSH/Internet: `192.168.1.0/24`
@@ -52,13 +52,13 @@ sudo apt install -y age
 ## 2) Bootstrap nodes (swap off, packages, iscsid, etc)
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootstrap.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/bootstrap.yaml
 ```
 
 If a node is not ready (e.g., missing MACs), use `--limit`:
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootstrap.yml --limit minandras,tadandras
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/bootstrap.yaml --limit minandras,tadandras
 ```
 
 Note: If udev rules changed, nodes will reboot to apply stable NIC names.
@@ -66,7 +66,7 @@ Note: If udev rules changed, nodes will reboot to apply stable NIC names.
 ## 3) Install k3s HA (embedded etcd)
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-ha.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/k3s-ha.yaml
 ```
 
 This installs k3s with `--node-ip` and `--flannel-iface` set to the stor network.
@@ -77,10 +77,10 @@ Node labels applied by Ansible:
 
 ## 3a) Upgrade k3s later
 
-Set the target version in `k3s/ansible/group_vars/all.yml`, then run:
+Set the target version in `k3s/ansible/group_vars/all.yaml`, then run:
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-upgrade.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/k3s-upgrade.yaml
 ```
 
 The upgrade playbook upgrades:
@@ -180,7 +180,7 @@ Do not enable Longhorn or MetalLB until you have:
 Prepare the dedicated Longhorn disks on the bare-metal nodes first:
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/longhorn-disk-prep.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/longhorn-disk-prep.yaml
 ```
 
 The disk prep playbook:

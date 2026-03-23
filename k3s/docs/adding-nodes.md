@@ -5,7 +5,7 @@
 1. Add the node to inventory:
 
 ```bash
-vi k3s/ansible/inventory/hosts.yml
+vi k3s/ansible/inventory/hosts.yaml
 ```
 
 Set these host vars:
@@ -21,7 +21,7 @@ Ansible will translate this into node labels:
 2. Bootstrap the node:
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootstrap.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/bootstrap.yaml
 ```
 
 3. Join the node as a server or agent:
@@ -30,10 +30,10 @@ ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/bootst
 - Agent (VM worker): add to `k3s_agents` and re-run:
 
 ```bash
-ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-ha.yml
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/k3s-ha.yaml
 ```
 
-4. Labels are applied automatically from inventory by `k3s/ansible/playbooks/k3s-ha.yml`.
+4. Labels are applied automatically from inventory by `k3s/ansible/playbooks/k3s-ha.yaml`.
 
 5. Verify:
 

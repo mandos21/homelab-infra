@@ -3,7 +3,7 @@
   become: true
   gather_facts: false
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   tasks:
     - name: Read k3s node token from init node
@@ -22,7 +22,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
   serial: 1
 
   vars:
@@ -74,7 +74,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
   serial: 1
 
   vars:
@@ -120,7 +120,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
   serial: 1
 
   tasks:

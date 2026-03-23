@@ -3,7 +3,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   tasks:
     - name: Ensure this playbook only runs on bare-metal Longhorn nodes

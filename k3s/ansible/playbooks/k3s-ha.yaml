@@ -3,7 +3,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   vars:
     k3s_disable_flags: >-
@@ -82,7 +82,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   vars:
     k3s_disable_flags: >-
@@ -128,7 +128,7 @@
   become: true
   gather_facts: true
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   tasks:
     - name: Ensure host is marked as an agent
@@ -161,7 +161,7 @@
   become: true
   gather_facts: false
   vars_files:
-    - ../group_vars/all.yml
+    - ../group_vars/all.yaml
 
   tasks:
     - name: Check whether k3s server binary is installed locally
@@ -199,6 +199,7 @@
         node-type={{ node_type }}
         longhorn={{ (longhorn_eligible | bool) | ternary('enabled', 'disabled') }}
         storage.longhorn.io/eligible={{ (longhorn_eligible | bool) | ternary('true', 'false') }}
+        node.longhorn.io/create-default-disk={{ (longhorn_eligible | bool) | ternary('true', 'false') }}
         --overwrite
         {% if compute_tier is defined %}compute-tier={{ compute_tier }}{% endif %}
       delegate_to: "{{ k3s_init_host }}"
