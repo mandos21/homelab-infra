@@ -14,7 +14,29 @@ spec:
         name: longhorn
         namespace: flux-system
   values:
+    # Keep the UI internal until ingress and auth are designed.
+    service:
+      ui:
+        type: ClusterIP
+
+    # Do not make Longhorn the cluster-wide default StorageClass yet.
+    persistence:
+      defaultClass: false
+      defaultClassReplicaCount: 2
+
     defaultSettings:
+      # Only nodes explicitly labeled for Longhorn get an automatic default disk.
       createDefaultDiskLabeledNodes: true
+      # This must match the dedicated mount prepared by Ansible.
       defaultDataPath: /var/lib/longhorn
-      defaultReplicaCount: 3
+      # Use 2 replicas by default to preserve more usable capacity on 1 TB nodes.
+      defaultReplicaCount: 2
+
+    # Backup target will point at Unraid NFS once the export path and schedule policy are defined.
+    defaultBackupStore:
+      backupTarget: null
+      backupTargetCredentialSecret: null
+
+    # Expose the UI later through Traefik once auth is in front of it.
+    ingress:
+      enabled: false
