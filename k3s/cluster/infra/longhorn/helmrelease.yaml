@@ -32,9 +32,10 @@ spec:
       # Use 2 replicas by default to preserve more usable capacity on 1 TB nodes.
       defaultReplicaCount: 2
 
-    # Backup target will point at Unraid NFS once the export path and schedule policy are defined.
+    # This is the cluster-wide backup destination Longhorn uses for backup/restore operations.
+    # Per-volume or per-workload recurring jobs decide when backups happen, not where they go.
     defaultBackupStore:
-      backupTarget: null
+      backupTarget: nfs://192.168.1.231:/mnt/user/longhorn-backups
       backupTargetCredentialSecret: null
 
     # Expose the UI later through Traefik once auth is in front of it.

@@ -1,22 +1,31 @@
 # Backups
 
-## Required decisions
+## Current target
 
-- Longhorn backup target: NFS on Unraid or S3-compatible.
-- DB logical backups for stateful apps (e.g., PostgreSQL, MariaDB).
+- Longhorn backup target: `nfs://192.168.1.231:/mnt/user/longhorn-backups`
 
-## Longhorn
+## How Longhorn uses it
 
-1. Choose target and credentials.
-2. Configure Longhorn backup target and recurring jobs.
-3. Store backup credentials as SOPS secrets.
+- The backup target is cluster-wide.
+- It is the destination store for Longhorn backups and restores.
+- It does not decide which workloads get backed up or how often.
+- Backup frequency is controlled separately by recurring jobs attached to a StorageClass, PVC, or Longhorn volume.
+
+## Longhorn plan
+
+1. Keep the cluster-wide NFS target configured in the Longhorn HelmRelease.
+2. Add recurring jobs later for different workloads.
+3. Use more frequent jobs for high-value apps such as Mattermost or Matrix.
+4. Use less frequent jobs for lower-priority workloads.
 
 ## Database backups
 
-- Use app-specific jobs or sidecars to run `pg_dump`/`mysqldump`.
-- Store artifacts in the same backup target.
+- Longhorn backups protect the block volume, not application-level consistency by themselves.
+- Stateful apps with databases should also get logical backups such as `pg_dump` or `mysqldump`.
+- Store those artifacts in Unraid as well, either alongside Longhorn backups or in a separate app-backup path.
 
 ## Restore testing
 
 - Schedule quarterly restore drills.
+- Document node-failure recovery separately from full-cluster recovery.
 - Document RTO/RPO expectations.
