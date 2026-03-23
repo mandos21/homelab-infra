@@ -1,5 +1,5 @@
 # Global k3s + bootstrap defaults
-K3S_VERSION: "v1.30.5+k3s1"
+K3S_VERSION: "v1.35.2+k3s1"
 
 # Which host should initialize the embedded etcd cluster
 k3s_init_host: "minandras"

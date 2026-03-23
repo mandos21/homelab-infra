@@ -1,0 +1,157 @@
+- name: Read k3s join token for upgrades
+  hosts: k3s_servers
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+
+  tasks:
+    - name: Read k3s node token from init node
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+      when: inventory_hostname == k3s_init_host
+
+    - name: Set join token fact
+      ansible.builtin.set_fact:
+        k3s_join_token: "{{ k3s_token.content | b64decode | trim }}"
+      when: inventory_hostname == k3s_init_host
+
+- name: Upgrade k3s init server
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+  serial: 1
+
+  vars:
+    k3s_disable_flags: >-
+      {% set flags = [] -%}
+      {% if k3s_disable_servicelb | default(false) %}{% set _ = flags.append('--disable servicelb') %}{% endif -%}
+      {% if k3s_disable_traefik | default(false) %}{% set _ = flags.append('--disable traefik') %}{% endif -%}
+      {{ flags | join(' ') }}
+
+  tasks:
+    - name: Check installed k3s version on init server
+      ansible.builtin.command: k3s --version
+      register: k3s_version_cmd
+      changed_when: false
+      when: inventory_hostname == k3s_init_host
+
+    - name: Extract installed k3s version on init server
+      ansible.builtin.set_fact:
+        k3s_installed_version: "{{ k3s_version_cmd.stdout_lines[0].split(' ')[2] }}"
+      when: inventory_hostname == k3s_init_host
+
+    - name: Upgrade init server when target version differs
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          sh -s - server \
+          --cluster-init \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
+          --tls-san {{ k3s_api_tls_san }} \
+          --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
+          {{ k3s_disable_flags }}
+      args:
+        executable: /bin/bash
+      when:
+        - inventory_hostname == k3s_init_host
+        - k3s_installed_version != K3S_VERSION
+
+    - name: Wait for API to be reachable after init server upgrade
+      ansible.builtin.wait_for:
+        host: "{{ k3s_api_endpoint }}"
+        port: 6443
+        timeout: 300
+      when: inventory_hostname == k3s_init_host
+
+- name: Upgrade additional k3s servers
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+  serial: 1
+
+  vars:
+    k3s_disable_flags: >-
+      {% set flags = [] -%}
+      {% if k3s_disable_servicelb | default(false) %}{% set _ = flags.append('--disable servicelb') %}{% endif -%}
+      {% if k3s_disable_traefik | default(false) %}{% set _ = flags.append('--disable traefik') %}{% endif -%}
+      {{ flags | join(' ') }}
+
+  tasks:
+    - name: Skip init server in additional server upgrade phase
+      ansible.builtin.meta: end_host
+      when: inventory_hostname == k3s_init_host
+
+    - name: Check installed k3s version on joining servers
+      ansible.builtin.command: k3s --version
+      register: k3s_version_cmd
+      changed_when: false
+
+    - name: Extract installed k3s version on joining servers
+      ansible.builtin.set_fact:
+        k3s_installed_version: "{{ k3s_version_cmd.stdout_lines[0].split(' ')[2] }}"
+
+    - name: Upgrade joining servers when target version differs
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          K3S_URL=https://{{ k3s_api_endpoint }}:6443 \
+          K3S_TOKEN=$(cat /var/lib/rancher/k3s/server/node-token) \
+          sh -s - server \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
+          --tls-san {{ k3s_api_tls_san }} \
+          --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
+          {{ k3s_disable_flags }}
+      args:
+        executable: /bin/bash
+      when: k3s_installed_version != K3S_VERSION
+
+- name: Upgrade k3s agents
+  hosts: k3s_agents
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+  serial: 1
+
+  tasks:
+    - name: Check installed k3s agent version
+      ansible.builtin.shell: |
+        if command -v k3s-agent >/dev/null 2>&1; then
+          k3s-agent --version
+        elif command -v k3s >/dev/null 2>&1; then
+          k3s --version
+        else
+          /usr/local/bin/k3s --version
+        fi
+      args:
+        executable: /bin/bash
+      register: k3s_version_cmd
+      changed_when: false
+
+    - name: Extract installed k3s agent version
+      ansible.builtin.set_fact:
+        k3s_installed_version: "{{ k3s_version_cmd.stdout_lines[0].split(' ')[2] }}"
+
+    - name: Upgrade agent nodes when target version differs
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          K3S_URL=https://{{ k3s_api_endpoint }}:6443 \
+          K3S_TOKEN={{ hostvars[k3s_init_host].k3s_join_token | default('') }} \
+          sh -s - agent \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }}
+      args:
+        executable: /bin/bash
+      when: k3s_installed_version != K3S_VERSION

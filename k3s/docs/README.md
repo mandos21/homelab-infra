@@ -75,6 +75,19 @@ Node labels applied by Ansible:
 - Bare metal storage nodes: `node-type=baremetal`, `longhorn=enabled`
 - VM workers: `node-type=vm`, `longhorn=disabled`
 
+## 3a) Upgrade k3s later
+
+Set the target version in `k3s/ansible/group_vars/all.yml`, then run:
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/k3s-upgrade.yml
+```
+
+The upgrade playbook upgrades:
+- the init server first
+- the remaining servers one at a time
+- the agent nodes one at a time
+
 ## 4) Configure kubeconfig on control machine
 
 1. Copy kubeconfig from `minandras`:
