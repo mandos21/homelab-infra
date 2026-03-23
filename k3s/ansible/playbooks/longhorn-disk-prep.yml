@@ -1,0 +1,293 @@
+- name: Prepare dedicated Longhorn disks on bare-metal nodes
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+
+  tasks:
+    - name: Ensure this playbook only runs on bare-metal Longhorn nodes
+      ansible.builtin.assert:
+        that:
+          - node_type == "baremetal"
+          - longhorn_eligible | bool
+        fail_msg: >-
+          {{ inventory_hostname }} is not marked as a Longhorn-capable bare-metal node.
+          Set node_type=baremetal and longhorn_eligible=true before running this playbook.
+
+    - name: Install disk management packages
+      ansible.builtin.apt:
+        name:
+          - parted
+          - e2fsprogs
+          - util-linux
+        state: present
+        update_cache: true
+
+    - name: Gather lsblk inventory as JSON
+      ansible.builtin.command:
+        argv:
+          - lsblk
+          - --json
+          - --output
+          - NAME,PATH,TYPE,PKNAME,MOUNTPOINT,FSTYPE
+      register: lsblk_json
+      changed_when: false
+
+    - name: Identify Longhorn candidate disk and partition
+      ansible.builtin.shell: |
+        python3 - <<'PY' '{{ lsblk_json.stdout }}'
+        import json
+        import sys
+
+        data = json.loads(sys.argv[1])
+        devices = data.get("blockdevices", [])
+
+        entries = {}
+
+        def visit(node, parent=None):
+          item = {
+            "name": node.get("name"),
+            "path": node.get("path"),
+            "type": node.get("type"),
+            "pkname": node.get("pkname"),
+            "mountpoint": node.get("mountpoint"),
+            "fstype": node.get("fstype"),
+            "children": [child.get("name") for child in node.get("children", [])],
+          }
+          entries[item["name"]] = item
+          for child in node.get("children", []):
+            visit(child, item["name"])
+
+        for device in devices:
+          visit(device)
+
+        protected_mounts = {"/", "/boot", "/boot/efi"}
+        protected_names = {
+          name for name, item in entries.items()
+          if item["mountpoint"] in protected_mounts
+        }
+
+        def top_disk(name):
+          current = entries.get(name)
+          if not current:
+            return None
+          while current["type"] != "disk" and current.get("pkname"):
+            current = entries.get(current["pkname"])
+            if not current:
+              return None
+          return current["name"] if current and current["type"] == "disk" else None
+
+        protected_disks = {disk for disk in (top_disk(name) for name in protected_names) if disk}
+
+        candidate_disks = []
+        for name, item in entries.items():
+          if item["type"] != "disk":
+            continue
+          if name in protected_disks:
+            continue
+          if item["mountpoint"]:
+            continue
+          mounted_children = [
+            entries[child]["mountpoint"]
+            for child in item["children"]
+            if child in entries and entries[child]["mountpoint"]
+          ]
+          if mounted_children:
+            continue
+          candidate_disks.append(item)
+
+        if len(candidate_disks) != 1:
+          print(json.dumps({
+            "error": "expected exactly one candidate disk",
+            "protected_disks": sorted(protected_disks),
+            "candidate_disks": [disk["path"] for disk in candidate_disks],
+          }))
+          sys.exit(1)
+
+        disk = candidate_disks[0]
+        partition = None
+        if len(disk["children"]) > 1:
+          print(json.dumps({
+            "error": "candidate disk has multiple partitions",
+            "disk": disk["path"],
+            "partitions": disk["children"],
+          }))
+          sys.exit(1)
+        if disk["children"]:
+          child = entries[disk["children"][0]]
+          if child["type"] != "part":
+            print(json.dumps({
+              "error": "candidate disk child is not a partition",
+              "disk": disk["path"],
+              "child": child["path"],
+              "type": child["type"],
+            }))
+            sys.exit(1)
+          partition = child
+
+        print(json.dumps({
+          "disk_path": disk["path"],
+          "disk_name": disk["name"],
+          "partition_path": partition["path"] if partition else "",
+          "partition_fstype": partition["fstype"] if partition else "",
+          "disk_fstype": disk["fstype"] if disk["fstype"] else "",
+        }))
+        PY
+      args:
+        executable: /bin/bash
+      register: longhorn_disk_detect
+      changed_when: false
+
+    - name: Parse detected Longhorn disk information
+      ansible.builtin.set_fact:
+        longhorn_disk_info: "{{ longhorn_disk_detect.stdout | from_json }}"
+
+    - name: Show detected Longhorn disk
+      ansible.builtin.debug:
+        msg:
+          - "disk={{ longhorn_disk_info.disk_path }}"
+          - "partition={{ longhorn_disk_info.partition_path | default('') }}"
+          - "mountpoint={{ longhorn_disk_mountpoint }}"
+
+    - name: Check current partition table type
+      ansible.builtin.command:
+        argv:
+          - lsblk
+          - --noheadings
+          - --output
+          - PTTYPE
+          - "{{ longhorn_disk_info.disk_path }}"
+      register: longhorn_pttype
+      changed_when: false
+
+    - name: Create GPT partition table on blank disk
+      ansible.builtin.command:
+        argv:
+          - parted
+          - --script
+          - "{{ longhorn_disk_info.disk_path }}"
+          - mklabel
+          - gpt
+      when:
+        - (longhorn_pttype.stdout | trim) == ""
+        - (longhorn_disk_info.partition_path | default("")) == ""
+
+    - name: Create Longhorn partition spanning the full disk
+      ansible.builtin.command:
+        argv:
+          - parted
+          - --script
+          - "{{ longhorn_disk_info.disk_path }}"
+          - mkpart
+          - primary
+          - "{{ longhorn_disk_fstype }}"
+          - 0%
+          - 100%
+      when: (longhorn_disk_info.partition_path | default("")) == ""
+
+    - name: Refresh block device facts after partitioning
+      ansible.builtin.command:
+        argv:
+          - lsblk
+          - --json
+          - --output
+          - NAME,PATH,TYPE,PKNAME,MOUNTPOINT,FSTYPE
+      register: lsblk_json_after
+      changed_when: false
+
+    - name: Identify Longhorn partition after partitioning
+      ansible.builtin.shell: |
+        python3 - <<'PY' '{{ lsblk_json_after.stdout }}' '{{ longhorn_disk_info.disk_name }}'
+        import json
+        import sys
+
+        data = json.loads(sys.argv[1])
+        disk_name = sys.argv[2]
+
+        entries = {}
+
+        def visit(node):
+          entries[node.get("name")] = node
+          for child in node.get("children", []):
+            visit(child)
+
+        for device in data.get("blockdevices", []):
+          visit(device)
+
+        disk = entries[disk_name]
+        children = disk.get("children", [])
+        if len(children) != 1:
+          raise SystemExit(f"Expected exactly one partition on {disk_name}, found {len(children)}")
+        part = children[0]
+        print(json.dumps({
+          "partition_path": part.get("path"),
+          "partition_fstype": part.get("fstype") or "",
+        }))
+        PY
+      args:
+        executable: /bin/bash
+      register: longhorn_partition_detect
+      changed_when: false
+
+    - name: Parse Longhorn partition information
+      ansible.builtin.set_fact:
+        longhorn_partition_info: "{{ longhorn_partition_detect.stdout | from_json }}"
+
+    - name: Refuse to touch a partition with an unknown existing filesystem
+      ansible.builtin.assert:
+        that:
+          - longhorn_partition_info.partition_fstype in ["", longhorn_disk_fstype]
+        fail_msg: >-
+          Refusing to modify {{ longhorn_partition_info.partition_path }} on {{ longhorn_disk_info.disk_path }}
+          because it already has filesystem type '{{ longhorn_partition_info.partition_fstype }}'
+          instead of '{{ longhorn_disk_fstype }}'.
+
+    - name: Create filesystem on Longhorn partition if absent
+      ansible.builtin.filesystem:
+        fstype: "{{ longhorn_disk_fstype }}"
+        dev: "{{ longhorn_partition_info.partition_path }}"
+        opts: "-L {{ longhorn_disk_label }}"
+      when: (longhorn_partition_info.partition_fstype | trim) == ""
+
+    - name: Get Longhorn partition UUID
+      ansible.builtin.command:
+        argv:
+          - blkid
+          - --output
+          - value
+          - --match-tag
+          - UUID
+          - "{{ longhorn_partition_info.partition_path }}"
+      register: longhorn_partition_uuid
+      changed_when: false
+
+    - name: Ensure Longhorn mountpoint exists
+      ansible.builtin.file:
+        path: "{{ longhorn_disk_mountpoint }}"
+        state: directory
+        mode: "0755"
+
+    - name: Mount Longhorn filesystem and persist in fstab
+      ansible.builtin.mount:
+        path: "{{ longhorn_disk_mountpoint }}"
+        src: "UUID={{ longhorn_partition_uuid.stdout | trim }}"
+        fstype: "{{ longhorn_disk_fstype }}"
+        opts: defaults
+        state: mounted
+
+    - name: Verify Longhorn mount is active
+      ansible.builtin.command:
+        argv:
+          - findmnt
+          - --noheadings
+          - --output
+          - SOURCE,TARGET,FSTYPE
+          - --target
+          - "{{ longhorn_disk_mountpoint }}"
+      register: longhorn_mount_check
+      changed_when: false
+
+    - name: Show active Longhorn mount
+      ansible.builtin.debug:
+        var: longhorn_mount_check.stdout

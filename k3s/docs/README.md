@@ -177,6 +177,20 @@ Do not enable Longhorn or MetalLB until you have:
 - MetalLB address pool decided
 - Disks prepped for Longhorn
 
+Prepare the dedicated Longhorn disks on the bare-metal nodes first:
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yml k3s/ansible/playbooks/longhorn-disk-prep.yml
+```
+
+The disk prep playbook:
+- detects the single non-OS disk
+- refuses to proceed if detection is ambiguous
+- creates a GPT partition table only on a blank disk
+- creates an `ext4` filesystem only if none exists
+- mounts it at `/var/lib/longhorn` by default via `UUID=...`
+- updates `/etc/fstab` idempotently
+
 Use the mgmt LAN for MetalLB (e.g., `192.168.1.0/24`). Keep the stor network internal.
 
 ## 9) Add apps

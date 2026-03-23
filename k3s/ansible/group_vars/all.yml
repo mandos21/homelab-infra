@@ -37,3 +37,8 @@ bootstrap_packages:
   - jq
   - open-iscsi
   - nfs-common
+
+# Longhorn disk defaults
+longhorn_disk_mountpoint: "/var/lib/longhorn"
+longhorn_disk_fstype: "ext4"
+longhorn_disk_label: "LONGHORN"
