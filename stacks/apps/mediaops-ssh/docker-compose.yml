@@ -32,8 +32,6 @@ services:
       # Startup customization hook (LinuxServer-supported)
       - /mnt/cache/appdata/mediaops-ssh/custom-cont-init.d:/custom-cont-init.d:ro
 
-      # Safer rm override: shadow via PATH instead of replacing /bin/rm
-      - /mnt/cache/appdata/mediaops-ssh/bin/rm:/usr/local/bin/rm:ro
 
       # Optional shell customizations / aliases
       - /mnt/cache/appdata/mediaops-ssh/profile.d:/etc/profile.d:ro
