@@ -1,0 +1,39 @@
+services:
+  mediaops-ssh:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: mediaops-ssh
+    hostname: mediaops-ssh
+    restart: unless-stopped
+
+    ports:
+      - "2222:2222"
+
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "America/New_York"
+      USER_NAME: "isaac"
+      SUDO_ACCESS: "false"
+      PASSWORD_ACCESS: "true"
+      LOG_STDOUT: "true"
+      USER_PASSWORD: "${USER_PASSWORD}"
+
+    volumes:
+      # LinuxServer persistent config
+      - /mnt/cache/appdata/mediaops-ssh:/config
+
+      # Only the directories Isaac should be able to touch
+      - /mnt/user/plexData:/workspace/plexData:rw
+      - /mnt/cache/appdata/binhex-qbittorrentvpn/qBittorrent/downloads:/workspace/downloads:rw
+
+      # Optional message on login
+      - /mnt/cache/appdata/mediaops-ssh/motd:/etc/motd:ro
+
+      # Startup customization hook (LinuxServer-supported)
+      - /mnt/cache/appdata/mediaops-ssh/custom-cont-init.d:/custom-cont-init.d:ro
+
+      # Safer rm override: shadow via PATH instead of replacing /bin/rm
+      - /mnt/cache/appdata/mediaops-ssh/bin/rm:/usr/local/bin/rm:ro
+
+      # Optional shell customizations / aliases
+      - /mnt/cache/appdata/mediaops-ssh/profile.d:/etc/profile.d:ro
