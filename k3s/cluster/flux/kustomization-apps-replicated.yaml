@@ -13,6 +13,7 @@ spec:
   dependsOn:
     - name: infra
     - name: cert-manager-config
+    - name: traefik-config
     - name: secrets
   wait: true
   timeout: 10m0s

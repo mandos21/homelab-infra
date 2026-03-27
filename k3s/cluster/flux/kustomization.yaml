@@ -4,6 +4,7 @@ namespace: flux-system
 resources:
   - kustomization-infra.yaml
   - kustomization-cert-manager-config.yaml
+  - kustomization-traefik-config.yaml
   - kustomization-secrets.yaml
   - kustomization-apps-replicated.yaml
   - kustomization-apps-nas-attached.yaml

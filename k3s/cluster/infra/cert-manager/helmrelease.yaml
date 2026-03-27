@@ -9,7 +9,7 @@ spec:
     spec:
       chart: cert-manager
       # Update to a current cert-manager chart version before first apply.
-      version: "v1.15.3"
+      version: "v1.20.0"
       sourceRef:
         kind: HelmRepository
         name: jetstack

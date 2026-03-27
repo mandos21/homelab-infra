@@ -1,14 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: traefik-internal-wildcard
+  name: traefik-backend-tls
   namespace: traefik-system
 spec:
-  secretName: traefik-internal-wildcard-tls
+  secretName: traefik-backend-tls
   issuerRef:
     kind: ClusterIssuer
     name: homelab-internal-ca
   dnsNames:
-    # Replace these with the internal names Caddy will use when re-encrypting to Traefik.
-    - '*.k3s.internal'
-    - 'k3s.internal'
+    - traefik.tadolithron.lan
