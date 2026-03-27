@@ -7,3 +7,16 @@ spec:
     # Populate this secret from a SOPS-managed kubernetes.io/tls Secret in cert-manager.
     # The Secret must contain tls.crt and tls.key for the internal CA you want Caddy to trust.
     secretName: homelab-internal-ca-keypair
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik-backend-tls
+  namespace: traefik-system
+spec:
+  secretName: traefik-backend-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: homelab-internal-ca
+  dnsNames:
+    - traefik.tadolithron.lan

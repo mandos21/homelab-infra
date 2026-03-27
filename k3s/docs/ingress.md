@@ -7,11 +7,11 @@ Current repo assumptions:
 - cert-manager issues the single backend TLS certificate that Caddy will trust when it re-encrypts traffic to Traefik.
 
 Important next decisions:
-- Replace the starter MetalLB pool in `k3s/cluster/infra/metallb/ipaddresspool.yaml` with a DHCP-excluded range.
+- Replace the starter MetalLB pool in `k3s/cluster/infra/metallb/resources.yaml` with a DHCP-excluded range.
 - Replace the starter Traefik `loadBalancerIP` in `k3s/cluster/infra/traefik/helmrelease.yaml` if you want a different fixed ingress IP.
 - The current cert-manager scaffold issues `traefik.tadolithron.lan`, matching the SNI in the existing Caddy config.
 - Create a SOPS-managed `kubernetes.io/tls` Secret named `homelab-internal-ca-keypair` in the `cert-manager` namespace before reconciling `cert-manager-config`.
-- `k3s/cluster/infra/traefik-config/tlsstore-default.yaml` makes Traefik serve the cert-manager-issued `traefik-backend-tls` secret as its default certificate.
+- `k3s/cluster/infra/traefik-config/resources.yaml` makes Traefik serve the cert-manager-issued `traefik-backend-tls` secret as its default certificate.
 
 If you intend to fully replace the bundled k3s Traefik:
 - `k3s/ansible/group_vars/all.yaml` now sets `k3s_disable_traefik: true` for future installs.
