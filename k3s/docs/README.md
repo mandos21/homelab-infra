@@ -75,6 +75,12 @@ Node labels applied by Ansible:
 - Bare metal storage nodes: `node-type=baremetal`, `longhorn=enabled`
 - VM workers: `node-type=vm`, `longhorn=disabled`
 
+If the cluster already exists and you want to remove the bundled k3s Traefik in favor of the repo-managed Traefik release, run:
+
+```bash
+ansible-playbook -i k3s/ansible/inventory/hosts.yaml k3s/ansible/playbooks/disable-bundled-traefik.yaml
+```
+
 ## 3a) Upgrade k3s later
 
 Set the target version in `k3s/ansible/group_vars/all.yaml`, then run:
@@ -165,7 +171,13 @@ kubectl get pods -n flux-system
 
 ## 7) Apply initial infra manifests
 
-Flux will reconcile `k3s/cluster/infra` automatically. Ensure cert-manager installs:
+Flux will reconcile `k3s/cluster/infra` automatically. The repo now includes scaffolding for:
+- cert-manager
+- MetalLB
+- Traefik
+- Longhorn
+
+Ensure cert-manager installs:
 
 ```bash
 kubectl get pods -n cert-manager
@@ -192,6 +204,8 @@ The disk prep playbook:
 - updates `/etc/fstab` idempotently
 
 Use the mgmt LAN for MetalLB (e.g., `192.168.1.0/24`). Keep the stor network internal.
+
+See `k3s/docs/ingress.md`.
 
 ## 9) Add apps
 

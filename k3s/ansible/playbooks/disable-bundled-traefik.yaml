@@ -1,0 +1,45 @@
+- name: Disable bundled k3s Traefik on existing servers
+  hosts: k3s_servers
+  serial: 1
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yaml
+
+  tasks:
+    - name: Ensure k3s config drop-in directory exists
+      ansible.builtin.file:
+        path: /etc/rancher/k3s/config.yaml.d
+        state: directory
+        mode: "0755"
+
+    - name: Persist disable=traefik in k3s config
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/config.yaml.d/10-disable-traefik.yaml
+        mode: "0644"
+        content: |
+          disable:
+            - traefik
+      register: disable_traefik_config
+
+    - name: Restart k3s to uninstall bundled Traefik
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+      when: disable_traefik_config.changed
+
+    - name: Wait for server to come back
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+      when: disable_traefik_config.changed
+
+    - name: Wait for node to register after restart
+      ansible.builtin.command: >
+        k3s kubectl get node {{ inventory_hostname }}
+      delegate_to: "{{ k3s_init_host }}"
+      register: node_ready
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: node_ready.rc == 0
+      when: disable_traefik_config.changed
