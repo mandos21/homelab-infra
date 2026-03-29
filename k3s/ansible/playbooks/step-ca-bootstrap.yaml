@@ -1,0 +1,163 @@
+- name: Bootstrap dedicated step-ca for k3s ingress PKI
+  hosts: step_ca_hosts
+  become: true
+  gather_facts: true
+
+  vars:
+    step_ca_name: "{{ step_ca_name | default('Homelab K3s PKI') }}"
+    step_ca_image: "{{ step_ca_image | default('smallstep/step-ca:0.29.0') }}"
+    step_ca_container_name: "{{ step_ca_container_name | default('k3s-step-ca') }}"
+    step_ca_base_dir: "{{ step_ca_base_dir | default('/opt/k3s-step-ca') }}"
+    step_ca_config_dir: "{{ step_ca_base_dir }}/config"
+    step_ca_certs_dir: "{{ step_ca_base_dir }}/certs"
+    step_ca_secrets_dir: "{{ step_ca_base_dir }}/secrets"
+    step_ca_db_dir: "{{ step_ca_base_dir }}/db"
+    step_ca_dns_names: "{{ step_ca_dns_names | default(['stepca.admengyl.lan']) }}"
+    step_ca_host_port: "{{ step_ca_host_port | default(9001) }}"
+    step_ca_host_bind_address: "{{ step_ca_host_bind_address | default('0.0.0.0') }}"
+    step_ca_listen_address: ":9000"
+    step_ca_provisioner_name: "{{ step_ca_provisioner_name | default('k3s-step-issuer') }}"
+    step_ca_password_file_src: "{{ step_ca_password_file_src | default(omit) }}"
+    step_ca_provisioner_password_file_src: "{{ step_ca_provisioner_password_file_src | default(omit) }}"
+    step_ca_artifacts_dir: "{{ playbook_dir }}/../artifacts/step-ca/{{ inventory_hostname }}"
+    step_ca_ca_url: "https://{{ step_ca_dns_names[0] }}:{{ step_ca_host_port }}"
+    step_ca_init_command: >-
+      docker run --rm
+      -v {{ step_ca_base_dir }}:/home/step
+      {{ step_ca_image }}
+      step ca init
+      --name {{ step_ca_name | quote }}
+      {% for dns_name in step_ca_dns_names %}--dns {{ dns_name | quote }} {% endfor %}
+      --address {{ step_ca_listen_address | quote }}
+      --provisioner {{ step_ca_provisioner_name | quote }}
+      --password-file /home/step/secrets/password
+      --provisioner-password-file /home/step/secrets/provisioner_password
+
+  tasks:
+    - name: Assert required local password files are defined
+      ansible.builtin.assert:
+        that:
+          - step_ca_password_file_src is defined
+          - step_ca_provisioner_password_file_src is defined
+        fail_msg: >-
+          Set step_ca_password_file_src and step_ca_provisioner_password_file_src for the target host.
+
+    - name: Ensure Docker is installed on the CA host
+      ansible.builtin.command: docker version
+      register: step_ca_docker_check
+      changed_when: false
+
+    - name: Ensure step-ca directory structure exists
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ step_ca_base_dir }}"
+        - "{{ step_ca_config_dir }}"
+        - "{{ step_ca_certs_dir }}"
+        - "{{ step_ca_secrets_dir }}"
+        - "{{ step_ca_db_dir }}"
+
+    - name: Install CA password file
+      ansible.builtin.copy:
+        src: "{{ step_ca_password_file_src }}"
+        dest: "{{ step_ca_secrets_dir }}/password"
+        mode: "0600"
+
+    - name: Install provisioner password file
+      ansible.builtin.copy:
+        src: "{{ step_ca_provisioner_password_file_src }}"
+        dest: "{{ step_ca_secrets_dir }}/provisioner_password"
+        mode: "0600"
+
+    - name: Check whether step-ca has already been initialized
+      ansible.builtin.stat:
+        path: "{{ step_ca_config_dir }}/ca.json"
+      register: step_ca_config
+
+    - name: Initialize dedicated step-ca
+      ansible.builtin.shell: "{{ step_ca_init_command }}"
+      args:
+        creates: "{{ step_ca_config_dir }}/ca.json"
+      when: not step_ca_config.stat.exists
+
+    - name: Install dedicated step-ca compose stack
+      ansible.builtin.template:
+        src: ../templates/step-ca/docker-compose.yaml.j2
+        dest: "{{ step_ca_base_dir }}/docker-compose.yaml"
+        mode: "0644"
+      register: step_ca_compose
+
+    - name: Start or update dedicated step-ca container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ step_ca_base_dir }}/docker-compose.yaml"
+          - up
+          - -d
+      register: step_ca_compose_up
+      changed_when: "'Started' in step_ca_compose_up.stdout or 'Recreated' in step_ca_compose_up.stdout or 'Creating' in step_ca_compose_up.stdout"
+
+    - name: Wait for step-ca HTTPS listener
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host | default(inventory_hostname) }}"
+        port: "{{ step_ca_host_port }}"
+        timeout: 120
+
+    - name: Read root fingerprint
+      ansible.builtin.command:
+        argv:
+          - docker
+          - run
+          - --rm
+          - -v
+          - "{{ step_ca_base_dir }}:/home/step"
+          - "{{ step_ca_image }}"
+          - step
+          - certificate
+          - fingerprint
+          - /home/step/certs/root_ca.crt
+      register: step_ca_root_fingerprint
+      changed_when: false
+
+    - name: Ensure local step-ca artifacts directory exists
+      ansible.builtin.file:
+        path: "{{ step_ca_artifacts_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+
+    - name: Fetch root CA certificate for cluster bootstrap
+      ansible.builtin.fetch:
+        src: "{{ step_ca_certs_dir }}/root_ca.crt"
+        dest: "{{ step_ca_artifacts_dir }}/root_ca.crt"
+        flat: true
+
+    - name: Fetch intermediate CA certificate for reference
+      ansible.builtin.fetch:
+        src: "{{ step_ca_certs_dir }}/intermediate_ca.crt"
+        dest: "{{ step_ca_artifacts_dir }}/intermediate_ca.crt"
+        flat: true
+
+    - name: Write bootstrap metadata locally
+      ansible.builtin.copy:
+        dest: "{{ step_ca_artifacts_dir }}/bootstrap.txt"
+        mode: "0644"
+        content: |
+          step-ca URL: {{ step_ca_ca_url }}
+          step-ca DNS names: {{ step_ca_dns_names | join(', ') }}
+          step-ca provisioner: {{ step_ca_provisioner_name }}
+          root fingerprint: {{ step_ca_root_fingerprint.stdout | trim }}
+      delegate_to: localhost
+      become: false
+
+    - name: Print next-step summary
+      ansible.builtin.debug:
+        msg:
+          - "Dedicated step-ca is available at {{ step_ca_ca_url }}"
+          - "Root certificate fetched to {{ step_ca_artifacts_dir }}/root_ca.crt"
+          - "Root fingerprint: {{ step_ca_root_fingerprint.stdout | trim }}"

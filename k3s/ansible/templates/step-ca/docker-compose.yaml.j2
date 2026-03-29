@@ -1,0 +1,9 @@
+services:
+  step-ca:
+    image: {{ step_ca_image }}
+    container_name: {{ step_ca_container_name }}
+    restart: unless-stopped
+    ports:
+      - "{{ step_ca_host_bind_address }}:{{ step_ca_host_port }}:9000"
+    volumes:
+      - "{{ step_ca_base_dir }}:/home/step"

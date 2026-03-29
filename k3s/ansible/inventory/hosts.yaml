@@ -50,3 +50,5 @@ all:
       children:
         k3s_servers:
         k3s_agents:
+    step_ca_hosts:
+      hosts: {}
