@@ -13,6 +13,7 @@ spec:
     passwordRef:
       name: step-issuer-provisioner-password
       key: password
+      namespace: step-issuer-system
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
