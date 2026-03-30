@@ -51,4 +51,7 @@ all:
         k3s_servers:
         k3s_agents:
     step_ca_hosts:
-      hosts: {}
+      hosts:
+        admengyl:
+          ansible_host: 192.168.1.78
+          

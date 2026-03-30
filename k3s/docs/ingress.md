@@ -9,9 +9,11 @@ Current repo assumptions:
 Important next decisions:
 - Replace the starter MetalLB pool in `k3s/cluster/infra/metallb/resources.yaml` with a DHCP-excluded range.
 - Replace the starter Traefik `loadBalancerIP` in `k3s/cluster/infra/traefik/resources.yaml` if you want a different fixed ingress IP.
-- The backend certificate presented by Traefik should cover `traefik.tadolithron.lan`, matching the SNI in the existing Caddy config.
+- The backend certificate presented by Traefik should cover `traefik.cluster1.lan`, matching the SNI you will configure in Caddy for the k3s ingress hop.
 - `k3s/cluster/infra/traefik-config/resources.yaml` makes Traefik serve the `traefik-backend-tls` secret as its default certificate.
-- If you keep the current step-ca timer model, update `traefik-backend-tls` operationally rather than storing a rotating PKI secret in Git.
+- `k3s/cluster/infra/step-issuer/resources.yaml` installs the step-issuer controller that cert-manager will use to request backend certificates from the dedicated step-ca.
+- `k3s/cluster/infra/cert-manager-config/resources.yaml` now defines a `StepClusterIssuer` plus the Traefik backend `Certificate`.
+- Create a Secret named `step-issuer-provisioner-password` in `step-issuer-system` before reconciling the issuer config.
 
 If you intend to fully replace the bundled k3s Traefik:
 - `k3s/ansible/group_vars/all.yaml` now sets `k3s_disable_traefik: true` for future installs.

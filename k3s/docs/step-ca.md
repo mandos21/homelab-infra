@@ -10,7 +10,7 @@ Why a separate instance:
 Recommended identity model:
 - CA URL: `https://stepca.admengyl.lan:9001`
 - dedicated provisioner: `k3s-step-issuer`
-- backend ingress certificate identity: separate from the CA host identity, e.g. `traefik.k3s.admengyl.lan`
+- backend ingress certificate identity: separate from the CA host identity, e.g. `traefik.cluster1.lan`
 
 ## Inventory
 
@@ -63,3 +63,12 @@ After this CA is up:
 - install `step-issuer` in the cluster
 - create a `StepClusterIssuer`
 - issue the Traefik backend certificate from this CA instead of copying rotating leaf certs around
+
+Before reconciling the step-issuer configuration:
+- rerun `k3s/ansible/playbooks/step-ca-bootstrap.yaml` once after the latest repo changes so `bootstrap.txt` includes the provisioner `kid`
+- create the provisioner password secret in `step-issuer-system`, for example:
+
+```bash
+kubectl -n step-issuer-system create secret generic step-issuer-provisioner-password \
+  --from-file=password=/secure/step-ca/provisioner-password.txt
+```

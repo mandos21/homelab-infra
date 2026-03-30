@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - kustomization-infra.yaml
+  - kustomization-metallb-config.yaml
   - kustomization-cert-manager-config.yaml
   - kustomization-traefik-config.yaml
   - kustomization-secrets.yaml

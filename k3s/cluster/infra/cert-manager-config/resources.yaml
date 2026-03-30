@@ -1,12 +1,18 @@
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
+apiVersion: certmanager.step.sm/v1beta1
+kind: StepClusterIssuer
 metadata:
-  name: homelab-internal-ca
+  name: homelab-step-cluster-issuer
 spec:
-  ca:
-    # Populate this secret from a SOPS-managed kubernetes.io/tls Secret in cert-manager.
-    # The Secret must contain tls.crt and tls.key for the internal CA you want Caddy to trust.
-    secretName: homelab-internal-ca-keypair
+  url: https://stepca.admengyl.lan:9001
+  # Base64-encoded PEM for the dedicated k3s step-ca root certificate.
+  caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ2RENDQVdLZ0F3SUJBZ0lSQU1pMU9EMUdNUFVlWnBDU2FLY0lUVEl3Q2dZSUtvWkl6ajBFQXdJd1BERVkKTUJZR0ExVUVDaE1QU0c5dFpXeGhZaUJMTTNNZ1VFdEpNU0F3SGdZRFZRUURFeGRJYjIxbGJHRmlJRXN6Y3lCUQpTMGtnVW05dmRDQkRRVEFlRncweU5qQXpNekF4TmpFeU5UbGFGdzB6TmpBek1qY3hOakV5TlRsYU1Ed3hHREFXCkJnTlZCQW9URDBodmJXVnNZV0lnU3pOeklGQkxTVEVnTUI0R0ExVUVBeE1YU0c5dFpXeGhZaUJMTTNNZ1VFdEoKSUZKdmIzUWdRMEV3V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVQyekh0VmZTSVpvcURscjV6YQpKOUxEK08vSlpEQVU0ejN0U1U3TmxJL1J1aEg2TzN3WVNWTFQzc3o0MWxPZkdKQUt1MUVkM3FaQldMcS8rNXFWCjFYclpvMFV3UXpBT0JnTlZIUThCQWY4RUJBTUNBUVl3RWdZRFZSMFRBUUgvQkFnd0JnRUIvd0lCQVRBZEJnTlYKSFE0RUZnUVVINUR1eURrenkyNHUxb3pkTHpvaG9UcWsyR293Q2dZSUtvWkl6ajBFQXdJRFNBQXdSUUlnYkhoZwpLWVRLMlg0TU5zQmJhMlpFTVZEQjJIdWlHNzdXcGVMd0ljaTc5WlFDSVFDS1YrYi8wTmNZVWw1TlphMGwvRUxuCk92NDBhdjJMa01lcHVRb3ZWQjAyaXc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  provisioner:
+    name: k3s-step-issuer
+    # Fill this from k3s/ansible/artifacts/step-ca/admengyl/bootstrap.txt after rerunning the bootstrap playbook.
+    kid: RJ0j3PM06YfPSRtN6dpADAdEaGcfDnE2FP6_Boyk96A
+    passwordRef:
+      name: step-issuer-provisioner-password
+      key: password
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -15,8 +21,12 @@ metadata:
   namespace: traefik-system
 spec:
   secretName: traefik-backend-tls
+  commonName: traefik.cluster1.lan
+  duration: 720h
+  renewBefore: 168h
   issuerRef:
-    kind: ClusterIssuer
-    name: homelab-internal-ca
+    group: certmanager.step.sm
+    kind: StepClusterIssuer
+    name: homelab-step-cluster-issuer
   dnsNames:
-    - traefik.tadolithron.lan
+    - traefik.cluster1.lan

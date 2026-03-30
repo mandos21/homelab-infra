@@ -12,6 +12,7 @@ spec:
     name: flux-system
   dependsOn:
     - name: infra
+    - name: metallb-config
     - name: secrets
   wait: true
   timeout: 5m0s
