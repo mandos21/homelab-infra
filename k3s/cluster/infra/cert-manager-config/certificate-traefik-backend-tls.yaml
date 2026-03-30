@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik-backend-tls
+  namespace: traefik-system
+spec:
+  secretName: traefik-backend-tls
+  commonName: traefik.cluster1.lan
+  duration: 24h
+  renewBefore: 20h
+  issuerRef:
+    group: certmanager.step.sm
+    kind: StepClusterIssuer
+    name: homelab-step-cluster-issuer
+  dnsNames:
+    - traefik.cluster1.lan
