@@ -55,7 +55,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: whoami.cluster1.lan
+    - host: whoami.mattandkay.com
       http:
         paths:
           - path: /
