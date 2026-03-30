@@ -6,7 +6,7 @@ metadata:
 spec:
   # Replace this starter range with a DHCP-excluded block on the mgmt LAN.
   addresses:
-    - 192.168.1.2-192.168.1.4
+    - 192.168.1.3-192.168.1.5
   autoAssign: true
 ---
 apiVersion: metallb.io/v1beta1

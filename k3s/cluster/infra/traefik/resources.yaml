@@ -38,7 +38,7 @@ spec:
       type: LoadBalancer
       spec:
         # Reserve this IP inside the MetalLB pool if you want a fixed Traefik address.
-        loadBalancerIP: 192.168.1.2
+        loadBalancerIP: 192.168.1.3
     nodeSelector:
       node-type: baremetal
     affinity:
