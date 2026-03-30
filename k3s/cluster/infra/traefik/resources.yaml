@@ -61,8 +61,11 @@ spec:
         enabled: true
     ports:
       web:
-        redirections:
-          port: websecure
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
       websecure:
-        tls:
-          enabled: true
+        http:
+          tls:
+            enabled: true

@@ -228,6 +228,10 @@ See `k3s/docs/backups.md`.
 
 If you want a separate Smallstep CA for the k3s environment instead of reusing the existing Docker PKI flow, see `k3s/docs/step-ca.md`.
 
-## 12) Add nodes later
+## 12) Flux troubleshooting
+
+See `k3s/docs/flux-debugging.md`.
+
+## 13) Add nodes later
 
 See `k3s/docs/adding-nodes.md`.
