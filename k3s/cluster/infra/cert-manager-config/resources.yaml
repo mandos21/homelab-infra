@@ -23,8 +23,8 @@ metadata:
 spec:
   secretName: traefik-backend-tls
   commonName: traefik.cluster1.lan
-  duration: 720h
-  renewBefore: 168h
+  duration: 24h
+  renewBefore: 20h
   issuerRef:
     group: certmanager.step.sm
     kind: StepClusterIssuer
