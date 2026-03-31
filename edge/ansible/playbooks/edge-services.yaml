@@ -1,0 +1,56 @@
+- name: Deploy edge support services
+  hosts: edge_hosts
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yaml
+
+  tasks:
+    - name: Ensure fallback page directory exists
+      ansible.builtin.file:
+        path: "{{ edge_caddy_fallback_error_root }}"
+        state: directory
+        owner: caddy
+        group: caddy
+        mode: "0755"
+
+    - name: Install fallback maintenance page
+      ansible.builtin.template:
+        src: ../templates/caddy/fallback-index.html.j2
+        dest: "{{ edge_caddy_fallback_error_root }}/index.html"
+        owner: caddy
+        group: caddy
+        mode: "0644"
+
+    - name: Ensure Uptime Kuma directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ edge_kuma_base_dir }}"
+        - "{{ edge_kuma_data_dir }}"
+      when: edge_kuma_enabled
+
+    - name: Install Uptime Kuma compose stack
+      ansible.builtin.template:
+        src: ../templates/edge-services/uptime-kuma-compose.yaml.j2
+        dest: "{{ edge_kuma_base_dir }}/docker-compose.yaml"
+        mode: "0644"
+      when: edge_kuma_enabled
+
+    - name: Start or update Uptime Kuma container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ edge_kuma_base_dir }}/docker-compose.yaml"
+          - up
+          - -d
+      register: edge_kuma_compose_up
+      changed_when: >-
+        'Started' in edge_kuma_compose_up.stdout or
+        'Recreated' in edge_kuma_compose_up.stdout or
+        'Creating' in edge_kuma_compose_up.stdout
+      when: edge_kuma_enabled

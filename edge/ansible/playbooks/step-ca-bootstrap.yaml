@@ -2,25 +2,31 @@
   hosts: step_ca_hosts
   become: true
   gather_facts: true
+  vars_files:
+    - ../group_vars/all.yaml
+  pre_tasks:
+    - name: Load encrypted edge secrets
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/../group_vars/secrets.sops.yaml"
 
   vars:
-    _step_ca_name: "{{ step_ca_name | default('Homelab K3s PKI') }}"
-    _step_ca_image: "{{ step_ca_image | default('smallstep/step-ca:0.29.0') }}"
-    _step_ca_container_name: "{{ step_ca_container_name | default('k3s-step-ca') }}"
-    _step_ca_base_dir: "{{ step_ca_base_dir | default('/opt/k3s-step-ca') }}"
+    _step_ca_name: "{{ step_ca_name }}"
+    _step_ca_image: "{{ step_ca_image }}"
+    _step_ca_container_name: "{{ step_ca_container_name }}"
+    _step_ca_base_dir: "{{ step_ca_base_dir }}"
     _step_ca_config_dir: "{{ _step_ca_base_dir }}/config"
     _step_ca_certs_dir: "{{ _step_ca_base_dir }}/certs"
     _step_ca_secrets_dir: "{{ _step_ca_base_dir }}/secrets"
     _step_ca_db_dir: "{{ _step_ca_base_dir }}/db"
-    _step_ca_dns_names: "{{ step_ca_dns_names | default(['stepca.admengyl.lan']) }}"
-    _step_ca_host_port: "{{ step_ca_host_port | default(9001) }}"
-    _step_ca_host_bind_address: "{{ step_ca_host_bind_address | default('0.0.0.0') }}"
+    _step_ca_dns_names: "{{ step_ca_dns_names }}"
+    _step_ca_host_port: "{{ step_ca_host_port }}"
+    _step_ca_host_bind_address: "{{ step_ca_host_bind_address }}"
     _step_ca_listen_address: ":9000"
-    _step_ca_provisioner_name: "{{ step_ca_provisioner_name | default('k3s-step-issuer') }}"
-    _step_ca_uid: "{{ step_ca_uid | default('1000') }}"
-    _step_ca_gid: "{{ step_ca_gid | default('1000') }}"
-    step_ca_password_file_src: "{{ step_ca_password_file_src | default(omit) }}"
-    step_ca_provisioner_password_file_src: "{{ step_ca_provisioner_password_file_src | default(omit) }}"
+    _step_ca_provisioner_name: "{{ step_ca_provisioner_name }}"
+    _step_ca_uid: "{{ step_ca_uid }}"
+    _step_ca_gid: "{{ step_ca_gid }}"
+    step_ca_password_file_src: "{{ step_ca_password_file_src | default('') }}"
+    step_ca_provisioner_password_file_src: "{{ step_ca_provisioner_password_file_src | default('') }}"
     step_ca_artifacts_dir: "{{ playbook_dir }}/../artifacts/step-ca/{{ inventory_hostname }}"
     step_ca_ca_url: "https://{{ _step_ca_dns_names[0] }}:{{ _step_ca_host_port }}"
     step_ca_init_command: >-
@@ -36,13 +42,14 @@
       --provisioner-password-file /home/step/secrets/provisioner_password
 
   tasks:
-    - name: Assert required local password files are defined
+    - name: Assert step-ca credentials are available
       ansible.builtin.assert:
         that:
-          - step_ca_password_file_src is defined
-          - step_ca_provisioner_password_file_src is defined
+          - (step_ca_password | default('') | length > 0) or (step_ca_password_file_src | length > 0)
+          - (step_ca_provisioner_password | default('') | length > 0) or (step_ca_provisioner_password_file_src | length > 0)
         fail_msg: >-
-          Set step_ca_password_file_src and step_ca_provisioner_password_file_src for the target host.
+          Provide step_ca_password and step_ca_provisioner_password in secrets.sops.yaml, or pass
+          step_ca_password_file_src and step_ca_provisioner_password_file_src at runtime.
 
     - name: Ensure Docker is installed on the CA host
       ansible.builtin.command: docker version
@@ -69,21 +76,45 @@
         group: "{{ _step_ca_gid }}"
         recurse: true
 
-    - name: Install CA password file
+    - name: Install CA password file from encrypted vars
+      ansible.builtin.copy:
+        content: "{{ step_ca_password }}"
+        dest: "{{ _step_ca_secrets_dir }}/password"
+        mode: "0644"
+        owner: "{{ _step_ca_uid }}"
+        group: "{{ _step_ca_gid }}"
+      when: step_ca_password | default('') | length > 0
+
+    - name: Install CA password file from local source
       ansible.builtin.copy:
         src: "{{ step_ca_password_file_src }}"
         dest: "{{ _step_ca_secrets_dir }}/password"
         mode: "0644"
         owner: "{{ _step_ca_uid }}"
         group: "{{ _step_ca_gid }}"
+      when:
+        - step_ca_password | default('') | length == 0
+        - step_ca_password_file_src | length > 0
 
-    - name: Install provisioner password file
+    - name: Install provisioner password file from encrypted vars
+      ansible.builtin.copy:
+        content: "{{ step_ca_provisioner_password }}"
+        dest: "{{ _step_ca_secrets_dir }}/provisioner_password"
+        mode: "0644"
+        owner: "{{ _step_ca_uid }}"
+        group: "{{ _step_ca_gid }}"
+      when: step_ca_provisioner_password | default('') | length > 0
+
+    - name: Install provisioner password file from local source
       ansible.builtin.copy:
         src: "{{ step_ca_provisioner_password_file_src }}"
         dest: "{{ _step_ca_secrets_dir }}/provisioner_password"
         mode: "0644"
         owner: "{{ _step_ca_uid }}"
         group: "{{ _step_ca_gid }}"
+      when:
+        - step_ca_provisioner_password | default('') | length == 0
+        - step_ca_provisioner_password_file_src | length > 0
 
     - name: Check whether step-ca has already been initialized
       ansible.builtin.stat:

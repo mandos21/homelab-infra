@@ -226,7 +226,7 @@ See `k3s/docs/backups.md`.
 
 ## 11) Dedicated step-ca for k3s
 
-If you want a separate Smallstep CA for the k3s environment instead of reusing the existing Docker PKI flow, see `k3s/docs/step-ca.md`.
+If you want a separate Smallstep CA for the k3s environment instead of reusing the existing Docker PKI flow, see `edge/docs/step-ca.md`.
 
 ## 12) Flux troubleshooting
 

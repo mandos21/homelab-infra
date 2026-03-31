@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: ^ansible/group_vars/.*\.sops\.yaml$
+    encrypted_regex: '^(data|stringData|.*token.*|.*password.*|.*secret.*)$'
+    age:
+      - age1ctpyzt2xz3wralwgma6ctpnkztjpzsqvarjpayppmtpml2x4agaswc2j5y

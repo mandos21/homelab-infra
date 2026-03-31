@@ -1,0 +1,73 @@
+- name: Deploy edge Caddy configuration
+  hosts: edge_hosts
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yaml
+  pre_tasks:
+    - name: Load encrypted edge secrets
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/../group_vars/secrets.sops.yaml"
+
+  tasks:
+    - name: Ensure edge CA trust directory exists
+      ansible.builtin.file:
+        path: "{{ edge_caddy_ca_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install Caddy environment file
+      ansible.builtin.template:
+        src: ../templates/caddy/caddy.env.j2
+        dest: "{{ edge_caddy_env_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Install per-route trusted CA certificates
+      ansible.builtin.copy:
+        src: "{{ item.tls_trusted_ca_cert_src }}"
+        dest: "{{ item.tls_trusted_ca_cert_dest }}"
+        remote_src: true
+        mode: "0644"
+      loop: "{{ edge_caddy_routes }}"
+      loop_control:
+        label: "{{ item.host }}"
+
+    - name: Install fallback trusted CA certificate
+      ansible.builtin.copy:
+        src: "{{ edge_caddy_fallback_tls_trusted_ca_cert_src }}"
+        dest: "{{ edge_caddy_fallback_tls_trusted_ca_cert_dest }}"
+        remote_src: true
+        mode: "0644"
+      when: edge_caddy_fallback_enabled
+
+    - name: Render candidate Caddyfile
+      ansible.builtin.template:
+        src: ../templates/caddy/Caddyfile.j2
+        dest: "{{ edge_caddy_candidate_path }}"
+        mode: "0644"
+
+    - name: Validate candidate Caddyfile
+      ansible.builtin.shell: |
+        set -a
+        . {{ edge_caddy_env_file }}
+        set +a
+        exec caddy validate --config {{ edge_caddy_candidate_path }}
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Install validated Caddyfile
+      ansible.builtin.copy:
+        src: "{{ edge_caddy_candidate_path }}"
+        dest: "{{ edge_caddy_config_path }}"
+        remote_src: true
+        mode: "0644"
+      notify: Reload caddy
+
+  handlers:
+    - name: Reload caddy
+      ansible.builtin.systemd:
+        name: "{{ edge_caddy_service_name }}"
+        state: reloaded

@@ -1,0 +1,9 @@
+services:
+  kuma:
+    image: {{ edge_kuma_image }}
+    container_name: edge-kuma
+    restart: unless-stopped
+    ports:
+      - "{{ edge_kuma_bind_address }}:{{ edge_kuma_port }}:3001"
+    volumes:
+      - "{{ edge_kuma_data_dir }}:/app/data"

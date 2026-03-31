@@ -1,0 +1,64 @@
+{
+  email {{ edge_caddy_email }}
+  acme_dns cloudflare {env.{{ edge_caddy_cloudflare_token_env }}}
+}
+
+(common_tls) {
+  tls {
+    dns cloudflare {env.{{ edge_caddy_cloudflare_token_env }}}
+    resolvers{% for resolver in edge_caddy_resolvers %} {{ resolver }}{% endfor %}
+    propagation_delay {{ edge_caddy_propagation_delay }}
+    propagation_timeout {{ edge_caddy_propagation_timeout }}
+  }
+}
+
+(proxy_headers) {
+{% for header in edge_caddy_proxy_headers %}
+  header_up {{ header }}
+{% endfor %}
+}
+
+{{ edge_caddy_status_host }} {
+  reverse_proxy {{ edge_caddy_status_upstream }}
+}
+
+{% for route in edge_caddy_routes %}
+{{ route.host }} {
+  import common_tls
+
+  reverse_proxy {{ route.upstream }} {
+    transport http {
+      tls_trusted_ca_certs {{ route.tls_trusted_ca_cert_dest }}
+      tls_server_name {{ route.tls_server_name }}
+      dial_timeout 2s
+      response_header_timeout 10s
+    }
+    import proxy_headers
+  }
+}
+
+{% endfor %}
+{% if edge_caddy_fallback_enabled %}
+{{ edge_caddy_fallback_hosts | join(' ') }} {
+  import common_tls
+
+  reverse_proxy {{ edge_caddy_fallback_upstream }} {
+    transport http {
+      tls_trusted_ca_certs {{ edge_caddy_fallback_tls_trusted_ca_cert_dest }}
+      tls_server_name {{ edge_caddy_fallback_tls_server_name }}
+      dial_timeout 2s
+      response_header_timeout 10s
+    }
+    import proxy_headers
+  }
+
+  handle_errors {
+    @upstreamdown expression `{http.error.status_code} in [{{ edge_caddy_fallback_error_statuses | join(',') }}]`
+    handle @upstreamdown {
+      root * {{ edge_caddy_fallback_error_root }}
+      rewrite * /index.html
+      file_server
+    }
+  }
+}
+{% endif %}

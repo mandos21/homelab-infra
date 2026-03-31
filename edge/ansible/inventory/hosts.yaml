@@ -1,0 +1,12 @@
+all:
+  vars:
+    ansible_user: ansible
+  children:
+    edge_hosts:
+      hosts:
+        admengyl:
+          ansible_host: 192.168.1.78
+          edge_role: caddy-step-ca
+    step_ca_hosts:
+      children:
+        edge_hosts:

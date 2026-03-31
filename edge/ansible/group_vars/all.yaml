@@ -1,0 +1,75 @@
+edge_caddy_service_name: caddy
+edge_caddy_config_path: /etc/caddy/Caddyfile
+edge_caddy_candidate_path: /etc/caddy/Caddyfile.candidate
+edge_caddy_ca_dir: /var/lib/caddy/edge-www/ca
+edge_caddy_env_file: /etc/caddy/caddy.env
+
+edge_caddy_email: mt.degenaro@gmail.com
+edge_caddy_cloudflare_token_env: CLOUDFLARE_API_TOKEN
+edge_caddy_resolvers:
+  - 1.1.1.1
+  - 1.0.0.1
+  - 8.8.8.8
+  - 8.8.4.4
+edge_caddy_propagation_delay: 30s
+edge_caddy_propagation_timeout: 5m
+
+edge_caddy_status_host: status.dege.app
+edge_caddy_status_upstream: http://127.0.0.1:3001
+
+edge_caddy_proxy_headers:
+  - "X-Forwarded-Proto {scheme}"
+  - "X-Forwarded-Host {host}"
+  - "X-Real-IP {remote_host}"
+  - "Host {http.request.host}"
+
+edge_caddy_routes:
+  - host: whoami.mattandkay.com
+    upstream: https://192.168.1.3:443
+    tls_server_name: traefik.cluster1.lan
+    tls_trusted_ca_cert_src: /opt/k3s-step-ca/certs/root_ca.crt
+    tls_trusted_ca_cert_dest: /var/lib/caddy/edge-www/ca/k3s-step-root-ca.crt
+
+edge_caddy_fallback_enabled: true
+edge_caddy_fallback_hosts:
+  - "*.dege.app"
+  - "*.mdegenaro.com"
+  - "theborocrew.com"
+  - "www.theborocrew.com"
+  - "mdegenaro.com"
+  - "dege.app"
+edge_caddy_fallback_upstream: https://192.168.1.231:443
+edge_caddy_fallback_tls_server_name: traefik.tadolithron.lan
+edge_caddy_fallback_tls_trusted_ca_cert_src: /var/lib/caddy/edge-www/ca/root_ca.crt
+edge_caddy_fallback_tls_trusted_ca_cert_dest: /var/lib/caddy/edge-www/ca/root_ca.crt
+edge_caddy_fallback_dial_timeout: 2s
+edge_caddy_fallback_response_header_timeout: 10s
+edge_caddy_fallback_error_root: /var/lib/caddy/edge-www/fallback
+edge_caddy_fallback_error_statuses:
+  - 502
+  - 503
+  - 504
+edge_caddy_fallback_page_title: Maintenance
+edge_caddy_fallback_page_heading: Temporarily unavailable
+edge_caddy_fallback_page_body: Unraid is down for maintenance or the service is starting up.
+edge_caddy_fallback_page_status_url: https://status.dege.app/status/services
+edge_caddy_fallback_page_status_text: status.dege.app
+
+edge_kuma_enabled: true
+edge_kuma_image: louislam/uptime-kuma:1
+edge_kuma_base_dir: /opt/edge-services/uptime-kuma
+edge_kuma_data_dir: /opt/edge-services/uptime-kuma/data
+edge_kuma_bind_address: 127.0.0.1
+edge_kuma_port: 3001
+
+step_ca_name: Homelab K3s PKI
+step_ca_image: smallstep/step-ca:0.29.0
+step_ca_container_name: k3s-step-ca
+step_ca_base_dir: /opt/k3s-step-ca
+step_ca_dns_names:
+  - stepca.admengyl.lan
+step_ca_host_port: 9001
+step_ca_host_bind_address: 0.0.0.0
+step_ca_provisioner_name: k3s-step-issuer
+step_ca_uid: "1000"
+step_ca_gid: "1000"
