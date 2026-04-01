@@ -18,8 +18,6 @@ edge_caddy_status_host: status.dege.app
 edge_caddy_status_upstream: http://127.0.0.1:3001
 
 edge_caddy_proxy_headers:
-  - "X-Forwarded-Proto {scheme}"
-  - "X-Forwarded-Host {host}"
   - "X-Real-IP {remote_host}"
   - "Host {http.request.host}"
 

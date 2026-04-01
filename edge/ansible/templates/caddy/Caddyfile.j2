@@ -28,7 +28,7 @@
 
   reverse_proxy {{ route.upstream }} {
     transport http {
-      tls_trusted_ca_certs {{ route.tls_trusted_ca_cert_dest }}
+      tls_trust_pool file {{ route.tls_trusted_ca_cert_dest }}
       tls_server_name {{ route.tls_server_name }}
       dial_timeout 2s
       response_header_timeout 10s
@@ -44,7 +44,7 @@
 
   reverse_proxy {{ edge_caddy_fallback_upstream }} {
     transport http {
-      tls_trusted_ca_certs {{ edge_caddy_fallback_tls_trusted_ca_cert_dest }}
+      tls_trust_pool file {{ edge_caddy_fallback_tls_trusted_ca_cert_dest }}
       tls_server_name {{ edge_caddy_fallback_tls_server_name }}
       dial_timeout 2s
       response_header_timeout 10s
