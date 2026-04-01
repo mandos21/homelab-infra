@@ -1,7 +1,7 @@
 services:
   kuma:
     image: {{ edge_kuma_image }}
-    container_name: edge-kuma
+    container_name: {{ edge_kuma_container_name }}
     restart: unless-stopped
     ports:
       - "{{ edge_kuma_bind_address }}:{{ edge_kuma_port }}:3001"

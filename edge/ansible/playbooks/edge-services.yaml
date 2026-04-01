@@ -39,6 +39,75 @@
         mode: "0644"
       when: edge_kuma_enabled
 
+    - name: Check for legacy Uptime Kuma container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - container
+          - inspect
+          - "{{ edge_kuma_legacy_container_name }}"
+      register: edge_kuma_legacy_container
+      changed_when: false
+      failed_when: false
+      when: edge_kuma_enabled
+
+    - name: Check for managed Uptime Kuma container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - container
+          - inspect
+          - "{{ edge_kuma_container_name }}"
+      register: edge_kuma_managed_container
+      changed_when: false
+      failed_when: false
+      when: edge_kuma_enabled
+
+    - name: Stop legacy Uptime Kuma container before data migration
+      ansible.builtin.command:
+        argv:
+          - docker
+          - stop
+          - "{{ edge_kuma_legacy_container_name }}"
+      when:
+        - edge_kuma_enabled
+        - edge_kuma_migrate_legacy
+        - edge_kuma_legacy_container.rc == 0
+
+    - name: Copy legacy Uptime Kuma data into bind mount
+      ansible.builtin.shell: >-
+        docker run --rm
+        -v {{ edge_kuma_legacy_volume_name }}:/from
+        -v {{ edge_kuma_data_dir }}:/to
+        alpine:3.22
+        sh -c 'cp -a /from/. /to/'
+      when:
+        - edge_kuma_enabled
+        - edge_kuma_migrate_legacy
+        - edge_kuma_legacy_container.rc == 0
+
+    - name: Remove legacy Uptime Kuma container after migration
+      ansible.builtin.command:
+        argv:
+          - docker
+          - rm
+          - "{{ edge_kuma_legacy_container_name }}"
+      when:
+        - edge_kuma_enabled
+        - edge_kuma_migrate_legacy
+        - edge_kuma_legacy_container.rc == 0
+
+    - name: Remove failed managed Uptime Kuma container before restart
+      ansible.builtin.command:
+        argv:
+          - docker
+          - rm
+          - -f
+          - "{{ edge_kuma_container_name }}"
+      when:
+        - edge_kuma_enabled
+        - edge_kuma_managed_container.rc == 0
+
     - name: Start or update Uptime Kuma container
       ansible.builtin.command:
         argv:
