@@ -1,6 +1,6 @@
 services:
   home-assistant:
-    image: lscr.io/linuxserver/homeassistant
+    image: lscr.io/linuxserver/homeassistant:latest
     container_name: home-assistant
     restart: unless-stopped
     environment:
