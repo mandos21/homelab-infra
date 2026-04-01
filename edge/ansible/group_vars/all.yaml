@@ -22,7 +22,7 @@ edge_caddy_proxy_headers:
   - "Host {http.request.host}"
 
 edge_caddy_routes:
-  - host: whoami.mattandkay.com
+  - host: finances.dege.app
     upstream: https://192.168.1.3:443
     tls_server_name: traefik.cluster1.lan
     tls_trusted_ca_cert_src: /opt/k3s-step-ca/certs/root_ca.crt

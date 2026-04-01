@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: firefly-config
+  namespace: firefly
+  labels:
+    app.kubernetes.io/name: firefly
+    app.kubernetes.io/component: app
+data:
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_URL: https://finances.dege.app
+  TZ: America/New_York
+  LOG_CHANNEL: stack
+  APP_LOG_LEVEL: notice
+  DB_CONNECTION: mysql
+  DB_HOST: mariadb
+  DB_PORT: "3306"
+  DB_DATABASE: firefly
+  DB_USERNAME: firefly
+  MAIL_MAILER: smtp
+  MAIL_PORT: "587"
+  MAIL_ENCRYPTION: tls
+  MAIL_ALLOW_SELF_SIGNED: "false"
+  MAIL_VERIFY_PEER: "true"
+  MAIL_VERIFY_PEER_NAME: "true"
+  TRUSTED_PROXIES: "**"
+  COOKIE_SECURE: "true"

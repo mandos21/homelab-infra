@@ -9,7 +9,8 @@
   "dependencyDashboard": true,
 
   "includePaths": [
-    "stacks/**"
+    "stacks/**",
+    "k3s/**"
   ],
 
   "packageRules": [
@@ -20,4 +21,3 @@
     }
   ]
 }
-

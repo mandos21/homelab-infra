@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly
+  namespace: firefly
+  labels:
+    app.kubernetes.io/name: firefly
+    app.kubernetes.io/component: app
+spec:
+  selector:
+    app.kubernetes.io/name: firefly
+    app.kubernetes.io/component: app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
