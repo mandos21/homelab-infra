@@ -4,7 +4,7 @@ resources:
   - configmap.yaml
   - cronjob.yaml
   - deployment-firefly.yaml
-  - deployment-mariadb.yaml
+  - statefulset-mariadb.yaml
   - ingress.yaml
   - namespace.yaml
   - pvc-mariadb.yaml
