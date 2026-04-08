@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beets-admin
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/name: beets-admin
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: music-ingest
+      app.kubernetes.io/name: beets-admin
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: music-ingest
+        app.kubernetes.io/name: beets-admin
+        app.kubernetes.io/component: worker
+        music-ingest-beets-role: admin
+    spec:
+      nodeSelector:
+        node-type: vm
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: beets
+          image: ghcr.io/mandos21/music-ingest-beets:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              /config-src/bootstrap.sh
+              exec sleep infinity
+          env:
+            - name: TZ
+              value: America/New_York
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: BEETS_DISCOGS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: music-ingest-secrets
+                  key: BEETS_DISCOGS_TOKEN
+            - name: BEETS_ACOUSTID_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: music-ingest-secrets
+                  key: BEETS_ACOUSTID_APIKEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: config-src
+              mountPath: /config-src
+              readOnly: true
+            - name: beets-state
+              mountPath: /state
+              subPath: beets
+            - name: uploads
+              mountPath: /uploads
+            - name: library
+              mountPath: /music
+      volumes:
+        - name: config-src
+          configMap:
+            name: beets-config
+            defaultMode: 0755
+        - name: beets-state
+          persistentVolumeClaim:
+            claimName: beets-state
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: music-ingest-uploads
+        - name: library
+          persistentVolumeClaim:
+            claimName: music-library

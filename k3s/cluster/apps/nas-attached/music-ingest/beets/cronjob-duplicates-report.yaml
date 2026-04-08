@@ -1,0 +1,87 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: beets-maintenance-duplicates-report
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/name: beets-maintenance-duplicates-report
+    app.kubernetes.io/component: maintenance
+spec:
+  schedule: "30 4 * * 0"
+  timeZone: America/New_York
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: music-ingest
+            app.kubernetes.io/name: beets-maintenance-duplicates-report
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            node-type: vm
+          securityContext:
+            fsGroup: 1000
+          containers:
+            - name: beets
+              image: ghcr.io/mandos21/music-ingest-beets:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  /config-src/bootstrap.sh
+                  beet -c /state/config.yaml duplicates > /uploads/logs/duplicates-tracks.txt
+                  beet -c /state/config.yaml duplicates -a > /uploads/logs/duplicates-albums.txt
+              env:
+                - name: TZ
+                  value: America/New_York
+                - name: PUID
+                  value: "1000"
+                - name: PGID
+                  value: "1000"
+                - name: BEETS_DISCOGS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: beets-discogs
+                      key: token
+                - name: BEETS_ACOUSTID_APIKEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: beets-acoustid
+                      key: apikey
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+              volumeMounts:
+                - name: config-src
+                  mountPath: /config-src
+                  readOnly: true
+                - name: beets-state
+                  mountPath: /state
+                - name: uploads
+                  mountPath: /uploads
+                - name: library
+                  mountPath: /music
+          volumes:
+            - name: config-src
+              configMap:
+                name: beets-config
+                defaultMode: 0755
+            - name: beets-state
+              persistentVolumeClaim:
+                claimName: beets-state
+            - name: uploads
+              persistentVolumeClaim:
+                claimName: music-ingest-uploads
+            - name: library
+              persistentVolumeClaim:
+                claimName: music-library

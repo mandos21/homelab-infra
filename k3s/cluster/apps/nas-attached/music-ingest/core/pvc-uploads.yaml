@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music-ingest-uploads
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/component: uploads
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 250Gi
+  storageClassName: ""
+  volumeName: music-ingest-uploads

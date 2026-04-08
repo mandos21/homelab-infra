@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: filebrowser-from-oauth2-proxy
+  namespace: music-ingest
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: filebrowser
+      app.kubernetes.io/component: ui
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: music-ingest-oauth2-proxy
+              app.kubernetes.io/name: oauth2-proxy
+      ports:
+        - port: 80
+          protocol: TCP

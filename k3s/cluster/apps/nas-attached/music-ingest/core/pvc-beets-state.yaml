@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beets-state
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/component: beets-state
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi

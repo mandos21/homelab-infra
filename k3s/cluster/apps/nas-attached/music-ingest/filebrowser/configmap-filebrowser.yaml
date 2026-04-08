@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebrowser-config
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/component: filebrowser
+data:
+  config.yaml: |
+    server:
+      port: 80
+      database: /home/filebrowser/data/database.db
+      sources:
+        - path: /srv/uploads
+          name: Uploads
+          config:
+            defaultEnabled: true
+            defaultUserScope: /
+            createUserDir: false
+    auth:
+      methods:
+        proxy:
+          enabled: true
+          header: X-Forwarded-User
+        password:
+          enabled: false
+    userDefaults:
+      permissions:
+        api: true
+        admin: false
+        modify: true
+        share: false
+        realtime: false
+        delete: true
+        create: true
+        download: true
+    frontend:
+      name: Music Ingest
+      description: Upload staging area for beets-based ingestion.

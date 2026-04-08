@@ -9,3 +9,4 @@ resources:
   - kustomization-secrets.yaml
   - kustomization-apps-replicated.yaml
   - kustomization-apps-nas-attached.yaml
+  - kustomization-music-ingest.yaml

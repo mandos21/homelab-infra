@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment-beets-admin.yaml
+  - cronjob-auto-import.yaml
+  - cronjob-mbsync.yaml
+  - cronjob-replaygain.yaml
+  - cronjob-duplicates-report.yaml
+  - job-manual-from-logfile.yaml
+  - job-manual-scrub-review.yaml

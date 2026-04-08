@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: music-ingest-uploads
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/component: uploads
+spec:
+  capacity:
+    storage: 250Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+  nfs:
+    server: 192.168.1.231
+    path: /mnt/user/uploads/music-ingest

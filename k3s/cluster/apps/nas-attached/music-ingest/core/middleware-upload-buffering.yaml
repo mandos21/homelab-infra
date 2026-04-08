@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: upload-buffering
+  namespace: music-ingest
+spec:
+  buffering:
+    maxRequestBodyBytes: 10737418240
+    memRequestBodyBytes: 8388608
+    maxResponseBodyBytes: 0

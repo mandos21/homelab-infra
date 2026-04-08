@@ -1,0 +1,69 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: music-ingest-oauth2-proxy
+  namespace: music-ingest
+spec:
+  interval: 30m0s
+  chart:
+    spec:
+      chart: oauth2-proxy
+      version: "10.4.0"
+      sourceRef:
+        kind: HelmRepository
+        name: oauth2-proxy
+        namespace: flux-system
+  values:
+    replicaCount: 1
+    config:
+      existingSecret: music-ingest-secrets
+      emailDomains:
+        - "*"
+    alphaConfig:
+      enabled: true
+      configData:
+        upstreamConfig:
+          upstreams:
+            - id: filebrowser
+              path: /
+              uri: http://filebrowser.music-ingest.svc.cluster.local:80
+              passHostHeader: true
+              proxyWebSockets: true
+              flushInterval: 1s
+    extraArgs:
+      provider: keycloak-oidc
+      oidc-issuer-url: https://id.mdegenaro.com/realms/theborocrew
+      redirect-url: https://ingest.dege.app/oauth2/callback
+      scope: openid email profile groups
+      reverse-proxy: "true"
+      cookie-secure: "true"
+      cookie-samesite: lax
+      proxy-prefix: /oauth2
+      pass-user-headers: "true"
+      pass-access-token: "true"
+      skip-provider-button: "true"
+      code-challenge-method: S256
+    service:
+      type: ClusterIP
+      portNumber: 80
+    ingress:
+      enabled: true
+      className: traefik
+      path: /
+      pathType: Prefix
+      hosts:
+        - ingest.dege.app
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        traefik.ingress.kubernetes.io/router.middlewares: music-ingest-upload-buffering@kubernetescrd
+    nodeSelector:
+      node-type: vm
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+    sessionStorage:
+      type: cookie
