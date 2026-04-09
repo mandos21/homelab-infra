@@ -27,7 +27,7 @@ spec:
             provider: keycloak-oidc
             clientID: ${OAUTH2_PROXY_CLIENT_ID}
             clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
-            scope: openid email profile groups
+            scope: openid email profile
             oidcConfig:
               issuerURL: https://id.mdegenaro.com/realms/theborocrew
         upstreamConfig:
