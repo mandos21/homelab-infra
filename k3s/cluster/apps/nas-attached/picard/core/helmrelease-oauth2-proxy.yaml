@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: oauth2-proxy
-      version: "10.4.0"
+      version: "10.4.2"
       sourceRef:
         kind: HelmRepository
         name: oauth2-proxy
@@ -54,7 +54,6 @@ spec:
       pass-user-headers: "true"
       pass-access-token: "true"
       skip-provider-button: "true"
-      code-challenge-method: S256
     service:
       type: ClusterIP
       portNumber: 80
