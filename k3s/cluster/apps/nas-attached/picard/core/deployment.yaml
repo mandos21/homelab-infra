@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: picard
+  namespace: picard
+  labels:
+    app.kubernetes.io/name: picard
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: picard
+      app.kubernetes.io/component: app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: picard
+        app.kubernetes.io/component: app
+    spec:
+      nodeSelector:
+        node-type: vm
+      securityContext:
+        fsGroup: 100
+      containers:
+        - name: picard
+          image: jlesage/musicbrainz-picard:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: USER_ID
+              value: "99"
+            - name: GROUP_ID
+              value: "100"
+            - name: TZ
+              value: America/New_York
+            - name: WEB_AUDIO
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 5800
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: music
+              mountPath: /config/home/Music
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: picard-config
+        - name: music
+          persistentVolumeClaim:
+            claimName: picard-music
