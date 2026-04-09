@@ -33,20 +33,16 @@ spec:
         upstreamConfig:
           upstreams:
             - id: picard
-              path: /tags/
-              uri: http://picard.picard.svc.cluster.local:80/
+              path: ^/tags$
+              rewriteTarget: /
+              uri: http://picard.picard.svc.cluster.local:80
               passHostHeader: true
               proxyWebSockets: true
               flushInterval: 1s
-            - id: picard-websockify
-              path: /tags/websockify
-              uri: http://picard.picard.svc.cluster.local:80/websockify
-              passHostHeader: true
-              proxyWebSockets: true
-              flushInterval: 1s
-            - id: picard-websockify-audio
-              path: /tags/websockify-audio
-              uri: http://picard.picard.svc.cluster.local:80/websockify-audio
+            - id: picard-subpaths
+              path: ^/tags/(.*)$
+              rewriteTarget: /$1
+              uri: http://picard.picard.svc.cluster.local:80
               passHostHeader: true
               proxyWebSockets: true
               flushInterval: 1s
@@ -55,6 +51,7 @@ spec:
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
+      cookie-path: /tags
       proxy-prefix: /tags/oauth2
       skip-provider-button: "true"
     service:
