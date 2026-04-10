@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstack-config
+  namespace: bookstack
+  labels:
+    app.kubernetes.io/name: bookstack
+    app.kubernetes.io/component: app
+data:
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_URL: https://docs.dege.app
+  TZ: America/New_York
+  LOG_CHANNEL: stack
+  APP_LOG_LEVEL: notice
+  DB_CONNECTION: mysql
+  DB_HOST: mariadb
+  DB_PORT: "3306"
+  DB_DATABASE: bookstack
+  DB_USERNAME: bookstack
+  APP_PROXIES: "*"
+  AUTH_METHOD: oidc
+  AUTH_AUTO_INITIATE: "true"
+  OIDC_CLIENT_ID: bookstack
+  OIDC_DISPLAY_NAME_CLAIMS: name
+  OIDC_ISSUER: https://id.mdegenaro.com/realms/theborocrew
+  OIDC_ISSUER_DISCOVER: "true"
+  ALLOWED_IFRAME_SOURCES: https://open.spotify.com

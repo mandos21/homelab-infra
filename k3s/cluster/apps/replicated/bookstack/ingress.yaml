@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookstack
+  namespace: bookstack
+  labels:
+    app.kubernetes.io/name: bookstack
+    app.kubernetes.io/component: app
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: docs.dege.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bookstack
+                port:
+                  number: 80
