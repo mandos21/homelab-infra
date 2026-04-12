@@ -6,7 +6,6 @@ resources:
   - pv-music.yaml
   - pvc-music.yaml
   - secret.sops.yaml
-  - helmrepository-oauth2-proxy.yaml
   - helmrelease-oauth2-proxy.yaml
   - deployment.yaml
   - service.yaml

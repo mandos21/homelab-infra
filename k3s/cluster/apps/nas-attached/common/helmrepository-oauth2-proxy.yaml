@@ -4,5 +4,5 @@ metadata:
   name: oauth2-proxy
   namespace: flux-system
 spec:
-  interval: 1h0s
+  interval: 12h0m0s
   url: https://oauth2-proxy.github.io/manifests

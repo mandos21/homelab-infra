@@ -8,4 +8,7 @@ resources:
   - kustomization-traefik-config.yaml
   - kustomization-secrets.yaml
   - kustomization-apps-replicated.yaml
-  - kustomization-apps-nas-attached.yaml
+  - kustomization-nas-common.yaml
+  - kustomization-music-ingest.yaml
+  - kustomization-navidrome.yaml
+  - kustomization-picard.yaml

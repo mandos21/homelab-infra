@@ -1,11 +1,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: apps-nas-attached
+  name: music-ingest
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./k3s/cluster/apps/nas-attached
+  path: ./k3s/cluster/apps/nas-attached/music-ingest
   prune: true
   sourceRef:
     kind: GitRepository
@@ -20,5 +20,6 @@ spec:
     - name: cert-manager-config
     - name: traefik-config
     - name: secrets
+    - name: nas-common
   wait: true
   timeout: 10m0s
