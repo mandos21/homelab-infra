@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/name: mariadb
     app.kubernetes.io/component: database
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes:
     - ReadWriteOnce
