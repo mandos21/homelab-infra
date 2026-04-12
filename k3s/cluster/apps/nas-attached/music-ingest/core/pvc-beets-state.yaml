@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/part-of: music-ingest
     app.kubernetes.io/component: beets-state
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes:
     - ReadWriteOnce

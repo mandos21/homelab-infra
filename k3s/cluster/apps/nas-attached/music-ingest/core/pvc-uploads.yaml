@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/part-of: music-ingest
     app.kubernetes.io/component: uploads
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes:
     - ReadWriteMany

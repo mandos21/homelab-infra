@@ -77,6 +77,25 @@ flux reconcile kustomization traefik-config -n flux-system --with-source
 
 ## Common failure patterns
 
+### Stateful app refactor or ownership transfer
+
+Symptom:
+- app namespace/PVCs disappear unexpectedly after a Flux Kustomization change
+
+Cause:
+- the old Kustomization had `prune: true`
+- resources were removed from its inventory or the Kustomization itself was removed
+- Flux garbage-collected the previously managed resources
+
+Protection:
+- annotate PVCs, static PVs, and stateful namespaces with:
+  - `kustomize.toolkit.fluxcd.io/prune: disabled`
+- set `deletionPolicy: Orphan` on Flux Kustomizations that own stateful applications
+
+Important:
+- local-path PVCs are not safe to treat as disposable config
+- if the PVC is deleted, the underlying data is usually deleted too
+
 ### CRD object applied too early
 
 Symptom:
