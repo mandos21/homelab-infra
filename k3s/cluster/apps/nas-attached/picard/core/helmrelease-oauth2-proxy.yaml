@@ -66,6 +66,7 @@ spec:
         - music.dege.app
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.middlewares: picard-picard-trailing-slash@kubernetescrd
         traefik.ingress.kubernetes.io/router.tls: "true"
     nodeSelector:
       node-type: vm

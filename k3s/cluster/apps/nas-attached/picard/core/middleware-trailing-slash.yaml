@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: picard-trailing-slash
+  namespace: picard
+spec:
+  redirectRegex:
+    regex: ^https://music\.dege\.app/tags$
+    replacement: https://music.dege.app/tags/
+    permanent: true
