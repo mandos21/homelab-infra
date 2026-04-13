@@ -27,7 +27,7 @@ spec:
         fsGroup: 100
       containers:
         - name: picard
-          image: jlesage/musicbrainz-picard:26.03.1
+          image: jlesage/musicbrainz-picard:v26.03.1
           imagePullPolicy: IfNotPresent
           env:
             - name: USER_ID
