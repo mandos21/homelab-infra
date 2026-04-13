@@ -47,7 +47,6 @@ spec:
       pass-user-headers: "true"
       pass-access-token: "true"
       skip-provider-button: "true"
-      code-challenge-method: S256
     service:
       type: ClusterIP
       portNumber: 80
