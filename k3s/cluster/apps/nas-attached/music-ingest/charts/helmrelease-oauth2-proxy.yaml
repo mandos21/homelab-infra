@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: oauth2-proxy
-      version: "10.4.0"
+      version: "10.4.2"
       sourceRef:
         kind: HelmRepository
         name: oauth2-proxy
@@ -22,6 +22,14 @@ spec:
     alphaConfig:
       enabled: true
       configData:
+        providers:
+          - id: keycloak
+            provider: keycloak-oidc
+            clientID: ${OAUTH2_PROXY_CLIENT_ID}
+            clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
+            scope: openid email profile
+            oidcConfig:
+              issuerURL: https://id.mdegenaro.com/realms/theborocrew
         upstreamConfig:
           upstreams:
             - id: filebrowser
@@ -31,10 +39,7 @@ spec:
               proxyWebSockets: true
               flushInterval: 1s
     extraArgs:
-      provider: keycloak-oidc
-      oidc-issuer-url: https://id.mdegenaro.com/realms/theborocrew
       redirect-url: https://ingest.dege.app/oauth2/callback
-      scope: openid email profile groups
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
