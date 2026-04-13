@@ -25,6 +25,7 @@ spec:
     spec:
       nodeSelector:
         node-type: vm
+      terminationGracePeriodSeconds: 30
       securityContext:
         fsGroup: 1000
       containers:
@@ -60,6 +61,13 @@ spec:
               memory: 256Mi
             limits:
               memory: 1Gi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 5
           volumeMounts:
             - name: config-src
               mountPath: /config-src

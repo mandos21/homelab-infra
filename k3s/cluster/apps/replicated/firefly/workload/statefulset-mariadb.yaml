@@ -21,6 +21,7 @@ spec:
     spec:
       nodeSelector:
         longhorn: "enabled"
+      terminationGracePeriodSeconds: 120
       containers:
         - name: mariadb
           image: mariadb:11.4.10
@@ -85,6 +86,13 @@ spec:
               memory: 256Mi
             limits:
               memory: 512Mi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 15
       volumes:
         - name: mariadb-data
           persistentVolumeClaim:

@@ -22,11 +22,12 @@ spec:
     spec:
       nodeSelector:
         node-type: vm
+      terminationGracePeriodSeconds: 30
       securityContext:
         fsGroup: 100
       containers:
         - name: picard
-          image: jlesage/musicbrainz-picard:latest
+          image: jlesage/musicbrainz-picard:26.03.1
           imagePullPolicy: IfNotPresent
           env:
             - name: USER_ID
@@ -56,6 +57,13 @@ spec:
               memory: 256Mi
             limits:
               memory: 1Gi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 10
           volumeMounts:
             - name: config
               mountPath: /config

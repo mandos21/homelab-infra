@@ -5,7 +5,3 @@ resources:
   - pvc-data.yaml
   - pv-music.yaml
   - pvc-music.yaml
-  - secret.sops.yaml
-  - deployment.yaml
-  - service.yaml
-  - ingress.yaml

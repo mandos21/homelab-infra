@@ -24,7 +24,9 @@ Questions:
 ## 2. Namespace
 
 - Create a dedicated namespace for the service unless there is a strong reason not to.
-- Repo location: `k3s/cluster/apps/<category>/<service>/namespace.yaml`
+- Repo location:
+  - simple layout: `k3s/cluster/apps/<category>/<service>/namespace.yaml`
+  - split layout: `k3s/cluster/apps/<category>/<service>/foundation/namespace.yaml`
 
 Questions:
 - Does this service need isolation from others?
@@ -33,7 +35,9 @@ Questions:
 ## 3. Helm source
 
 - If installed from a Helm chart, define a `HelmRepository`.
-- Repo location: `k3s/cluster/apps/<category>/<service>/helmrepository.yaml`
+- Repo location:
+  - service-local: `k3s/cluster/apps/<category>/<service>/helmrepository.yaml`
+  - shared/common sources: `k3s/cluster/apps/<category>/common/<name>/helmrepository.yaml`
 
 Questions:
 - Is there an official upstream chart?
@@ -42,7 +46,9 @@ Questions:
 ## 4. HelmRelease or raw manifests
 
 - Most services should use a `HelmRelease`.
-- Repo location: `k3s/cluster/apps/<category>/<service>/helmrelease.yaml`
+- Repo location:
+  - simple layout: `k3s/cluster/apps/<category>/<service>/helmrelease.yaml`
+  - split layout: `k3s/cluster/apps/<category>/<service>/workload/helmrelease.yaml`
 
 Questions:
 - Is Helm the cleanest way to manage this service?
@@ -51,7 +57,9 @@ Questions:
 ## 5. Values file
 
 - Put substantial Helm values in a separate file rather than inline in the HelmRelease.
-- Repo location: `k3s/cluster/apps/<category>/<service>/values.yaml`
+- Repo location:
+  - simple layout: `k3s/cluster/apps/<category>/<service>/values.yaml`
+  - split layout: `k3s/cluster/apps/<category>/<service>/workload/values.yaml`
 
 Questions:
 - What should be explicit instead of inherited from chart defaults?
@@ -78,7 +86,7 @@ Typical things to set:
 
 Repo location:
 - usually in `values.yaml`
-- sometimes in raw manifests under the service directory
+- sometimes in raw manifests under `workload/`
 
 Questions:
 - Where should this service run?
@@ -96,7 +104,7 @@ Questions:
 
 Repo location:
 - usually in `values.yaml`
-- or dedicated `pvc.yaml` / `pv.yaml`
+- or dedicated `foundation/pvc.yaml` / `foundation/pv.yaml`
 
 Questions:
 - Does the service actually need persistence?
@@ -106,20 +114,23 @@ Questions:
 ## 8. Secrets
 
 - Put credentials, tokens, client secrets, admin passwords, and API keys in SOPS-encrypted Secret manifests.
-- Repo location: `k3s/cluster/secrets/<service>-secret.sops.yaml`
+- Repo location:
+  - preferred: `k3s/cluster/apps/<category>/<service>/workload/secret.sops.yaml`
+  - acceptable for shared infra secrets: a dedicated infra or shared secrets directory when multiple services consume the same secret
 
 Questions:
 - What values are sensitive?
 - Does the chart expect existing secrets or inline secret values?
 
 Related files:
-- `k3s/cluster/secrets/kustomization.yaml`
 - `k3s/cluster/.sops.yaml`
 
 ## 9. ConfigMaps or non-secret config
 
 - Put non-sensitive config in the service directory.
-- Repo location: `k3s/cluster/apps/<category>/<service>/configmap.yaml`
+- Repo location:
+  - simple layout: `k3s/cluster/apps/<category>/<service>/configmap.yaml`
+  - split layout: `k3s/cluster/apps/<category>/<service>/workload/configmap.yaml`
 
 Questions:
 - What should be versioned in Git as plain config?
@@ -133,8 +144,8 @@ Questions:
   - externally reachable through your existing edge flow
 
 Repo location:
-- `k3s/cluster/apps/<category>/<service>/ingress.yaml`
-- or chart values in `values.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/ingress.yaml`
+- or chart values in `workload/values.yaml`
 
 Questions:
 - What hostname will it use?
@@ -150,8 +161,8 @@ Questions:
   - forward auth in front of ingress
 
 Repo location:
-- OIDC client secrets in `k3s/cluster/secrets/`
-- ingress auth settings in app `values.yaml` or `ingress.yaml`
+- OIDC client secrets in `k3s/cluster/apps/<category>/<service>/workload/secret.sops.yaml`
+- ingress auth settings in app `workload/values.yaml` or `workload/ingress.yaml`
 
 Questions:
 - Does it integrate with Keycloak or another IdP?
@@ -166,8 +177,8 @@ Questions:
   - external database
 
 Repo location:
-- service values in `values.yaml`
-- database credentials in `k3s/cluster/secrets/`
+- service values in `workload/values.yaml`
+- database credentials in `k3s/cluster/apps/<category>/<service>/workload/secret.sops.yaml`
 
 Questions:
 - Is the embedded DB acceptable?
@@ -197,7 +208,7 @@ Questions:
 - If the chart supports it, set readiness/liveness/startup probes explicitly.
 
 Repo location:
-- usually `values.yaml`
+- usually `workload/values.yaml`
 
 Questions:
 - Does the default probe behavior make sense?
@@ -242,19 +253,49 @@ Questions:
 For a chart-managed app:
 
 - `k3s/cluster/apps/<category>/<service>/kustomization.yaml`
-- `k3s/cluster/apps/<category>/<service>/namespace.yaml`
-- `k3s/cluster/apps/<category>/<service>/helmrepository.yaml`
-- `k3s/cluster/apps/<category>/<service>/helmrelease.yaml`
-- `k3s/cluster/apps/<category>/<service>/values.yaml`
-- `k3s/cluster/apps/<category>/<service>/ingress.yaml` if separate
-- `k3s/cluster/secrets/<service>-secret.sops.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/kustomization.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/namespace.yaml`
+- `k3s/cluster/apps/<category>/common/<name>/helmrepository.yaml` or service-local equivalent
+- `k3s/cluster/apps/<category>/<service>/workload/kustomization.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/helmrelease.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/values.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/secret.sops.yaml`
 
 For a raw-manifest app:
 
 - `k3s/cluster/apps/<category>/<service>/kustomization.yaml`
-- `k3s/cluster/apps/<category>/<service>/namespace.yaml`
-- `k3s/cluster/apps/<category>/<service>/deployment.yaml`
-- `k3s/cluster/apps/<category>/<service>/service.yaml`
-- `k3s/cluster/apps/<category>/<service>/ingress.yaml`
-- `k3s/cluster/apps/<category>/<service>/pvc.yaml`
-- `k3s/cluster/secrets/<service>-secret.sops.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/kustomization.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/namespace.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/pvc.yaml`
+- `k3s/cluster/apps/<category>/<service>/foundation/pv.yaml` when static storage is needed
+- `k3s/cluster/apps/<category>/<service>/workload/kustomization.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/deployment.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/service.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/ingress.yaml`
+- `k3s/cluster/apps/<category>/<service>/workload/secret.sops.yaml`
+
+## Foundation vs Workload
+
+Use a split layout when the service has state you want to protect from routine churn.
+
+- `foundation/` should contain slow-changing identity and storage objects:
+  - namespace
+  - PVCs
+  - static PVs
+  - sometimes shared middleware or other objects that must not be pruned casually
+- `workload/` should contain the runtime layer:
+  - Deployments
+  - StatefulSets
+  - Services
+  - Ingresses
+  - HelmReleases
+  - ConfigMaps
+  - Secrets
+
+Why this is useful:
+
+- storage changes are easier to review separately from image or ingress changes
+- it makes data-bearing objects visually obvious during refactors
+- it reduces the chance of accidentally treating PVCs like disposable runtime resources
+
+Use a flat service directory only when the app is simple enough that the split adds noise.

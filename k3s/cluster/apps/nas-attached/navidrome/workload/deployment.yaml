@@ -22,11 +22,12 @@ spec:
     spec:
       nodeSelector:
         node-type: vm
+      terminationGracePeriodSeconds: 30
       securityContext:
         fsGroup: 100
       containers:
         - name: navidrome
-          image: deluan/navidrome:latest
+          image: deluan/navidrome:0.61.2
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
@@ -74,6 +75,13 @@ spec:
               memory: 256Mi
             limits:
               memory: 1Gi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 10
           volumeMounts:
             - name: data
               mountPath: /data
