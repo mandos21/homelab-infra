@@ -22,7 +22,7 @@ spec:
         longhorn: "enabled"
       containers:
         - name: bookstack
-          image: bookstack/bookstack:latest
+          image: lscr.io/linuxserver/bookstack:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
