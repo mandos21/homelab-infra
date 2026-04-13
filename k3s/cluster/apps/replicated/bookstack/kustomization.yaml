@@ -6,6 +6,7 @@ resources:
   - statefulset-mariadb.yaml
   - ingress.yaml
   - namespace.yaml
+  - pvc-config.yaml
   - pvc-mariadb.yaml
   - secret.sops.yaml
   - service-mariadb.yaml

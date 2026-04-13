@@ -59,3 +59,10 @@ spec:
               memory: 256Mi
             limits:
               memory: 512Mi
+          volumeMounts:
+            - name: bookstack-config
+              mountPath: /config
+      volumes:
+        - name: bookstack-config
+          persistentVolumeClaim:
+            claimName: bookstack-config
