@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - cert-manager
   - longhorn
+  - storageclass-local-path-retain.yaml
   - metallb
   - step-issuer
   - traefik

@@ -91,10 +91,18 @@ Protection:
 - annotate PVCs, static PVs, and stateful namespaces with:
   - `kustomize.toolkit.fluxcd.io/prune: disabled`
 - set `deletionPolicy: Orphan` on Flux Kustomizations that own stateful applications
+- prefer retain-oriented StorageClasses for stateful PVCs so PVC deletion does not destroy storage automatically
 
 Important:
 - local-path PVCs are not safe to treat as disposable config
 - if the PVC is deleted, the underlying data is usually deleted too
+
+Intentional deletion model:
+- with `Retain`, deleting the PVC should leave the PV in place
+- full destruction becomes an explicit two-step action:
+  - delete the PVC
+  - then separately delete the PV/backing storage if desired
+- this is the intended safety posture for stateful app data
 
 ### CRD object applied too early
 
