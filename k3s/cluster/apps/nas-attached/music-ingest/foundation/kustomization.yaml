@@ -7,6 +7,3 @@ resources:
   - pvc-beets-state.yaml
   - pv-library.yaml
   - pvc-library.yaml
-  - configmap-beets.yaml
-  - secret.sops.yaml
-  - middleware-upload-buffering.yaml

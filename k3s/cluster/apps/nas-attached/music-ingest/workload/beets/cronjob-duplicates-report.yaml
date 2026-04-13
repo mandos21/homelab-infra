@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: beets-maintenance-mbsync
+  name: beets-maintenance-duplicates-report
   namespace: music-ingest
   labels:
     app.kubernetes.io/part-of: music-ingest
-    app.kubernetes.io/name: beets-maintenance-mbsync
+    app.kubernetes.io/name: beets-maintenance-duplicates-report
     app.kubernetes.io/component: maintenance
 spec:
-  schedule: "15 3 * * *"
+  schedule: "30 4 * * 0"
   timeZone: America/New_York
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
@@ -20,7 +20,7 @@ spec:
         metadata:
           labels:
             app.kubernetes.io/part-of: music-ingest
-            app.kubernetes.io/name: beets-maintenance-mbsync
+            app.kubernetes.io/name: beets-maintenance-duplicates-report
         spec:
           restartPolicy: Never
           nodeSelector:
@@ -36,7 +36,8 @@ spec:
                 - -ec
                 - |
                   /config-src/bootstrap.sh
-                  beet -c /state/config.yaml mbsync
+                  beet -c /state/config.yaml duplicates > /uploads/logs/duplicates-tracks.txt
+                  beet -c /state/config.yaml duplicates -a > /uploads/logs/duplicates-albums.txt
               env:
                 - name: TZ
                   value: America/New_York
@@ -47,19 +48,19 @@ spec:
                 - name: BEETS_DISCOGS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beets-discogs
-                      key: token
+                      name: music-ingest-secrets
+                      key: BEETS_DISCOGS_TOKEN
                 - name: BEETS_ACOUSTID_APIKEY
                   valueFrom:
                     secretKeyRef:
-                      name: beets-acoustid
-                      key: apikey
+                      name: music-ingest-secrets
+                      key: BEETS_ACOUSTID_APIKEY
               resources:
                 requests:
                   cpu: 200m
-                  memory: 512Mi
+                  memory: 256Mi
                 limits:
-                  memory: 2Gi
+                  memory: 1Gi
               volumeMounts:
                 - name: config-src
                   mountPath: /config-src

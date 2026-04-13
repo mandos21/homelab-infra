@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: beets-maintenance-replaygain
+  name: beets-auto-import
   namespace: music-ingest
   labels:
     app.kubernetes.io/part-of: music-ingest
-    app.kubernetes.io/name: beets-maintenance-replaygain
-    app.kubernetes.io/component: maintenance
+    app.kubernetes.io/name: beets-auto-import
+    app.kubernetes.io/component: worker
 spec:
-  schedule: "0 4 * * 0"
+  schedule: "*/30 * * * *"
   timeZone: America/New_York
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
@@ -20,7 +20,7 @@ spec:
         metadata:
           labels:
             app.kubernetes.io/part-of: music-ingest
-            app.kubernetes.io/name: beets-maintenance-replaygain
+            app.kubernetes.io/name: beets-auto-import
         spec:
           restartPolicy: Never
           nodeSelector:
@@ -36,7 +36,7 @@ spec:
                 - -ec
                 - |
                   /config-src/bootstrap.sh
-                  beet -c /state/config.yaml replaygain -a
+                  beet -c /state/config.yaml import -i -q -l /uploads/logs/import.log /uploads/incoming
               env:
                 - name: TZ
                   value: America/New_York
@@ -47,19 +47,19 @@ spec:
                 - name: BEETS_DISCOGS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beets-discogs
-                      key: token
+                      name: music-ingest-secrets
+                      key: BEETS_DISCOGS_TOKEN
                 - name: BEETS_ACOUSTID_APIKEY
                   valueFrom:
                     secretKeyRef:
-                      name: beets-acoustid
-                      key: apikey
+                      name: music-ingest-secrets
+                      key: BEETS_ACOUSTID_APIKEY
               resources:
                 requests:
-                  cpu: 500m
+                  cpu: 200m
                   memory: 512Mi
                 limits:
-                  memory: 4Gi
+                  memory: 2Gi
               volumeMounts:
                 - name: config-src
                   mountPath: /config-src

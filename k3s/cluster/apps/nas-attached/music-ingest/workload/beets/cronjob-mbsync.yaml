@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: beets-auto-import
+  name: beets-maintenance-mbsync
   namespace: music-ingest
   labels:
     app.kubernetes.io/part-of: music-ingest
-    app.kubernetes.io/name: beets-auto-import
-    app.kubernetes.io/component: worker
+    app.kubernetes.io/name: beets-maintenance-mbsync
+    app.kubernetes.io/component: maintenance
 spec:
-  schedule: "*/30 * * * *"
+  schedule: "15 3 * * *"
   timeZone: America/New_York
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
@@ -20,7 +20,7 @@ spec:
         metadata:
           labels:
             app.kubernetes.io/part-of: music-ingest
-            app.kubernetes.io/name: beets-auto-import
+            app.kubernetes.io/name: beets-maintenance-mbsync
         spec:
           restartPolicy: Never
           nodeSelector:
@@ -36,7 +36,7 @@ spec:
                 - -ec
                 - |
                   /config-src/bootstrap.sh
-                  beet -c /state/config.yaml import -i -q -l /uploads/logs/import.log /uploads/incoming
+                  beet -c /state/config.yaml mbsync
               env:
                 - name: TZ
                   value: America/New_York
@@ -47,13 +47,13 @@ spec:
                 - name: BEETS_DISCOGS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beets-discogs
-                      key: token
+                      name: music-ingest-secrets
+                      key: BEETS_DISCOGS_TOKEN
                 - name: BEETS_ACOUSTID_APIKEY
                   valueFrom:
                     secretKeyRef:
-                      name: beets-acoustid
-                      key: apikey
+                      name: music-ingest-secrets
+                      key: BEETS_ACOUSTID_APIKEY
               resources:
                 requests:
                   cpu: 200m

@@ -44,8 +44,6 @@ spec:
       cookie-secure: "true"
       cookie-samesite: lax
       proxy-prefix: /oauth2
-      pass-user-headers: "true"
-      pass-access-token: "true"
       skip-provider-button: "true"
     service:
       type: ClusterIP

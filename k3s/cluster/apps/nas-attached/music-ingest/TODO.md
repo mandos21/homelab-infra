@@ -1,7 +1,7 @@
 # TODO
 
 ## Before First Deploy
-- Fill and encrypt `core/secret.sops.yaml`.
+- Fill and encrypt `workload/secret.sops.yaml`.
 - Build and push the custom beets image from `image/`.
 - Create the Keycloak client and callback URL for the ingest host.
 - Reconcile `music-ingest` and verify oauth2-proxy, FileBrowser, and beets workloads.

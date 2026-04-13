@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: beets-maintenance-duplicates-report
+  name: beets-maintenance-replaygain
   namespace: music-ingest
   labels:
     app.kubernetes.io/part-of: music-ingest
-    app.kubernetes.io/name: beets-maintenance-duplicates-report
+    app.kubernetes.io/name: beets-maintenance-replaygain
     app.kubernetes.io/component: maintenance
 spec:
-  schedule: "30 4 * * 0"
+  schedule: "0 4 * * 0"
   timeZone: America/New_York
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
@@ -20,7 +20,7 @@ spec:
         metadata:
           labels:
             app.kubernetes.io/part-of: music-ingest
-            app.kubernetes.io/name: beets-maintenance-duplicates-report
+            app.kubernetes.io/name: beets-maintenance-replaygain
         spec:
           restartPolicy: Never
           nodeSelector:
@@ -36,8 +36,7 @@ spec:
                 - -ec
                 - |
                   /config-src/bootstrap.sh
-                  beet -c /state/config.yaml duplicates > /uploads/logs/duplicates-tracks.txt
-                  beet -c /state/config.yaml duplicates -a > /uploads/logs/duplicates-albums.txt
+                  beet -c /state/config.yaml replaygain -a
               env:
                 - name: TZ
                   value: America/New_York
@@ -48,19 +47,19 @@ spec:
                 - name: BEETS_DISCOGS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beets-discogs
-                      key: token
+                      name: music-ingest-secrets
+                      key: BEETS_DISCOGS_TOKEN
                 - name: BEETS_ACOUSTID_APIKEY
                   valueFrom:
                     secretKeyRef:
-                      name: beets-acoustid
-                      key: apikey
+                      name: music-ingest-secrets
+                      key: BEETS_ACOUSTID_APIKEY
               resources:
                 requests:
-                  cpu: 200m
-                  memory: 256Mi
+                  cpu: 500m
+                  memory: 512Mi
                 limits:
-                  memory: 1Gi
+                  memory: 4Gi
               volumeMounts:
                 - name: config-src
                   mountPath: /config-src

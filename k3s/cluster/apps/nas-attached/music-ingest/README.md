@@ -20,14 +20,16 @@ So the migration cost is moderate rather than high. It is mostly proxy/routing w
 
 ## Layout
 
-- `core/`
-  Namespace, storage, beets config, shared secret scaffold, and Traefik middleware.
-- `charts/`
-  Helm source and HelmRelease for `oauth2-proxy`.
-- `filebrowser/`
+- `foundation/`
+  Namespace and storage primitives: static NFS PVs, their PVCs, and the local beets-state PVC.
+- `workload/`
+  Runtime layer for the service. Shared secret and Traefik middleware live here.
+- `workload/oauth2-proxy/`
+  HelmRelease for the public auth gateway.
+- `workload/filebrowser/`
   Internal upload UI manifests. Raw manifests are used here because the public chart insists on owning its own PVCs, which conflicts with the shared upload staging design.
-- `beets/`
-  Single-replica admin runtime, scheduled import/maintenance jobs, and suspended manual repair jobs.
+- `workload/beets/`
+  Single-replica admin runtime, scheduled import/maintenance jobs, suspended manual repair jobs, and the beets ConfigMap.
 - `image/`
   Custom beets image scaffold built on the LSIO beets image.
 
@@ -95,12 +97,12 @@ Current assumptions:
 
 All service secrets live in one file:
 
-- `core/secret.sops.yaml`
+- `workload/secret.sops.yaml`
 
 Keys scaffolded:
-- `clientID`
-- `clientSecret`
-- `cookieSecret`
+- `client-id`
+- `client-secret`
+- `cookie-secret`
 - `BEETS_DISCOGS_TOKEN`
 - `BEETS_ACOUSTID_APIKEY`
 
@@ -120,25 +122,25 @@ This is intentionally separate from the aggregate `apps-nas-attached` tree so yo
 
 ## File Notes
 
-- `core/configmap-beets.yaml`
+- `workload/beets/configmap-beets.yaml`
   Contains `bootstrap.sh`, the beets config template, and lastgenre support files.
-- `filebrowser/configmap-filebrowser.yaml`
+- `workload/filebrowser/configmap-filebrowser.yaml`
   Internal FileBrowser config; proxy auth only, no direct password login.
-- `filebrowser/deployment-filebrowser.yaml`
+- `workload/filebrowser/deployment-filebrowser.yaml`
   Internal-only upload UI using the shared uploads PVC and a subdirectory on the beets-state PVC for its lightweight state.
-- `beets/deployment-beets-admin.yaml`
+- `workload/beets/deployment-beets-admin.yaml`
   Long-running internal operator pod for manual imports, review, and repairs.
-- `beets/cronjob-auto-import.yaml`
+- `workload/beets/cronjob-auto-import.yaml`
   Main unattended import pass.
-- `beets/cronjob-mbsync.yaml`
+- `workload/beets/cronjob-mbsync.yaml`
   Metadata sync pass for already-tagged library items.
-- `beets/cronjob-replaygain.yaml`
+- `workload/beets/cronjob-replaygain.yaml`
   ReplayGain analysis pass; deliberately separate because it is slower.
-- `beets/cronjob-duplicates-report.yaml`
+- `workload/beets/cronjob-duplicates-report.yaml`
   Writes duplicate reports into the uploads logs area.
-- `beets/job-manual-from-logfile.yaml`
+- `workload/beets/job-manual-from-logfile.yaml`
   Suspended template for reprocessing skipped imports from the import logfile.
-- `beets/job-manual-scrub-review.yaml`
+- `workload/beets/job-manual-scrub-review.yaml`
   Suspended template for scrub-based cleanup work over review content.
 
 ## Build Step
@@ -147,7 +149,7 @@ Before reconciling the service, build and push the custom beets image from `imag
 
 ## Deploy Checklist
 
-1. Fill and encrypt `core/secret.sops.yaml`.
+1. Fill and encrypt `workload/secret.sops.yaml`.
 2. Create the Unraid directories if they do not already exist.
 3. Build and push the custom beets image.
 4. Create the Keycloak client and callback URL.
