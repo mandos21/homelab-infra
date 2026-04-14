@@ -6,7 +6,7 @@ Music ingest is a `nas-attached` service because it depends on Unraid-backed med
 
 You asked about consolidating related services under one host:
 
-- `music.dege.app/listen` for Navidrome
+- `music.dege.app` for Navidrome
 - `music.dege.app/tags` for Picard
 - `music.dege.app/ingest` for this ingest service
 
@@ -16,7 +16,7 @@ This is feasible, but not equally clean for every app.
 - Picard is workable behind a subpath, but desktop-webapp wrappers tend to be a little less pleasant than a root-host deployment.
 - oauth2-proxy plus FileBrowser behind `/ingest` is workable, but the callback URL, auth prefix, and upstream path handling all become stricter.
 
-So the migration cost is moderate rather than high. It is mostly proxy/routing work, not application redesign. The cleanest implementation path is to get the service stable on its own host first, then collapse it under `music.dege.app` if you still want the single-host layout.
+So the migration cost is moderate rather than high. It is mostly proxy/routing work, not application redesign.
 
 ## Layout
 
@@ -89,9 +89,10 @@ Because `beets-state` now uses `local-path`, the workload is effectively tied to
 Only `oauth2-proxy` is public. It fronts the internal FileBrowser service and handles OIDC with Keycloak.
 
 Current assumptions:
-- public host: `ingest.dege.app`
+- public host: `music.dege.app`
+- public path prefix: `/ingest`
 - OIDC issuer: `https://id.mdegenaro.com/realms/theborocrew`
-- callback: `https://ingest.dege.app/oauth2/callback`
+- callback: `https://music.dege.app/ingest/oauth2/callback`
 
 ## Secrets
 

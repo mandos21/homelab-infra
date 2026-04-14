@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: music-ingest-trailing-slash
+  namespace: music-ingest
+spec:
+  redirectRegex:
+    regex: ^https://music\.dege\.app/ingest$
+    replacement: https://music.dege.app/ingest/
+    permanent: true
