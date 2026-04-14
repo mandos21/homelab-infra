@@ -28,7 +28,7 @@ data:
           clientId: "${FILEBROWSER_OIDC_CLIENT_ID}"
           clientSecret: "${FILEBROWSER_OIDC_CLIENT_SECRET}"
           issuerUrl: "https://id.mdegenaro.com/realms/theborocrew"
-          scopes: "email openid profile groups"
+          scopes: "email openid profile"
           userIdentifier: "preferred_username"
           createUser: true
     userDefaults:
