@@ -14,7 +14,7 @@ This is feasible, but not equally clean for every app.
 
 - Navidrome is the easiest of the three because it supports a configurable base URL.
 - Picard is workable behind a subpath, but desktop-webapp wrappers tend to be a little less pleasant than a root-host deployment.
-- oauth2-proxy plus FileBrowser behind `/ingest` is workable, but the callback URL, auth prefix, and upstream path handling all become stricter.
+- FileBrowser Quantum is now configured with native OIDC on its dedicated host instead of being fronted by oauth2-proxy.
 
 Path consolidation is feasible in principle, but ingest is currently kept on its own host because FileBrowser does not behave cleanly behind the shared `music.dege.app` root path.
 
@@ -24,10 +24,8 @@ Path consolidation is feasible in principle, but ingest is currently kept on its
   Namespace and storage primitives: static NFS PVs, their PVCs, and the local beets-state PVC.
 - `workload/`
   Runtime layer for the service. Shared secret and Traefik middleware live here.
-- `workload/oauth2-proxy/`
-  HelmRelease for the public auth gateway.
 - `workload/filebrowser/`
-  Internal upload UI manifests. Raw manifests are used here because the public chart insists on owning its own PVCs, which conflicts with the shared upload staging design.
+  Upload UI manifests, including native OIDC configuration and the public Ingress.
 - `workload/beets/`
   Single-replica admin runtime, scheduled import/maintenance jobs, suspended manual repair jobs, and the beets ConfigMap.
 - `image/`
@@ -86,12 +84,12 @@ Because `beets-state` now uses `local-path`, the workload is effectively tied to
 
 ## Public Exposure
 
-Only `oauth2-proxy` is public. It fronts the internal FileBrowser service and handles OIDC with Keycloak.
+Only FileBrowser is public. It handles OIDC with Keycloak directly.
 
 Current assumptions:
 - public host: `ingest.dege.app`
 - OIDC issuer: `https://id.mdegenaro.com/realms/theborocrew`
-- callback: `https://ingest.dege.app/oauth2/callback`
+- callback: `https://ingest.dege.app/api/auth/oidc/callback`
 
 ## Secrets
 
@@ -102,7 +100,6 @@ All service secrets live in one file:
 Keys scaffolded:
 - `client-id`
 - `client-secret`
-- `cookie-secret`
 - `BEETS_DISCOGS_TOKEN`
 - `BEETS_ACOUSTID_APIKEY`
 
@@ -125,9 +122,11 @@ This is intentionally separate from the aggregate `apps-nas-attached` tree so yo
 - `workload/beets/configmap-beets.yaml`
   Contains `bootstrap.sh`, the beets config template, and lastgenre support files.
 - `workload/filebrowser/configmap-filebrowser.yaml`
-  Internal FileBrowser config; proxy auth only, no direct password login.
+  FileBrowser config template with native OIDC and no password auth.
 - `workload/filebrowser/deployment-filebrowser.yaml`
-  Internal-only upload UI using the shared uploads PVC and a subdirectory on the beets-state PVC for its lightweight state.
+  Upload UI using the shared uploads PVC and a subdirectory on the beets-state PVC for its lightweight state. An initContainer renders OIDC secrets into the runtime config file.
+- `workload/filebrowser/ingress-filebrowser.yaml`
+  Public Traefik ingress for `ingest.dege.app`.
 - `workload/beets/deployment-beets-admin.yaml`
   Long-running internal operator pod for manual imports, review, and repairs.
 - `workload/beets/cronjob-auto-import.yaml`
@@ -153,5 +152,6 @@ Before reconciling the service, build and push the custom beets image from `imag
 2. Create the Unraid directories if they do not already exist.
 3. Build and push the custom beets image.
 4. Create the Keycloak client and callback URL.
+   Use `https://ingest.dege.app/api/auth/oidc/callback`.
 5. Reconcile `music-ingest` directly.
 6. Add the edge route once the in-cluster service is ready.

@@ -26,6 +26,41 @@ spec:
         node-type: vm
       securityContext:
         fsGroup: 1000
+      initContainers:
+        - name: render-config
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/python
+            - -c
+            - |
+              from pathlib import Path
+              import os
+
+              target_dir = Path("/home/filebrowser/data")
+              target_dir.mkdir(parents=True, exist_ok=True)
+              template = Path("/config-src/config.yaml.tmpl").read_text()
+              template = template.replace("${FILEBROWSER_OIDC_CLIENT_ID}", os.environ["FILEBROWSER_OIDC_CLIENT_ID"])
+              template = template.replace("${FILEBROWSER_OIDC_CLIENT_SECRET}", os.environ["FILEBROWSER_OIDC_CLIENT_SECRET"])
+              Path("/home/filebrowser/data/config.yaml").write_text(template)
+          env:
+            - name: FILEBROWSER_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: music-ingest-secrets
+                  key: client-id
+            - name: FILEBROWSER_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: music-ingest-secrets
+                  key: client-secret
+          volumeMounts:
+            - name: state
+              mountPath: /home/filebrowser/data
+              subPath: filebrowser
+            - name: filebrowser-config
+              mountPath: /config-src
+              readOnly: true
       containers:
         - name: filebrowser
           image: gtstef/filebrowser:stable-slim
@@ -56,10 +91,6 @@ spec:
             - name: state
               mountPath: /home/filebrowser/data
               subPath: filebrowser
-            - name: filebrowser-config
-              mountPath: /home/filebrowser/data/config.yaml
-              subPath: config.yaml
-              readOnly: true
             - name: uploads
               mountPath: /srv/uploads
       volumes:

@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: music-ingest
     app.kubernetes.io/component: filebrowser
 data:
-  config.yaml: |
+  config.yaml.tmpl: |
     server:
       port: 80
       database: /home/filebrowser/data/database.db
@@ -19,12 +19,18 @@ data:
             defaultUserScope: /
             createUserDir: false
     auth:
+      adminUsername: admin
       methods:
-        proxy:
-          enabled: true
-          header: X-Forwarded-User
         password:
           enabled: false
+        oidc:
+          enabled: true
+          clientId: "${FILEBROWSER_OIDC_CLIENT_ID}"
+          clientSecret: "${FILEBROWSER_OIDC_CLIENT_SECRET}"
+          issuerUrl: "https://id.mdegenaro.com/realms/theborocrew"
+          scopes: "email openid profile groups"
+          userIdentifier: "preferred_username"
+          createUser: true
     userDefaults:
       permissions:
         api: true

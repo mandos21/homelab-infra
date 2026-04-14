@@ -3,5 +3,5 @@ kind: Kustomization
 resources:
   - configmap-filebrowser.yaml
   - deployment-filebrowser.yaml
+  - ingress-filebrowser.yaml
   - service-filebrowser.yaml
-  - networkpolicy-filebrowser.yaml
