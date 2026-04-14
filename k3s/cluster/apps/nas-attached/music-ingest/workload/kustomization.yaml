@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - secret.sops.yaml
   - middleware-upload-buffering.yaml
-  - middleware-trailing-slash.yaml
   - oauth2-proxy
   - filebrowser
   - beets

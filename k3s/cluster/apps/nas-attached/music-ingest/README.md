@@ -8,7 +8,7 @@ You asked about consolidating related services under one host:
 
 - `music.dege.app` for Navidrome
 - `music.dege.app/tags` for Picard
-- `music.dege.app/ingest` for this ingest service
+- `ingest.dege.app` for this ingest service
 
 This is feasible, but not equally clean for every app.
 
@@ -16,7 +16,7 @@ This is feasible, but not equally clean for every app.
 - Picard is workable behind a subpath, but desktop-webapp wrappers tend to be a little less pleasant than a root-host deployment.
 - oauth2-proxy plus FileBrowser behind `/ingest` is workable, but the callback URL, auth prefix, and upstream path handling all become stricter.
 
-So the migration cost is moderate rather than high. It is mostly proxy/routing work, not application redesign.
+Path consolidation is feasible in principle, but ingest is currently kept on its own host because FileBrowser does not behave cleanly behind the shared `music.dege.app` root path.
 
 ## Layout
 
@@ -89,10 +89,9 @@ Because `beets-state` now uses `local-path`, the workload is effectively tied to
 Only `oauth2-proxy` is public. It fronts the internal FileBrowser service and handles OIDC with Keycloak.
 
 Current assumptions:
-- public host: `music.dege.app`
-- public path prefix: `/ingest`
+- public host: `ingest.dege.app`
 - OIDC issuer: `https://id.mdegenaro.com/realms/theborocrew`
-- callback: `https://music.dege.app/ingest/oauth2/callback`
+- callback: `https://ingest.dege.app/oauth2/callback`
 
 ## Secrets
 

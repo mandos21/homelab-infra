@@ -33,26 +33,17 @@ spec:
         upstreamConfig:
           upstreams:
             - id: filebrowser
-              path: ^/ingest$
-              rewriteTarget: /
-              uri: http://filebrowser.music-ingest.svc.cluster.local:80
-              passHostHeader: true
-              proxyWebSockets: true
-              flushInterval: 1s
-            - id: filebrowser-subpaths
-              path: ^/ingest/(.*)$
-              rewriteTarget: /$1
+              path: /
               uri: http://filebrowser.music-ingest.svc.cluster.local:80
               passHostHeader: true
               proxyWebSockets: true
               flushInterval: 1s
     extraArgs:
-      redirect-url: https://music.dege.app/ingest/oauth2/callback
+      redirect-url: https://ingest.dege.app/oauth2/callback
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
-      cookie-path: /ingest
-      proxy-prefix: /ingest/oauth2
+      proxy-prefix: /oauth2
       skip-provider-button: "true"
     service:
       type: ClusterIP
@@ -60,14 +51,14 @@ spec:
     ingress:
       enabled: true
       className: traefik
-      path: /ingest
+      path: /
       pathType: Prefix
       hosts:
-        - music.dege.app
+        - ingest.dege.app
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
-        traefik.ingress.kubernetes.io/router.middlewares: music-ingest-music-ingest-trailing-slash@kubernetescrd,music-ingest-upload-buffering@kubernetescrd
+        traefik.ingress.kubernetes.io/router.middlewares: music-ingest-upload-buffering@kubernetescrd
     nodeSelector:
       node-type: vm
     resources:

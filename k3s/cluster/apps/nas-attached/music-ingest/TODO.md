@@ -20,7 +20,7 @@
 ## Routing Consolidation
 - Move Navidrome from `music.dege.app` to either `music.dege.app/listen` or keep it at `/` and mount other tools under subpaths.
 - Move Picard from `tags.dege.app` to `music.dege.app/tags`.
-- Decide whether ingest should live at `music.dege.app/ingest` or remain on its own host.
+- Revisit whether ingest can live at `music.dege.app/ingest` or should remain on its own host.
 - Update edge/Caddy routing once the final path layout is chosen.
 - Verify base-path behavior for Navidrome, Picard, and oauth2-proxy after path changes.
 
