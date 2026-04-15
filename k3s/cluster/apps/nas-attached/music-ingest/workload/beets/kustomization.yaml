@@ -16,5 +16,3 @@ resources:
   - cronjob-mbsync.yaml
   - cronjob-replaygain.yaml
   - cronjob-duplicates-report.yaml
-  - job-manual-from-logfile.yaml
-  - job-manual-scrub-review.yaml
