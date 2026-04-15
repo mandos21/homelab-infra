@@ -59,10 +59,6 @@ spec:
                   mountPath: /config/config.yaml
                   subPath: config.yaml
                   readOnly: true
-                - name: beets-support
-                  mountPath: /config/lastgenre-ignore.yaml
-                  subPath: lastgenre-ignore.yaml
-                  readOnly: true
                 - name: uploads
                   mountPath: /uploads
                 - name: library
@@ -71,9 +67,6 @@ spec:
             - name: beets-config
               secret:
                 secretName: beets-config
-            - name: beets-support
-              configMap:
-                name: beets-support
             - name: beets-state
               persistentVolumeClaim:
                 claimName: beets-state

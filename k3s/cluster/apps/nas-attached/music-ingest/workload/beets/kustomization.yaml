@@ -1,14 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-generatorOptions:
-  labels:
-    app.kubernetes.io/part-of: music-ingest
-    app.kubernetes.io/component: beets
-configMapGenerator:
-  - name: beets-support
-    namespace: music-ingest
-    files:
-      - support/lastgenre-ignore.yaml
 resources:
   - secret-config.sops.yaml
   - deployment-beets-admin.yaml
