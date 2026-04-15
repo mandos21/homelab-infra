@@ -31,7 +31,7 @@ spec:
       containers:
         - name: beets
           image: ghcr.io/mandos21/music-ingest-beets:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           workingDir: /uploads
           command:
             - /bin/sh
