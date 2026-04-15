@@ -67,6 +67,7 @@ spec:
                   readOnly: true
                 - name: beets-state
                   mountPath: /state
+                  subPath: beets
                 - name: uploads
                   mountPath: /uploads
                 - name: library

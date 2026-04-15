@@ -1,0 +1,102 @@
+directory: /music
+library: /state/library.db
+art_filename: cover
+threading: no
+
+plugins:
+  - fish
+  - badfiles
+  - discogs
+  - fetchart
+  - embedart
+  - lastgenre
+  - mbsync
+  - duplicates
+  - chroma
+  - convert
+  - scrub
+  - replaygain
+
+import:
+  incremental: yes
+  incremental_skip_later: yes
+  quiet: yes
+  quiet_fallback: skip
+  none_rec_action: ask
+  group_albums: yes
+  write: yes
+  copy: yes
+  move: no
+  delete: no
+  from_scratch: no
+  timid: no
+  log: /uploads/logs/import.log
+
+match:
+  strong_rec_thresh: 0.15
+
+badfiles:
+  check_on_import: yes
+  commands:
+    flac: flac --test --warnings-as-errors --silent
+    m4a: sh -c 'ffmpeg -v error -i "$1" -f null - >/dev/null' --
+
+paths:
+  default: $albumartist/$album%aunique{ [$year]}/$track - $title
+  singleton: Non-Album/$artist/$title
+  comp: Compilations/$album%aunique{ [$year]}/$track - $title
+
+discogs:
+  user_token: ${BEETS_DISCOGS_TOKEN}
+
+fetchart:
+  auto: yes
+  cautious: yes
+  maxwidth: 1200
+  cover_names: cover folder front art album
+  sources:
+    - filesystem
+    - coverart
+    - itunes
+    - amazon
+
+embedart:
+  auto: yes
+  ifempty: yes
+  remove_art_file: no
+
+lastgenre:
+  auto: yes
+  source: album
+  count: 6
+  min_weight: 20
+  force: yes
+  keep_existing: yes
+  whitelist: no
+  ignorelist: /config-src/lastgenre-ignore.yaml
+
+convert:
+  auto: yes
+  auto_keep: no
+  delete_originals: yes
+  never_convert_lossy_files: yes
+  tmpdir: /uploads/tmp
+  format: flac
+  formats:
+    flac:
+      command: ffmpeg -i $source -y -vn -c:a flac $dest
+      extension: flac
+
+acoustid:
+  apikey: ${BEETS_ACOUSTID_APIKEY}
+
+chroma:
+  auto: no
+
+replaygain:
+  backend: ffmpeg
+  overwrite: no
+
+replace:
+  '[\\/]': _
+  '^\\.': _

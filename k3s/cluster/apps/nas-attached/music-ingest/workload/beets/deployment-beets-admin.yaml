@@ -32,6 +32,7 @@ spec:
         - name: beets
           image: ghcr.io/mandos21/music-ingest-beets:latest
           imagePullPolicy: IfNotPresent
+          workingDir: /uploads
           command:
             - /bin/sh
             - -ec
@@ -39,6 +40,8 @@ spec:
               /config-src/bootstrap.sh
               exec sleep infinity
           env:
+            - name: SHELL
+              value: /usr/bin/fish
             - name: TZ
               value: America/New_York
             - name: PUID
