@@ -12,4 +12,7 @@ RUN apk add --no-cache \
     "beets[lastgenre]" \
     "beets[scrub]" \
     discogs-client \
-    pylast
+    pylast \
+  && mkdir -p /root/.config/fish/conf.d
+
+COPY beets-admin.fish /root/.config/fish/conf.d/beets-admin.fish

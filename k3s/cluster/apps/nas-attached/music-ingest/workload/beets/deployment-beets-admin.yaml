@@ -37,7 +37,7 @@ spec:
             - /bin/sh
             - -ec
             - |
-              /config-src/bootstrap.sh
+              mkdir -p /uploads/incoming /uploads/review /uploads/rejected /uploads/logs /uploads/tmp
               exec sleep infinity
           env:
             - name: SHELL
@@ -48,16 +48,6 @@ spec:
               value: "1000"
             - name: PGID
               value: "1000"
-            - name: BEETS_DISCOGS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: music-ingest-secrets
-                  key: BEETS_DISCOGS_TOKEN
-            - name: BEETS_ACOUSTID_APIKEY
-              valueFrom:
-                secretKeyRef:
-                  name: music-ingest-secrets
-                  key: BEETS_ACOUSTID_APIKEY
           resources:
             requests:
               cpu: 100m
@@ -72,21 +62,28 @@ spec:
                   - -c
                   - sleep 5
           volumeMounts:
-            - name: config-src
-              mountPath: /config-src
-              readOnly: true
             - name: beets-state
-              mountPath: /state
+              mountPath: /config
               subPath: beets
+            - name: beets-config
+              mountPath: /config/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: beets-support
+              mountPath: /config/lastgenre-ignore.yaml
+              subPath: lastgenre-ignore.yaml
+              readOnly: true
             - name: uploads
               mountPath: /uploads
             - name: library
               mountPath: /music
       volumes:
-        - name: config-src
+        - name: beets-config
+          secret:
+            secretName: beets-config
+        - name: beets-support
           configMap:
-            name: beets-config
-            defaultMode: 0755
+            name: beets-support
         - name: beets-state
           persistentVolumeClaim:
             claimName: beets-state
