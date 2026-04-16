@@ -17,6 +17,8 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        beets-config-rollout: enabled
       labels:
         app.kubernetes.io/part-of: music-ingest
         app.kubernetes.io/name: beets-admin
@@ -73,10 +75,16 @@ spec:
               mountPath: /uploads
             - name: library
               mountPath: /music
+            - name: beets-config-rollout
+              mountPath: /var/run/beets-config-rollout
+              readOnly: true
       volumes:
         - name: beets-config
           secret:
             secretName: beets-config
+        - name: beets-config-rollout
+          configMap:
+            name: beets-config-rollout
         - name: beets-state
           persistentVolumeClaim:
             claimName: beets-state
