@@ -15,7 +15,8 @@ spec:
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 86400
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 14400
       template:
         metadata:
           labels:
