@@ -69,6 +69,8 @@ spec:
               mountPath: /config
             - name: music
               mountPath: /config/home/Music
+            - name: uploads
+              mountPath: /config/home/Uploads
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -76,3 +78,6 @@ spec:
         - name: music
           persistentVolumeClaim:
             claimName: picard-music
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: picard-uploads

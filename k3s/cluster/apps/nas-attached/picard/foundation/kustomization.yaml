@@ -4,4 +4,6 @@ resources:
   - namespace.yaml
   - pvc-config.yaml
   - pv-music.yaml
+  - pv-uploads.yaml
+  - pvc-uploads.yaml
   - pvc-music.yaml

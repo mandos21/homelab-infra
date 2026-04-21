@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: calibre-uploads
+  name: picard-uploads
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   capacity:
-    storage: 100Gi
+    storage: 1Ti
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
@@ -15,4 +15,4 @@ spec:
     - nfsvers=4.2
   nfs:
     server: 192.168.1.231
-    path: /mnt/user/ebook_uploads
+    path: /mnt/user/uploads/music-ingest
