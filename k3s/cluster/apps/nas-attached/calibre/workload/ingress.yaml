@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: calibre-web-automated
+  namespace: calibre
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: ebooks.dege.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: calibre-web-automated
+                port:
+                  number: 80

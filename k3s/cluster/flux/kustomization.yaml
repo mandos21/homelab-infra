@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: flux-system
 resources:
+  - kustomization-calibre.yaml
   - kustomization-infra.yaml
   - kustomization-metallb-config.yaml
   - kustomization-cert-manager-config.yaml
