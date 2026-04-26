@@ -32,6 +32,8 @@ Path consolidation is feasible in principle, but ingest is currently kept on its
   Internal PostgreSQL instance for future metadata enrichment data.
 - `image/`
   Custom beets image scaffold built on the LSIO beets image.
+- `migration/`
+  One-off helper pods and manifests used during state or data migrations.
 
 ## Storage Model
 
@@ -56,6 +58,22 @@ This stack uses three storage classes of data:
 - PVC: `metadata-postgres`
 - StorageClass: `local-path-retain`
 - Intended use: future imported enrichment data derived from external SQLite dumps
+
+## Metadata Enrichment Staging
+
+If you need to import large SQLite-derived datasets that already live on `nimgerianor`, use:
+
+- `migration/pod-metadata-import.yaml`
+
+This pod:
+- schedules directly to `nimgerianor`
+- mounts a host directory at `/source`
+- installs `sqlite3`, `zstd`, and `pv`
+- exposes `psql` against the in-cluster `metadata-postgres` service
+
+Before creating it, set the `hostPath` in `migration/pod-metadata-import.yaml` to the directory on `nimgerianor` that contains the decompressed `.sqlite3` files.
+
+This pod is intentionally just a migration workstation. It does not assume an automatic SQLite-to-Postgres conversion strategy.
 
 ## Why Beets State Is Not on NFS
 
