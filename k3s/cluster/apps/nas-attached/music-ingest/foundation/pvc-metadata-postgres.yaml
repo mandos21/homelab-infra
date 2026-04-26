@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metadata-postgres
+  namespace: music-ingest
+  labels:
+    app.kubernetes.io/part-of: music-ingest
+    app.kubernetes.io/name: metadata-postgres
+    app.kubernetes.io/component: database
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 200Gi

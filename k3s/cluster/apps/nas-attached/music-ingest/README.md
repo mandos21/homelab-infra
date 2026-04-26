@@ -28,6 +28,8 @@ Path consolidation is feasible in principle, but ingest is currently kept on its
   Upload UI manifests, including native OIDC configuration and the public Ingress.
 - `workload/beets/`
   Single-replica admin runtime, scheduled import/maintenance jobs, suspended manual repair jobs, and the beets ConfigMap.
+- `workload/postgres/`
+  Internal PostgreSQL instance for future metadata enrichment data.
 - `image/`
   Custom beets image scaffold built on the LSIO beets image.
 
@@ -49,6 +51,11 @@ This stack uses three storage classes of data:
 - Unraid path: `/mnt/user/music/managed`
 - Mounted via static NFS PV/PVC
 - This is the final beets-owned library tree
+
+4. Metadata enrichment database on VM-local storage
+- PVC: `metadata-postgres`
+- StorageClass: `local-path-retain`
+- Intended use: future imported enrichment data derived from external SQLite dumps
 
 ## Why Beets State Is Not on NFS
 
