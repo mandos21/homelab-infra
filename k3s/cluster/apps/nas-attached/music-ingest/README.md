@@ -182,6 +182,8 @@ This is intentionally separate from the aggregate `apps-nas-attached` tree so yo
 
 ## File Notes
 
+- `PIPELINE.md`
+  Proposed future ingest pipeline design: queue layout, plugin boundaries, and Spotify enrichment flow.
 - `workload/beets/configmap-beets.yaml`
   Contains `bootstrap.sh`, the beets config template, and lastgenre support files.
 - `workload/filebrowser/configmap-filebrowser.yaml`
