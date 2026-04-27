@@ -41,8 +41,8 @@ spec:
           mountPath: /scratch
   volumes:
     - name: source
-      hostPath:
+      nfs:
+        server: 192.168.1.231
         path: /mnt/user/appdata/binhex-qbittorrentvpn/qBittorrent/downloads/annas_archive_spotify_2025_07_metadata
-        type: Directory
     - name: scratch
       emptyDir: {}

@@ -75,6 +75,44 @@ Before creating it, set the `hostPath` in `migration/pod-metadata-import.yaml` t
 
 This pod is intentionally just a migration workstation. It does not assume an automatic SQLite-to-Postgres conversion strategy.
 
+### Spotify SQLite Import
+
+For the Spotify metadata datasets, the repo now includes:
+
+- `migration/spotify-postgres/schema.sql`
+- `migration/spotify-postgres/import-selected.sh`
+
+These load the selected SQLite tables into one Postgres schema:
+
+- `spotify_raw.album_images`
+- `spotify_raw.albums`
+- `spotify_raw.artist_albums`
+- `spotify_raw.artist_images`
+- `spotify_raw.artists`
+- `spotify_raw.track_artists`
+- `spotify_raw.tracks`
+- `spotify_raw.track_audio_features`
+
+Notes:
+- this keeps the data in one Postgres database, under the `spotify_raw` schema
+- `available_markets` and `artist_genres` are intentionally not imported right now
+- the `available_markets_rowid` columns are preserved as raw IDs for now
+
+Example from the host, after the `metadata-import` pod is running:
+
+```bash
+kubectl cp \
+  k3s/cluster/apps/nas-attached/music-ingest/migration/spotify-postgres \
+  music-ingest/metadata-import:/scratch/spotify-postgres
+
+kubectl exec -it -n music-ingest pod/metadata-import -- bash -lc '
+  chmod +x /scratch/spotify-postgres/import-selected.sh &&
+  /scratch/spotify-postgres/import-selected.sh \
+    /source/spotify_clean.sqlite3 \
+    /source/spotify_clean_audio_features.sqlite3
+'
+```
+
 ## Why Beets State Is Not on NFS
 
 Beets uses SQLite. SQLite works best on local disk. Putting the beets database on NFS would increase the chance of file-locking problems and subtle corruption issues. The better standard for this workload is:
