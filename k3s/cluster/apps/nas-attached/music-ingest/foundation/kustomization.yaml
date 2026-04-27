@@ -5,6 +5,5 @@ resources:
   - pv-uploads.yaml
   - pvc-uploads.yaml
   - pvc-beets-state.yaml
-  - pvc-metadata-postgres.yaml
   - pv-library.yaml
   - pvc-library.yaml

@@ -5,4 +5,3 @@ resources:
   - middleware-upload-buffering.yaml
   - filebrowser
   - beets
-  - postgres
