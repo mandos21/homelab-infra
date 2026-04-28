@@ -36,6 +36,7 @@ spec:
               mkdir -p /pvc/data /pvc/extensions
               chown -R 33:33 /pvc/data /pvc/extensions
               find /pvc/data /pvc/extensions -type d -exec chmod 775 {} \;
+              find /pvc/data /pvc/extensions -type f -exec chmod 664 {} \;
           volumeMounts:
             - name: freshrss-data
               mountPath: /pvc
@@ -43,9 +44,6 @@ spec:
         - name: freshrss
           image: freshrss/freshrss:latest
           imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 33
-            runAsGroup: 33
           ports:
             - name: http
               containerPort: 80
