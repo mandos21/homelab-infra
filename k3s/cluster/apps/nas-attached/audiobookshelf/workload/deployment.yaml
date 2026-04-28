@@ -60,7 +60,6 @@ spec:
               mountPath: /config
             - name: audiobooks
               mountPath: /audiobooks
-              readOnly: true
             - name: metadata
               mountPath: /metadata
       volumes:
