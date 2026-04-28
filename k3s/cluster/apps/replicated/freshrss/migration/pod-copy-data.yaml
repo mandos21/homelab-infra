@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: freshrss-copy-data
+  namespace: freshrss
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    longhorn: "enabled"
+  containers:
+    - name: migrate
+      image: alpine:3.22
+      command:
+        - sh
+        - -c
+        - sleep infinity
+      securityContext:
+        runAsUser: 0
+      volumeMounts:
+        - name: source
+          mountPath: /source
+          readOnly: true
+        - name: target
+          mountPath: /target
+  volumes:
+    - name: source
+      nfs:
+        server: 192.168.1.231
+        path: /mnt/user/appdata/freshrss/www
+    - name: target
+      persistentVolumeClaim:
+        claimName: freshrss-data

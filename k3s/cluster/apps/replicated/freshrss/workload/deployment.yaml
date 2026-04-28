@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freshrss
+  namespace: freshrss
+  labels:
+    app.kubernetes.io/name: freshrss
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: freshrss
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: freshrss
+        app.kubernetes.io/component: app
+    spec:
+      nodeSelector:
+        longhorn: "enabled"
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: init-data-dirs
+          image: alpine:3.22
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p /pvc/data /pvc/extensions
+          volumeMounts:
+            - name: freshrss-data
+              mountPath: /pvc
+      containers:
+        - name: freshrss
+          image: freshrss/freshrss:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: freshrss-config
+            - secretRef:
+                name: freshrss-secrets
+          startupProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: freshrss-data
+              mountPath: /var/www/FreshRSS/data
+              subPath: data
+            - name: freshrss-data
+              mountPath: /var/www/FreshRSS/extensions
+              subPath: extensions
+      volumes:
+        - name: freshrss-data
+          persistentVolumeClaim:
+            claimName: freshrss-data
