@@ -8,11 +8,7 @@ spec:
   nodeSelector:
     longhorn: "enabled"
   securityContext:
-    runAsUser: 99
-    runAsGroup: 100
-    fsGroup: 100
-    supplementalGroups:
-      - 100
+    fsGroup: 33
   containers:
     - name: migrate
       image: alpine:3.22
@@ -20,6 +16,9 @@ spec:
         - sh
         - -c
         - sleep infinity
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       volumeMounts:
         - name: source
           mountPath: /source

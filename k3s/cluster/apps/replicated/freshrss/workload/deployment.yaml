@@ -21,14 +21,21 @@ spec:
       nodeSelector:
         longhorn: "enabled"
       terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 33
       initContainers:
         - name: init-data-dirs
           image: alpine:3.22
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
           command:
             - /bin/sh
             - -ec
             - |
               mkdir -p /pvc/data /pvc/extensions
+              chown -R 33:33 /pvc/data /pvc/extensions
+              find /pvc/data /pvc/extensions -type d -exec chmod 775 {} \;
           volumeMounts:
             - name: freshrss-data
               mountPath: /pvc
@@ -36,6 +43,9 @@ spec:
         - name: freshrss
           image: freshrss/freshrss:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 33
+            runAsGroup: 33
           ports:
             - name: http
               containerPort: 80
