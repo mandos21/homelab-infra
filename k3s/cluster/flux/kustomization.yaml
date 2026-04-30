@@ -16,3 +16,4 @@ resources:
   - kustomization-music-ingest.yaml
   - kustomization-navidrome.yaml
   - kustomization-picard.yaml
+  - kustomization-vaultwarden.yaml

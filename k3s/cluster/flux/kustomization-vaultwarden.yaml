@@ -1,0 +1,25 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vaultwarden
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./k3s/cluster/apps/replicated/vaultwarden
+  prune: true
+  deletionPolicy: Orphan
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  dependsOn:
+    - name: infra
+    - name: metallb-config
+    - name: cert-manager-config
+    - name: traefik-config
+    - name: secrets
+  wait: true
+  timeout: 10m0s
