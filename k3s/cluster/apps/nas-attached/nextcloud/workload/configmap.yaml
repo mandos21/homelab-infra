@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-config
+  namespace: nextcloud
+  labels:
+    app.kubernetes.io/part-of: nextcloud
+    app.kubernetes.io/name: nextcloud
+data:
+  TZ: America/New_York
+  PUID: "99"
+  PGID: "100"
+  MYSQL_DATABASE: nextcloud
+  MYSQL_USER: nextcloud
+  PHP_MEMORY_LIMIT: 2048M
+  PHP_UPLOAD_LIMIT: 2048M
+  REDIS_HOST: redis

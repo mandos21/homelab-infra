@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+  labels:
+    app.kubernetes.io/part-of: nextcloud
+    app.kubernetes.io/name: nextcloud
+    app.kubernetes.io/component: app
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nextcloud
+      app.kubernetes.io/component: app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: nextcloud
+        app.kubernetes.io/name: nextcloud
+        app.kubernetes.io/component: app
+    spec:
+      nodeSelector:
+        node-type: vm
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 100
+      containers:
+        - name: nextcloud
+          image: lscr.io/linuxserver/nextcloud:32.0.1-ls403
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: PUID
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: PGID
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: TZ
+            - name: PHP_MEMORY_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: PHP_MEMORY_LIMIT
+            - name: PHP_UPLOAD_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: PHP_UPLOAD_LIMIT
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: REDIS_HOST
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-config
+                  key: MYSQL_USER
+            - name: MYSQL_HOST
+              value: mariadb
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-secrets
+                  key: MYSQL_PASSWORD
+          ports:
+            - name: https
+              containerPort: 443
+          startupProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 45
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: nextcloud-config-pvc
+              mountPath: /config
+            - name: nextdata
+              mountPath: /data
+            - name: ebook-uploads
+              mountPath: /ebook_uploads
+      volumes:
+        - name: nextcloud-config-pvc
+          persistentVolumeClaim:
+            claimName: nextcloud-config
+        - name: nextdata
+          persistentVolumeClaim:
+            claimName: nextcloud-nextdata
+        - name: ebook-uploads
+          persistentVolumeClaim:
+            claimName: nextcloud-ebook-uploads
