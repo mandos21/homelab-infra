@@ -15,5 +15,6 @@ resources:
   - kustomization-nas-common.yaml
   - kustomization-music-ingest.yaml
   - kustomization-navidrome.yaml
+  - kustomization-nextcloud.yaml
   - kustomization-picard.yaml
   - kustomization-vaultwarden.yaml

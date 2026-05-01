@@ -6,4 +6,5 @@ resources:
   - common
   - music-ingest
   - navidrome
+  - nextcloud
   - picard
