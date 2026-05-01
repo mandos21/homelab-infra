@@ -17,10 +17,5 @@ spec:
       name: sops-age
   dependsOn:
     - name: infra
-    - name: metallb-config
-    - name: cert-manager-config
-    - name: traefik-config
-    - name: secrets
     - name: nas-common
-  wait: true
   timeout: 10m0s

@@ -4,12 +4,12 @@ namespace: flux-system
 resources:
   - kustomization-audiobookshelf.yaml
   - kustomization-calibre.yaml
+  - kustomization-firefly.yaml
   - kustomization-infra.yaml
   - kustomization-metallb-config.yaml
   - kustomization-cert-manager-config.yaml
   - kustomization-traefik-config.yaml
   - kustomization-secrets.yaml
-  - kustomization-apps-replicated.yaml
   - kustomization-bookstack.yaml
   - kustomization-freshrss.yaml
   - kustomization-nas-common.yaml
