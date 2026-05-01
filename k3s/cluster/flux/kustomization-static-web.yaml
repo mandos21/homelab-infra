@@ -13,9 +13,4 @@ spec:
     name: flux-system
   dependsOn:
     - name: infra
-    - name: metallb-config
-    - name: cert-manager-config
-    - name: traefik-config
-    - name: secrets
-  wait: true
   timeout: 10m0s
