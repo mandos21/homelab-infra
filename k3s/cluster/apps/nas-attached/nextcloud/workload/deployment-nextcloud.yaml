@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: nextcloud
     app.kubernetes.io/component: app
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: nextcloud
