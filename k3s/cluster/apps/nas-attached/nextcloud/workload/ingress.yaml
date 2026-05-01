@@ -3,9 +3,6 @@ kind: Ingress
 metadata:
   name: nextcloud
   namespace: nextcloud
-  annotations:
-    traefik.ingress.kubernetes.io/service.serversscheme: https
-    traefik.ingress.kubernetes.io/service.serverstransport: nextcloud-nextcloud-insecure@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

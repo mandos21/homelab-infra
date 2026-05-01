@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/part-of: nextcloud
     app.kubernetes.io/name: nextcloud
     app.kubernetes.io/component: app
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: https
+    traefik.ingress.kubernetes.io/service.serverstransport: nextcloud-nextcloud-insecure@kubernetescrd
 spec:
   selector:
     app.kubernetes.io/name: nextcloud
