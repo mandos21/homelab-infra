@@ -84,7 +84,6 @@ edge_caddy_fallback_hosts:
   - "*.mdegenaro.com"
   - "theborocrew.com"
   - "www.theborocrew.com"
-  - "mdegenaro.com"
   - "dege.app"
 edge_caddy_fallback_upstream: https://192.168.1.231:443
 edge_caddy_fallback_tls_server_name: traefik.tadolithron.lan
