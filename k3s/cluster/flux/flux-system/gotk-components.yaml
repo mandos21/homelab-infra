@@ -3374,6 +3374,7 @@ spec:
       - args:
         - --events-addr=http://notification-controller.$(RUNTIME_NAMESPACE).svc.cluster.local./
         - --watch-all-namespaces=true
+        - --requeue-dependency=20s
         - --log-level=info
         - --log-encoding=json
         - --enable-leader-election
