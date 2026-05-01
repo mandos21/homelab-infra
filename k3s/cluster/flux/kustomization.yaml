@@ -17,4 +17,5 @@ resources:
   - kustomization-navidrome.yaml
   - kustomization-nextcloud.yaml
   - kustomization-picard.yaml
+  - kustomization-static-web.yaml
   - kustomization-vaultwarden.yaml

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: static-web-config
+  namespace: static-web
+  labels:
+    app.kubernetes.io/name: static-web
+    app.kubernetes.io/component: app
+data:
+  TZ: America/New_York
+  UMASK: "000"
+  PUID: "99"
+  PGID: "100"
