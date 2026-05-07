@@ -13,7 +13,7 @@ spec:
     app.kubernetes.io/component: broker
   ports:
     - name: mqtt
-      port: 1833
+      port: 1883
       targetPort: mqtt
     - name: mqtts
       port: 8883
