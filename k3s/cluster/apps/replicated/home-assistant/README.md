@@ -5,6 +5,8 @@ This namespace groups:
 - Mosquitto
 - MQTT Explorer
 
+Mosquitto is exposed on the LAN via MetalLB at `192.168.1.4` on ports `1883` and `8883`.
+
 Notes:
 - Home Assistant runs with `hostNetwork: true` for LAN-native discovery behavior.
 - `/media` is backed by `emptyDir` and is treated as non-persistent scratch space.
