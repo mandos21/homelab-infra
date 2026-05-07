@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: mosquitto
 spec:
   type: LoadBalancer
-  loadBalancerIP: 192.168.1.131
+  loadBalancerIP: 192.168.1.4
   selector:
     app.kubernetes.io/name: mosquitto
     app.kubernetes.io/component: broker
