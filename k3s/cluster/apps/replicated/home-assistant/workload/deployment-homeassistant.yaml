@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant
+  namespace: home-assistant
+  labels:
+    app.kubernetes.io/name: homeassistant
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: homeassistant
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: homeassistant
+        app.kubernetes.io/component: app
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        longhorn: "enabled"
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: homeassistant
+          image: lscr.io/linuxserver/homeassistant:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8123
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: home-assistant-config
+                  key: TZ
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: home-assistant-config
+                  key: HOMEASSISTANT_PUID
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: home-assistant-config
+                  key: HOMEASSISTANT_PGID
+            - name: UMASK
+              valueFrom:
+                configMapKeyRef:
+                  name: home-assistant-config
+                  key: HOMEASSISTANT_UMASK
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+          startupProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: homeassistant-config
+        - name: media
+          emptyDir: {}

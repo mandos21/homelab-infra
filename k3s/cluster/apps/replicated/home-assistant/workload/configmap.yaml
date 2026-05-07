@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-assistant-config
+  namespace: home-assistant
+data:
+  TZ: America/New_York
+  HOMEASSISTANT_PUID: "99"
+  HOMEASSISTANT_PGID: "100"
+  HOMEASSISTANT_UMASK: "022"
+  MQTT_EXPLORER_HTTP_PORT: "4000"

@@ -19,3 +19,4 @@ resources:
   - kustomization-picard.yaml
   - kustomization-static-web.yaml
   - kustomization-vaultwarden.yaml
+  - kustomization-home-assistant.yaml

@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - pvc-homeassistant-config.yaml
+  - pvc-mosquitto-config.yaml
+  - pvc-mqtt-explorer-config.yaml
