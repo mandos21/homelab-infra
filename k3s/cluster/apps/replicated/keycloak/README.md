@@ -24,7 +24,8 @@ Inside the pod:
 ls -lah /source
 ls -lah /target
 
-tar -C /source -cf - . | tar -C /target -xf -
+mkdir -p /target/pgdata
+tar -C /source -cf - . | tar -C /target/pgdata -xf -
 ```
 
 Then remove the migration pod:
