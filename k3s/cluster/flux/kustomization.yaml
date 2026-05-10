@@ -20,3 +20,4 @@ resources:
   - kustomization-static-web.yaml
   - kustomization-vaultwarden.yaml
   - kustomization-home-assistant.yaml
+  - kustomization-keycloak.yaml

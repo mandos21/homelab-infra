@@ -6,3 +6,4 @@ resources:
   - static-web
   - vaultwarden
   - home-assistant
+  - keycloak
