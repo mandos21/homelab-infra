@@ -26,6 +26,25 @@ spec:
       nodeSelector:
         longhorn: "enabled"
       terminationGracePeriodSeconds: 60
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - until pg_isready -h postgres -p 5432 -U "$KC_DB_USERNAME" -d "$KC_DB_URL_DATABASE"; do sleep 2; done
+          env:
+            - name: KC_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_DB_USERNAME
+            - name: KC_DB_URL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_DB_URL_DATABASE
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.5.0

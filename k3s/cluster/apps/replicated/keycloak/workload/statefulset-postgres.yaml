@@ -22,6 +22,17 @@ spec:
       nodeSelector:
         longhorn: "enabled"
       terminationGracePeriodSeconds: 60
+      initContainers:
+        - name: init-pgdata
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - mkdir -p /var/lib/postgresql/data/pgdata && chown -R postgres:postgres /var/lib/postgresql/data
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           image: postgres:16
