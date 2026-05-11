@@ -7,27 +7,25 @@ spec:
   restartPolicy: Never
   nodeSelector:
     longhorn: "enabled"
-  securityContext:
-    runAsUser: 999
-    runAsGroup: 999
-    fsGroup: 999
-    supplementalGroups:
-      - 999
   containers:
     - name: shell
-      image: alpine:3.22
+      image: postgres:16
       command: ["/bin/sh", "-c", "sleep infinity"]
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: POSTGRES_PASSWORD
       volumeMounts:
         - name: source
           mountPath: /source
           readOnly: true
-        - name: target
-          mountPath: /target
   volumes:
     - name: source
       nfs:
         server: 192.168.1.231
-        path: /mnt/user/appdata/keycloak-db-data
-    - name: target
-      persistentVolumeClaim:
-        claimName: keycloak-postgres-data
+        path: /mnt/user/backups/keycloak
