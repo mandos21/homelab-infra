@@ -51,6 +51,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - start
+            - --optimized
           ports:
             - name: http
               containerPort: 8080
@@ -131,25 +132,28 @@ spec:
                   name: keycloak-config
                   key: KC_METRICS_ENABLED
           startupProbe:
-            tcpSocket:
+            httpGet:
+              path: /health/started
               port: http
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 60
+            timeoutSeconds: 5
+            failureThreshold: 120
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health/ready
               port: http
             initialDelaySeconds: 20
             periodSeconds: 10
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             failureThreshold: 6
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health/live
               port: http
             initialDelaySeconds: 60
             periodSeconds: 20
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             failureThreshold: 3
           resources:
             requests:

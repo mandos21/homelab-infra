@@ -21,6 +21,7 @@ kubectl exec -it -n keycloak pod/keycloak-copy-db -- sh
 Inside the pod:
 
 ```sh
+id
 ls -lah /source
 ls -lah /target
 
