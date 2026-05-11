@@ -51,7 +51,6 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - start
-            - --optimized
           ports:
             - name: http
               containerPort: 8080
