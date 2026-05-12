@@ -95,22 +95,16 @@ spec:
               cpu: 2000m
               memory: 4Gi
           volumeMounts:
-            - name: shared
-              mountPath: /mattermost/config
-              subPath: config
+            - name: mattermost
+              mountPath: /mattermost
             - name: shared
               mountPath: /mattermost/data
               subPath: data
-            - name: shared
-              mountPath: /mattermost/plugins
-              subPath: plugins
-            - name: shared
-              mountPath: /mattermost/client/plugins
-              subPath: client/plugins
-            - name: shared
-              mountPath: /mattermost/imports
-              subPath: imports
+
       volumes:
         - name: shared
           persistentVolumeClaim:
             claimName: mattermost-shared
+        - name: mattermost
+          persistentVolumeClaim:
+            claimName: mattermost

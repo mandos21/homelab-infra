@@ -24,11 +24,16 @@ spec:
           readOnly: true
         - name: target
           mountPath: /target
+        - name: target-mattermost
+          mountPath: /target-mattermost
   volumes:
     - name: source
       nfs:
         server: 192.168.1.231
-        path: /mnt/user/appdata/mattermost_mm-postgres
+        path: /mnt/user/mattermost
     - name: target
       persistentVolumeClaim:
         claimName: mattermost-postgres-data
+    - name: target-mattermost
+      persistentVolumeClaim:
+        claimName: mattermost

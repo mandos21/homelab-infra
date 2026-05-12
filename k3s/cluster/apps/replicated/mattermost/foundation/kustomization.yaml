@@ -5,3 +5,4 @@ resources:
   - pv-shared.yaml
   - pvc-shared.yaml
   - pvc-postgres-data.yaml
+  - pvc-mattermost.yaml
