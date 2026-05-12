@@ -18,21 +18,15 @@ spec:
       image: alpine:3.22
       command: ["/bin/sh", "-c", "sleep infinity"]
       volumeMounts:
-        - name: source
-          mountPath: /source
-          readOnly: true
-        - name: target
-          mountPath: /target
-        - name: target-mattermost
-          mountPath: /target-mattermost
+        - name: mattermost
+          mountPath: /mattermost
+        - name: shared
+          mountPath: /mattermost/data
+          subPath: data
   volumes:
-    - name: source
-      nfs:
-        server: 192.168.1.231
-        path: /mnt/user/mattermost
-    - name: target
-      persistentVolumeClaim:
-        claimName: mattermost-postgres-data
-    - name: target-mattermost
+    - name: mattermost
       persistentVolumeClaim:
         claimName: mattermost
+    - name: shared
+      persistentVolumeClaim:
+        claimName: mattermost-shared

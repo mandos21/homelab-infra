@@ -96,15 +96,17 @@ spec:
               memory: 4Gi
           volumeMounts:
             - name: mattermost
-              mountPath: /mattermost
+              mountPath: /mattermost/config
+              subPath: config
             - name: shared
               mountPath: /mattermost/data
               subPath: data
 
       volumes:
-        - name: shared
-          persistentVolumeClaim:
-            claimName: mattermost-shared
         - name: mattermost
           persistentVolumeClaim:
             claimName: mattermost
+        - name: shared
+          persistentVolumeClaim:
+            claimName: mattermost-shared
+
