@@ -7,3 +7,4 @@ resources:
   - vaultwarden
   - home-assistant
   - keycloak
+  - mattermost

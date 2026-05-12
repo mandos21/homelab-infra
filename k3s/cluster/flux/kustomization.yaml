@@ -21,3 +21,4 @@ resources:
   - kustomization-vaultwarden.yaml
   - kustomization-home-assistant.yaml
   - kustomization-keycloak.yaml
+  - kustomization-mattermost.yaml
