@@ -5,5 +5,6 @@ resources:
   - longhorn
   - storageclass-local-path-retain.yaml
   - metallb
+  - nvidia-device-plugin
   - step-issuer
   - traefik

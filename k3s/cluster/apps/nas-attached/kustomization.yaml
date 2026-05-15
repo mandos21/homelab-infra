@@ -7,4 +7,5 @@ resources:
   - music-ingest
   - navidrome
   - nextcloud
+  - ollama
   - picard

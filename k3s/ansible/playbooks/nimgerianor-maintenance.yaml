@@ -1,0 +1,208 @@
+- name: Prepare nimgerianor for planned maintenance
+  hosts: k3s_servers
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yaml
+  vars:
+    maintenance_state: down
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    node_name: nimgerianor
+    vm_deployments:
+      - { namespace: audiobookshelf, name: audiobookshelf, replicas: 1 }
+      - { namespace: calibre, name: calibre-web-automated, replicas: 1 }
+      - { namespace: music-ingest, name: beets-admin, replicas: 1 }
+      - { namespace: music-ingest, name: filebrowser, replicas: 1 }
+      - { namespace: navidrome, name: navidrome, replicas: 1 }
+      - { namespace: nextcloud, name: nextcloud, replicas: 1 }
+      - { namespace: nextcloud, name: redis, replicas: 1 }
+      - { namespace: ollama, name: ollama, replicas: 1 }
+      - { namespace: picard, name: picard, replicas: 1 }
+    vm_statefulsets:
+      - { namespace: nextcloud, name: mariadb, replicas: 1 }
+    vm_cronjobs:
+      - { namespace: music-ingest, name: beets-auto-import }
+      - { namespace: music-ingest, name: beets-maintenance-duplicates-report }
+      - { namespace: music-ingest, name: beets-maintenance-mbsync }
+      - { namespace: music-ingest, name: beets-maintenance-replaygain }
+
+  tasks:
+    - name: Restrict maintenance orchestration to init server
+      ansible.builtin.meta: end_host
+      when: inventory_hostname != k3s_init_host
+
+    - name: Validate maintenance_state
+      ansible.builtin.assert:
+        that:
+          - maintenance_state in ['down', 'up']
+        fail_msg: "maintenance_state must be 'down' or 'up'"
+
+    - name: Cordon node before scaling down workloads
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - cordon
+          - "{{ node_name }}"
+      register: cordon_result
+      changed_when: "'already cordoned' not in cordon_result.stdout"
+      when: maintenance_state == 'down'
+
+    - name: Suspend vm CronJobs for maintenance
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - patch
+          - cronjob
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --type=merge
+          - -p
+          - '{"spec":{"suspend":true}}'
+      loop: "{{ vm_cronjobs }}"
+      register: suspend_cronjob_results
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'down'
+
+    - name: Scale vm deployments down
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - scale
+          - deployment
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --replicas=0
+      loop: "{{ vm_deployments }}"
+      register: scale_down_deployments
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'down'
+
+    - name: Scale vm statefulsets down
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - scale
+          - statefulset
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --replicas=0
+      loop: "{{ vm_statefulsets }}"
+      register: scale_down_statefulsets
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'down'
+
+    - name: Drain node after workloads are stopped
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - drain
+          - "{{ node_name }}"
+          - --ignore-daemonsets
+          - --delete-emptydir-data
+          - --timeout=10m
+      register: drain_result
+      changed_when: true
+      when: maintenance_state == 'down'
+
+    - name: Wait for node to return Ready before uncordoning
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubectl --kubeconfig {{ kubeconfig_path }} get node {{ node_name }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      args:
+        executable: /bin/bash
+      register: node_ready_check
+      changed_when: false
+      retries: 60
+      delay: 10
+      until: node_ready_check.stdout == 'True'
+      when: maintenance_state == 'up'
+
+    - name: Uncordon node after maintenance
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - uncordon
+          - "{{ node_name }}"
+      register: uncordon_result
+      changed_when: "'already uncordoned' not in uncordon_result.stdout"
+      when: maintenance_state == 'up'
+
+    - name: Unsuspend vm CronJobs after maintenance
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - patch
+          - cronjob
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --type=merge
+          - -p
+          - '{"spec":{"suspend":false}}'
+      loop: "{{ vm_cronjobs }}"
+      register: unsuspend_cronjob_results
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'up'
+
+    - name: Scale vm statefulsets back up
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - scale
+          - statefulset
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --replicas={{ item.replicas }}
+      loop: "{{ vm_statefulsets }}"
+      register: scale_up_statefulsets
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'up'
+
+    - name: Scale vm deployments back up
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ kubeconfig_path }}"
+          - scale
+          - deployment
+          - "{{ item.name }}"
+          - -n
+          - "{{ item.namespace }}"
+          - --replicas={{ item.replicas }}
+      loop: "{{ vm_deployments }}"
+      register: scale_up_deployments
+      changed_when: true
+      failed_when: false
+      when: maintenance_state == 'up'
+
+    - name: Show maintenance summary
+      ansible.builtin.debug:
+        msg:
+          - "maintenance_state={{ maintenance_state }} complete for {{ node_name }}"
+          - "When state=down, it is now safe to power off the VM."
