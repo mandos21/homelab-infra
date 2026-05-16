@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: plex
     app.kubernetes.io/component: app
 spec:
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -22,9 +22,7 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      runtimeClassName: nvidia
       nodeSelector:
-        gpu: nvidia
         kubernetes.io/hostname: nimgerianor
       terminationGracePeriodSeconds: 60
       securityContext:
@@ -66,16 +64,6 @@ spec:
                 configMapKeyRef:
                   name: media-stack-config
                   key: TRANS_DIR
-            - name: NVIDIA_VISIBLE_DEVICES
-              valueFrom:
-                configMapKeyRef:
-                  name: media-stack-config
-                  key: NVIDIA_VISIBLE_DEVICES
-            - name: NVIDIA_DRIVER_CAPABILITIES
-              valueFrom:
-                configMapKeyRef:
-                  name: media-stack-config
-                  key: NVIDIA_DRIVER_CAPABILITIES
             - name: PLEX_CLAIM
               valueFrom:
                 secretKeyRef:
@@ -108,9 +96,8 @@ spec:
               cpu: 1000m
               memory: 2Gi
             limits:
-              cpu: 4000m
+              cpu: 8000m
               memory: 8Gi
-              nvidia.com/gpu: 1
           volumeMounts:
             - name: plex-config
               mountPath: /config
