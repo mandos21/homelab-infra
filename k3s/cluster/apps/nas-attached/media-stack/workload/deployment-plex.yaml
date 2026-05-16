@@ -25,12 +25,6 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: nimgerianor
       terminationGracePeriodSeconds: 60
-      securityContext:
-        runAsUser: 99
-        runAsGroup: 100
-        fsGroup: 100
-        supplementalGroups:
-          - 100
       containers:
         - name: plex
           image: binhex/arch-plex:latest
