@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: mediaops-ssh
     app.kubernetes.io/component: app
 spec:
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -22,12 +22,6 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: nimgerianor
-      securityContext:
-        runAsUser: 99
-        runAsGroup: 100
-        fsGroup: 100
-        supplementalGroups:
-          - 100
       containers:
         - name: mediaops-ssh
           image: lscr.io/linuxserver/openssh-server:latest
