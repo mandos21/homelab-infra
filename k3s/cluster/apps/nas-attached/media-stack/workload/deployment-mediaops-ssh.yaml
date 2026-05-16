@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediaops-ssh
+  namespace: media-stack
+  labels:
+    app.kubernetes.io/name: mediaops-ssh
+    app.kubernetes.io/component: app
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mediaops-ssh
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mediaops-ssh
+        app.kubernetes.io/component: app
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: nimgerianor
+      securityContext:
+        runAsUser: 99
+        runAsGroup: 100
+        fsGroup: 100
+        supplementalGroups:
+          - 100
+      containers:
+        - name: mediaops-ssh
+          image: lscr.io/linuxserver/openssh-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: ssh
+              containerPort: 2222
+          env:
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: PUID
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: PGID
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: TZ
+            - name: USER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: USER_NAME
+            - name: SUDO_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: SUDO_ACCESS
+            - name: PASSWORD_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: PASSWORD_ACCESS
+            - name: LOG_STDOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: LOG_STDOUT
+            - name: USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: media-stack-secrets
+                  key: USER_PASSWORD
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: mediaops-config
+              mountPath: /config
+            - name: plex-media
+              mountPath: /workspace/plexData
+            - name: downloads
+              mountPath: /workspace/downloads
+            - name: mediaops-config
+              mountPath: /etc/motd
+              subPath: motd
+            - name: mediaops-config
+              mountPath: /custom-cont-init.d
+              subPath: custom-cont-init.d
+              readOnly: true
+            - name: mediaops-config
+              mountPath: /etc/profile.d
+              subPath: profile.d
+              readOnly: true
+      volumes:
+        - name: mediaops-config
+          hostPath:
+            path: /srv/unraid/appdata/mediaops-ssh
+            type: Directory
+        - name: plex-media
+          hostPath:
+            path: /srv/unraid/plexData
+            type: Directory
+        - name: downloads
+          hostPath:
+            path: /srv/unraid/downloads
+            type: Directory

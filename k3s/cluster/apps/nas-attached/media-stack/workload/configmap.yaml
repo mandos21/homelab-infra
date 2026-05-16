@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-stack-config
+  namespace: media-stack
+data:
+  TZ: America/New_York
+  PUID: "99"
+  PGID: "100"
+  UMASK: "000"
+  TRANS_DIR: /tmp
+  USER_NAME: isaac
+  SUDO_ACCESS: "false"
+  PASSWORD_ACCESS: "true"
+  LOG_STDOUT: "true"
+  VPN_ENABLED: "yes"
+  VPN_PROV: pia
+  VPN_CLIENT: openvpn
+  VPN_OPTIONS: ""
+  STRICT_PORT_FORWARD: "yes"
+  ENABLE_PRIVOXY: "yes"
+  WEBUI_PORT: "8080"
+  LAN_NETWORK: 192.168.1.0/24
+  NAME_SERVERS: 84.200.69.80,37.235.1.174,1.1.1.1,37.235.1.177,84.200.70.40,1.0.0.1
+  VPN_INPUT_PORTS: ""
+  VPN_OUTPUT_PORTS: ""
+  DEBUG: "true"
+  NVIDIA_VISIBLE_DEVICES: all
+  NVIDIA_DRIVER_CAPABILITIES: all

@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: media-stack
+  labels:
+    app.kubernetes.io/name: plex
+    app.kubernetes.io/component: app
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: plex
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: plex
+        app.kubernetes.io/component: app
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      runtimeClassName: nvidia
+      nodeSelector:
+        gpu: nvidia
+        kubernetes.io/hostname: nimgerianor
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsUser: 99
+        runAsGroup: 100
+        fsGroup: 100
+        supplementalGroups:
+          - 100
+      containers:
+        - name: plex
+          image: binhex/arch-plex:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http-plex
+              containerPort: 32400
+          env:
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: PUID
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: PGID
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: TZ
+            - name: UMASK
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: UMASK
+            - name: TRANS_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: TRANS_DIR
+            - name: NVIDIA_VISIBLE_DEVICES
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: NVIDIA_VISIBLE_DEVICES
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              valueFrom:
+                configMapKeyRef:
+                  name: media-stack-config
+                  key: NVIDIA_DRIVER_CAPABILITIES
+            - name: PLEX_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  name: media-stack-secrets
+                  key: PLEX_CLAIM
+                  optional: true
+          startupProbe:
+            tcpSocket:
+              port: http-plex
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 90
+          readinessProbe:
+            tcpSocket:
+              port: http-plex
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: http-plex
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+              nvidia.com/gpu: 1
+          volumeMounts:
+            - name: plex-config
+              mountPath: /config
+            - name: plex-media
+              mountPath: /media
+            - name: transcode
+              mountPath: /tmp
+      volumes:
+        - name: plex-config
+          hostPath:
+            path: /srv/unraid/appdata/Plex-Media-Server
+            type: Directory
+        - name: plex-media
+          hostPath:
+            path: /srv/unraid/plexData
+            type: Directory
+        - name: transcode
+          emptyDir: {}

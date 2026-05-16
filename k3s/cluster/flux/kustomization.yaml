@@ -13,6 +13,7 @@ resources:
   - kustomization-bookstack.yaml
   - kustomization-freshrss.yaml
   - kustomization-nas-common.yaml
+  - kustomization-media-stack.yaml
   - kustomization-music-ingest.yaml
   - kustomization-navidrome.yaml
   - kustomization-nextcloud.yaml

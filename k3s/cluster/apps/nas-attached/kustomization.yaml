@@ -4,6 +4,7 @@ resources:
   - audiobookshelf
   - calibre
   - common
+  - media-stack
   - music-ingest
   - navidrome
   - nextcloud
