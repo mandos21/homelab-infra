@@ -27,12 +27,21 @@
   import common_tls
 
   reverse_proxy {{ route.upstream }} {
+{% if route.tls_trusted_ca_cert_dest is defined or route.tls_server_name is defined or route.tls_insecure_skip_verify | default(false) %}
     transport http {
+{% if route.tls_insecure_skip_verify | default(false) %}
+      tls_insecure_skip_verify
+{% endif %}
+{% if route.tls_trusted_ca_cert_dest is defined %}
       tls_trust_pool file {{ route.tls_trusted_ca_cert_dest }}
+{% endif %}
+{% if route.tls_server_name is defined %}
       tls_server_name {{ route.tls_server_name }}
+{% endif %}
       dial_timeout 2s
       response_header_timeout 10s
     }
+{% endif %}
     import proxy_headers
   }
 }

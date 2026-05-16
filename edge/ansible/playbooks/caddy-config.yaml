@@ -33,6 +33,9 @@
       loop: "{{ edge_caddy_routes }}"
       loop_control:
         label: "{{ item.host }}"
+      when:
+        - item.tls_trusted_ca_cert_src is defined
+        - item.tls_trusted_ca_cert_dest is defined
 
     - name: Install fallback trusted CA certificate
       ansible.builtin.copy:
