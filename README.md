@@ -1,139 +1,133 @@
 # Homelab Infra
 
-Git-managed infrastructure for my homelab.
+This repo manages the current homelab as:
+- `k3s` on three bare-metal control-plane/storage nodes
+- GitOps-managed cluster manifests under `k3s/cluster/`
+- Ansible-managed node bootstrap and lifecycle under `k3s/ansible/`
+- separate edge automation under `edge/`
 
-This repo holds all Docker Compose stacks, configuration, and notes for the services running on my Unraid host (and eventually beyond). Portainer uses these files as the source of truth, and Renovate will keep image versions up to date via pull requests.
+The old Docker Compose `stacks/` tree is no longer the primary deployment model. Some content there is still useful as migration history or for a small number of legacy workloads, but the active platform is the `k3s/` tree.
 
----
-
-## Layout
+## Current layout
 
 ```text
 homelab-infra/
-├── docs/                   # Human-facing notes and diagrams
-│   ├── migration-notes.md
-│   └── stacks.md
-├── env/                    # Example env files (no real secrets)
-├── renovate.json           # Renovate configuration for image updates
-└── stacks/                 # All stacks organized by domain
-    ├── ai/
-    │   ├── faster-whisper/
-    │   ├── ollama/
-    │   ├── openwakeword/
-    │   ├── piper/
-    │   └── speaches/
-    ├── apps/
-    │   ├── audiobookshelf/
-    │   ├── freshrss/
-    │   ├── static-web/
-    │   └── vaultwarden/
-    ├── core/
-    │   ├── authelia/
-    │   ├── caddy/
-    │   ├── keycloak/
-    │   └── mosquitto/
-    ├── home-assistant/
-    │   ├── home-assistant/
-    │   ├── mosquitto/
-    │   └── mqtt-explorer/
-    └── nextcloud/
-        ├── nextcloud/
-        ├── postgres/
-        └── redis/
-````
+├── README.md                  # repo overview and doc index
+├── docs/                      # historical notes and migration leftovers
+├── edge/                      # edge host automation and docs
+├── k3s/                       # active cluster code, runbooks, and app manifests
+├── stacks/                    # mostly legacy compose stacks and migration artifacts
+└── renovate.json              # image update automation
+```
 
-Conventions:
+## What lives where
 
-* Each leaf directory under `stacks` contains **one** `docker-compose.yml` describing that stack.
-* Secrets are **never** committed. Compose files reference environment variables, which are provided via Portainer or local env files that are ignored by Git.
-* `docs/` contains free-form notes; `stacks.md` summarizes what each stack does and which domains/ports it uses.
+### `k3s/`
 
----
+This is the main platform.
 
-## How stacks are deployed
+- `k3s/ansible/`
+  - host inventory
+  - node bootstrap
+  - k3s install and upgrade playbooks
+  - Longhorn disk prep
+  - etcd-to-Garage backup configuration
+- `k3s/cluster/`
+  - Flux-managed cluster manifests
+  - infra components such as Traefik, Longhorn, MetalLB, cert-manager
+  - app manifests split into `replicated/` and `nas-attached/`
+- `k3s/docs/`
+  - operational runbooks and recovery docs
 
-### Via Portainer
+### `edge/`
 
-Each stack is deployed from this repo using Portainer’s “Git repository” mode.
+This holds the separate edge host automation, including:
+- Caddy config deployment
+- edge support services
+- dedicated step-ca bootstrap for ingress PKI
 
-High-level process for a new stack:
+### `stacks/`
 
-1. Create a directory, e.g.:
+This is no longer the default deployment path. Keep it as:
+- migration history
+- reference configs from the pre-k3s setup
+- a place for anything that still intentionally runs outside the cluster
 
-   ```text
-   stacks/apps/example-service/
-     docker-compose.yml
-   ```
+If a service is active in k3s, prefer the docs and manifests under `k3s/` over anything under `stacks/`.
 
-2. Commit and push the changes.
+## Operating model
 
-3. In Portainer:
+### Cluster lifecycle
 
-   * **Stacks → Add stack → Repository**
-   * Repository URL: this repo
-   * Reference: branch name (e.g. `main`)
-   * Compose path: e.g. `stacks/apps/example-service/docker-compose.yml`
-   * Set any required environment variables for the stack (passwords, secrets, etc.).
-   * Deploy the stack.
+Use Ansible for node preparation and K3s lifecycle:
+- inventory: [k3s/ansible/inventory/hosts.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/inventory/hosts.yaml)
+- shared defaults: [k3s/ansible/group_vars/all.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/group_vars/all.yaml)
+- main runbook: [k3s/docs/README.md](/Users/mandos/dev/homelab-infra/k3s/docs/README.md)
 
-4. Portainer will pull the images, create the containers, and reuse existing volumes if they were previously created.
+### Cluster desired state
 
-Updating a stack:
+Use Flux-managed manifests under `k3s/cluster/` for:
+- core infra
+- storage classes
+- ingress
+- applications
+- encrypted Kubernetes secrets
 
-* Change the image tag(s) in `docker-compose.yml` (or let Renovate open a PR).
-* Merge the change.
-* In Portainer, either:
+### Secrets
 
-  * Trigger a Git pull / “Update stack from repository”, or
-  * Let auto-update (if enabled) pick it up on its schedule.
+SOPS is used in two contexts:
+- `k3s/cluster/.sops.yaml` for in-cluster Kubernetes secrets
+- `k3s/.sops.yaml` and `edge/.sops.yaml` for Ansible-side encrypted vars
 
----
+Relevant docs:
+- [k3s/docs/secrets.md](/Users/mandos/dev/homelab-infra/k3s/docs/secrets.md)
+- [edge/docs/README.md](/Users/mandos/dev/homelab-infra/edge/docs/README.md)
 
-## Image updates (Renovate)
+## Documentation index
 
-`renovate.json` is configured to watch `stacks/**/docker-compose.yml` for Docker images and propose updates as pull requests.
+### Core runbooks
 
-Typical flow:
+- [k3s/docs/README.md](/Users/mandos/dev/homelab-infra/k3s/docs/README.md): primary K3s setup and operations runbook
+- [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md): current backup coverage, restore procedures, and gaps
+- [k3s/docs/adding-nodes.md](/Users/mandos/dev/homelab-infra/k3s/docs/adding-nodes.md): adding or replacing nodes
+- [k3s/docs/ingress.md](/Users/mandos/dev/homelab-infra/k3s/docs/ingress.md): ingress and traffic flow
+- [k3s/docs/flux-debugging.md](/Users/mandos/dev/homelab-infra/k3s/docs/flux-debugging.md): Flux troubleshooting
+- [k3s/docs/secrets.md](/Users/mandos/dev/homelab-infra/k3s/docs/secrets.md): SOPS + age workflow
 
-1. Renovate detects a new version of an image (e.g. `freshrss/freshrss:1.24.1`).
-2. It opens a PR updating the relevant `docker-compose.yml`.
-3. The PR is reviewed and merged.
-4. Portainer pulls from Git and redeploys the stack using the new image.
+### Storage and backup docs
 
-This gives:
+- [k3s/ansible/README-etcd-backups.md](/Users/mandos/dev/homelab-infra/k3s/ansible/README-etcd-backups.md): playbook-level etcd backup setup
+- [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md): operational restore procedures and current backup status
+- [k3s/cluster/apps/replicated/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/replicated/README.md): replicated app conventions
+- [k3s/cluster/apps/nas-attached/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/nas-attached/README.md): NAS-attached app conventions
 
-* Visibility into what’s changing (via PRs).
-* Reproducible deployments (explicit tags instead of `latest`).
-* A single place (Git) to see what versions are currently in use.
+### Edge docs
 
----
+- [edge/docs/README.md](/Users/mandos/dev/homelab-infra/edge/docs/README.md): edge automation overview
+- [edge/docs/step-ca.md](/Users/mandos/dev/homelab-infra/edge/docs/step-ca.md): dedicated step-ca notes
 
-## Secrets and environment variables
+### Service-specific docs
 
-Secrets are passed to stacks via environment variables, defined **outside** this repo.
+Examples of workload-level docs that matter during migrations or restore work:
+- [k3s/cluster/apps/replicated/keycloak/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/replicated/keycloak/README.md)
+- [k3s/cluster/apps/nas-attached/navidrome/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/nas-attached/navidrome/README.md)
+- [stacks/moved-to-k3s/keycloak/README.md](/Users/mandos/dev/homelab-infra/stacks/moved-to-k3s/keycloak/README.md)
 
-Patterns:
+## Backup status
 
-* Compose files reference variables, for example:
+Current state:
+- embedded etcd snapshots are configured on the k3s servers and replicated to Garage
+- local etcd snapshots still exist on each server node
+- Longhorn volume backups are not yet configured to use Garage
+- application-level logical backups are still service-specific, not centralized
+- NAS-attached data is not covered by the k3s control-plane backup path
 
-  ```yaml
-  environment:
-    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
-  ```
+Read [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md) before making storage or recovery changes. That file is the source of truth for current backup and restore procedure.
 
-* In Portainer, each stack has those variables defined in the “Environment variables” section.
+## Legacy notes
 
-* `env/*.env.example` can be used as templates for what needs to be set, but they must not contain real secrets.
+Historical notes remain under:
+- [docs/migration-notes.md](/Users/mandos/dev/homelab-infra/docs/migration-notes.md)
+- `stacks/`
 
----
-
-## Backups and restores
-
-Some stacks (e.g. Keycloak) have dedicated backup/restore procedures documented in their own `README.md` under `stacks/**`. See:
-
-* `stacks/core/keycloak/README.md` – Keycloak database backup/restore notes.
-* `docs/migration-notes.md` – ad-hoc notes from service migrations.
-
-Backups are generally performed via `docker exec` (e.g. `pg_dump`, `mysqldump`) into a backup directory on Unraid (`/mnt/user/backups/...`) and retained for a limited time. Restore procedures are written to be explicit, step-by-step, and reversible wherever possible.
-
+Treat them as reference material unless a service is still intentionally running there.

@@ -1,0 +1,19 @@
+---
+# Inventory group containing the k3s server/control-plane nodes.
+k3s_etcd_backup_target_group: k3s_servers
+
+# Local snapshot behavior
+k3s_etcd_snapshot_schedule_cron: "0 */6 * * *"
+k3s_etcd_snapshot_retention: 7
+k3s_etcd_snapshot_compress: true
+
+# Garage S3 endpoint settings
+k3s_etcd_backup_s3_endpoint: "192.168.1.231:3900"
+k3s_etcd_backup_s3_insecure: true
+k3s_etcd_backup_s3_bucket: "homelab-etcd"
+k3s_etcd_backup_s3_region: "garage"
+k3s_etcd_backup_s3_folder: "cluster1"
+k3s_etcd_backup_s3_retention: 14
+
+# This file is plain YAML. Do not edit it with sops.
+# Secrets are loaded from k3s/ansible/group_vars/secrets.sops.yaml.

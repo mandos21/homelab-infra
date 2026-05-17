@@ -1,0 +1,72 @@
+---
+- name: Configure k3s etcd S3 backups
+  hosts: "{{ k3s_etcd_backup_target_group }}"
+  become: true
+  gather_facts: false
+  serial: 1
+  vars_files:
+    - ../etcd-s3-backups.vars.yaml
+
+  pre_tasks:
+    - name: Load encrypted k3s Ansible secrets
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/../group_vars/secrets.sops.yaml"
+
+    - name: Assert required etcd backup variables are set
+      ansible.builtin.assert:
+        that:
+          - k3s_etcd_backup_target_group is string
+          - k3s_etcd_backup_s3_endpoint | length > 0
+          - k3s_etcd_backup_s3_bucket | length > 0
+          - k3s_etcd_backup_s3_access_key | default('') | length > 0
+          - k3s_etcd_backup_s3_secret_key | default('') | length > 0
+          - k3s_etcd_backup_s3_access_key != "CHANGE_ME"
+          - k3s_etcd_backup_s3_secret_key != "CHANGE_ME"
+        fail_msg: >
+          Fill in k3s/ansible/group_vars/secrets.sops.yaml before running this playbook.
+
+  tasks:
+    - name: Ensure k3s config drop-in directory exists
+      ansible.builtin.file:
+        path: /etc/rancher/k3s/config.yaml.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install etcd S3 backup config drop-in
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/config.yaml.d/50-etcd-s3-backups.yaml
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          etcd-snapshot-schedule-cron: "{{ k3s_etcd_snapshot_schedule_cron }}"
+          etcd-snapshot-retention: {{ k3s_etcd_snapshot_retention }}
+          etcd-snapshot-compress: {{ k3s_etcd_snapshot_compress | ternary('true', 'false') }}
+
+          etcd-s3: true
+          etcd-s3-endpoint: "{{ k3s_etcd_backup_s3_endpoint }}"
+          etcd-s3-insecure: {{ k3s_etcd_backup_s3_insecure | ternary('true', 'false') }}
+          etcd-s3-bucket: "{{ k3s_etcd_backup_s3_bucket }}"
+          etcd-s3-region: "{{ k3s_etcd_backup_s3_region }}"
+          etcd-s3-folder: "{{ k3s_etcd_backup_s3_folder }}"
+          etcd-s3-access-key: "{{ k3s_etcd_backup_s3_access_key }}"
+          etcd-s3-secret-key: "{{ k3s_etcd_backup_s3_secret_key }}"
+          etcd-s3-retention: {{ k3s_etcd_backup_s3_retention }}
+      register: k3s_etcd_backup_config
+
+    - name: Restart k3s server when backup config changes
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+        daemon_reload: true
+      when: k3s_etcd_backup_config.changed
+
+    - name: Wait for k3s API after restart
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 6443
+        delay: 5
+        timeout: 120
+      when: k3s_etcd_backup_config.changed
