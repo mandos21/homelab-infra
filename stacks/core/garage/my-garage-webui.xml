@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Garage-WebUI</Name>
+  <Repository>khairul169/garage-webui:latest</Repository>
+  <Registry>https://hub.docker.com/r/khairul169/garage-webui</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://hub.docker.com/r/khairul169/garage-webui</Support>
+  <Project>https://hub.docker.com/r/khairul169/garage-webui</Project>
+  <Overview>Web UI for Garage object storage. This is an administrative interface for managing buckets, keys, and layout against a Garage instance.</Overview>
+  <Category>Backup:Storage</Category>
+  <WebUI>http://[IP]:[PORT:3909]/</WebUI>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams/>
+  <PostArgs/>
+  <Config Name="Garage Config File" Target="/etc/garage.toml" Default="/mnt/user/appdata/garage/config/garage.toml" Mode="ro" Description="Garage configuration file used by the Web UI." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/garage/config/garage.toml</Config>
+  <Config Name="Web UI Port" Target="3909" Default="3909" Mode="tcp" Description="Garage Web UI port." Type="Port" Display="always" Required="true" Mask="false">3909</Config>
+  <Config Name="Garage Config Path" Target="CONFIG_PATH" Default="/etc/garage.toml" Mode="" Description="Path to the mounted Garage config file inside the container." Type="Variable" Display="advanced" Required="false" Mask="false">/etc/garage.toml</Config>
+  <Config Name="Garage Admin API URL" Target="API_BASE_URL" Default="http://192.168.1.231:3903" Mode="" Description="Optional Garage admin API URL. The UI can usually infer this from the config file." Type="Variable" Display="advanced" Required="false" Mask="false">http://192.168.1.231:3903</Config>
+  <Config Name="Garage Admin API Key" Target="API_ADMIN_KEY" Default="" Mode="" Description="Optional Garage admin API key. Only needed if the UI fails to load it from the config file." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Garage S3 Endpoint URL" Target="S3_ENDPOINT_URL" Default="http://192.168.1.231:3900" Mode="" Description="Optional Garage S3 endpoint URL. The UI can usually infer this from the config file." Type="Variable" Display="advanced" Required="false" Mask="false">http://192.168.1.231:3900</Config>
+  <Config Name="Garage S3 Region" Target="S3_REGION" Default="garage" Mode="" Description="Optional S3 region. The UI can usually infer this from the config file." Type="Variable" Display="advanced" Required="false" Mask="false">garage</Config>
+  <Config Name="UI Auth User:Hash" Target="AUTH_USER_PASS" Default="" Mode="" Description="Optional auth in the format username:bcrypt_hash. Generate with htpasswd -nbBC 10 username password." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="UI Base Path" Target="BASE_PATH" Default="" Mode="" Description="Optional base path/prefix if serving the Web UI behind a reverse proxy subpath." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+</Container>

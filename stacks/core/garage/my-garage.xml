@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Garage</Name>
+  <Repository>dxflrs/garage:v2.2.0</Repository>
+  <Registry>https://hub.docker.com/r/dxflrs/garage</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://garagehq.deuxfleurs.fr/documentation/</Support>
+  <Project>https://garagehq.deuxfleurs.fr/</Project>
+  <Overview>Single-node Garage object storage using the official image, intended as a local S3-compatible backup target for k3s etcd snapshots and Longhorn backups.</Overview>
+  <Category>Backup:Storage</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams>--entrypoint /garage</ExtraParams>
+  <PostArgs>server</PostArgs>
+  <Config Name="Config File" Target="/etc/garage.toml" Default="/mnt/user/appdata/garage/config/garage.toml" Mode="rw" Description="Garage configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/garage/config/garage.toml</Config>
+  <Config Name="Metadata Directory" Target="/var/lib/garage/meta" Default="/mnt/user/appdata/garage/meta" Mode="rw" Description="Garage metadata directory. Keep this on fast storage if possible." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/garage/meta</Config>
+  <Config Name="Data Directory" Target="/var/lib/garage/data" Default="/mnt/user/backups/garage/data" Mode="rw" Description="Garage object data directory. This holds the actual backup payload." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/backups/garage/data</Config>
+  <Config Name="S3 API Port" Target="3900" Default="3900" Mode="tcp" Description="S3-compatible API endpoint for backup clients." Type="Port" Display="always" Required="true" Mask="false">3900</Config>
+  <Config Name="Garage RPC Port" Target="3901" Default="3901" Mode="tcp" Description="Garage RPC port. Keep published even in single-node mode for consistency." Type="Port" Display="advanced" Required="true" Mask="false">3901</Config>
+  <Config Name="S3 Web Port" Target="3902" Default="3902" Mode="tcp" Description="Optional S3 web endpoint. Not needed for k3s or Longhorn." Type="Port" Display="advanced" Required="false" Mask="false">3902</Config>
+  <Config Name="Admin API Port" Target="3903" Default="3903" Mode="tcp" Description="Garage admin API port." Type="Port" Display="advanced" Required="true" Mask="false">3903</Config>
+  <Config Name="Log Level" Target="RUST_LOG" Default="garage=info" Mode="" Description="Rust log level." Type="Variable" Display="advanced" Required="false" Mask="false">garage=info</Config>
+  <Config Name="Default Access Key" Target="GARAGE_DEFAULT_ACCESS_KEY" Default="" Mode="" Description="Optional. If set, can be used with --default-bucket bootstrap behavior." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Default Secret Key" Target="GARAGE_DEFAULT_SECRET_KEY" Default="" Mode="" Description="Optional secret corresponding to GARAGE_DEFAULT_ACCESS_KEY." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Default Bucket" Target="GARAGE_DEFAULT_BUCKET" Default="" Mode="" Description="Optional default bucket name for initial bootstrap." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+</Container>

@@ -39,7 +39,7 @@
       tls_server_name {{ route.tls_server_name }}
 {% endif %}
       dial_timeout 2s
-      response_header_timeout 10s
+      response_header_timeout {{ route.response_header_timeout | default('10s') }}
     }
 {% endif %}
     import proxy_headers
