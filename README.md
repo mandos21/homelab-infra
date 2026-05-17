@@ -118,7 +118,7 @@ Examples of workload-level docs that matter during migrations or restore work:
 Current state:
 - embedded etcd snapshots are configured on the k3s servers and replicated to Garage
 - local etcd snapshots still exist on each server node
-- Longhorn volume backups are not yet configured to use Garage
+- Longhorn backup-to-Garage is scaffolded in Git but still needs apply-and-verify
 - application-level logical backups are still service-specific, not centralized
 - NAS-attached data is not covered by the k3s control-plane backup path
 

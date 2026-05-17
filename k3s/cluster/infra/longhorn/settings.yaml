@@ -1,0 +1,13 @@
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: allow-recurring-job-while-volume-detached
+  namespace: longhorn-system
+value: "true"
+---
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: restore-volume-recurring-jobs
+  namespace: longhorn-system
+value: "true"

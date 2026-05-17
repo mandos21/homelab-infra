@@ -14,8 +14,6 @@ It is intentionally conservative. If a backup path is not implemented yet, this 
 
 ### Not protected yet by the current K3s backup workflow
 
-- Longhorn volume backups to Garage
-- cluster-wide recurring Longhorn backup jobs
 - most application-level logical backups
 - NAS-attached data outside Longhorn-backed PVCs
 
@@ -32,7 +30,9 @@ Think about recovery in layers:
 4. NAS / Unraid data recovery
    - restore external shares, media, and bind-mounted app data
 
-Right now, only layer 1 is fully wired in this repo.
+Right now:
+- layer 1 is active with etcd snapshots replicated to Garage
+- layer 2 is scaffolded in Git for Longhorn-to-Garage backups and recurring jobs, but still needs apply-and-verify
 
 ## Critical artifacts to protect
 
@@ -253,22 +253,80 @@ Current practical recovery scope:
 - Current limitation:
   - if a workload's persistent data is lost and it is not separately backed up at the application layer, etcd restore alone does not recover that data
 
-That is the main reason Longhorn backup work is next.
+That is the main reason Longhorn backup verification is the next operational step.
 
 ## Longhorn backup status
 
-Longhorn backup-to-Garage is not implemented yet in this repo.
+Longhorn backup-to-Garage is now defined in Git under:
+- [k3s/cluster/infra/longhorn/resources.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/resources.yaml)
+- [k3s/cluster/infra/longhorn/secret-backup-target.sops.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/secret-backup-target.sops.yaml)
+- [k3s/cluster/infra/longhorn/recurring-jobs.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/recurring-jobs.yaml)
+- [k3s/cluster/infra/longhorn/settings.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/settings.yaml)
 
-Until that exists:
+Intended target:
+- `s3://homelab-longhorn@garage/cluster1/`
+
+Credential secret keys:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_ENDPOINTS`
+- `AWS_REGION`
+
+Operational state still required:
+- Flux or manual apply must reconcile the new manifests
+- one manual backup must succeed
+- one restore test must succeed
+
+Until that validation is complete:
 - Longhorn protects availability and replica placement
-- Longhorn does not yet provide off-cluster backup/restore for PVC contents
-- restore of deleted or corrupted PVC data depends on app-specific or external recovery paths
+- Longhorn backup is configured in source control but not yet trusted as a recovery path
+- restore of deleted or corrupted PVC data still depends on verification and app-specific or external recovery paths
 
-When Longhorn backup is added, document here:
-- backup target configuration
-- credential secret handling
-- recurring job policy
-- restore test workflow
+### Longhorn recurring-job scaffolding
+
+The repo now defines:
+- hourly snapshots retained for 24 runs
+- nightly backups retained for 14 runs
+- weekly backups retained for 8 runs
+- weekly Longhorn system backups retained for 8 runs
+
+The recurring volume jobs are grouped under `default`, so new volumes with no explicit job assignment inherit the baseline policy. Longhorn supports this default-group behavior in recurring jobs.
+
+References:
+- backup target and credential secret settings: https://longhorn.io/docs/1.11.2/snapshots-and-backups/backup-and-restore/set-backup-target/
+- recurring job CRs, default groups, PVC/volume labels, and StorageClass selectors: https://longhorn.io/docs/1.11.0/snapshots-and-backups/scheduling-backups-and-snapshots/
+- system backup recurring jobs: https://longhorn.io/docs/1.11.2/advanced-resources/system-backup-restore/backup-longhorn-system/
+
+### Longhorn validation workflow
+
+After the manifests reconcile:
+
+1. Confirm the backup target is healthy in Longhorn.
+2. Confirm the credential secret exists in `longhorn-system`.
+3. Trigger one manual backup of a small test volume.
+4. Restore that backup to a new test volume.
+5. Confirm the restored volume attaches and serves data correctly.
+
+Useful checks:
+
+```bash
+kubectl -n longhorn-system get secret longhorn-backup-target
+kubectl -n longhorn-system get recurringjobs.longhorn.io
+kubectl -n longhorn-system get settings.longhorn.io backup-target backup-target-credential-secret
+kubectl -n longhorn-system get systembackup
+kubectl -n longhorn-system get backupvolumes.longhorn.io
+kubectl -n longhorn-system get backups.longhorn.io
+```
+
+### Longhorn restore paths
+
+Longhorn restore can be done from the UI or by creating a `Volume` custom resource from a backup URL. The CLI/custom-resource path requires:
+- the exact backup URL from `backup.longhorn.io`
+- the exact byte-sized volume size from backup status
+- manual PV/PVC creation if you restore by CR instead of the UI
+
+Reference:
+- https://longhorn.io/docs/1.11.2/snapshots-and-backups/backup-and-restore/restore-from-a-backup/
 
 ## Application-level backups
 
