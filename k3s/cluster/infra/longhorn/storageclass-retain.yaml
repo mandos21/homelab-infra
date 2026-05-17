@@ -11,3 +11,4 @@ volumeBindingMode: Immediate
 parameters:
   numberOfReplicas: "2"
   fsType: "ext4"
+  recurringJobSelector: '[{"name":"default","isGroup":true}]'
