@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-source /scripts/common.sh
+. /scripts/common.sh
 
 require_env BACKUP_ROOT
 require_env NEXTCLOUD_APP_NAME
