@@ -5,6 +5,7 @@ resources:
   - shared
   - mattermost
   - keycloak
+  - nextcloud
 configMapGenerator:
   - name: mattermost-backup-scripts
     files:
@@ -15,5 +16,9 @@ configMapGenerator:
     files:
       - shared/common.sh
       - keycloak/scripts/pgdump.sh
+  - name: nextcloud-backup-scripts
+    files:
+      - shared/common.sh
+      - nextcloud/scripts/backup.sh
 generatorOptions:
   disableNameSuffixHash: true

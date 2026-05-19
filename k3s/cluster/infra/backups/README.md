@@ -13,6 +13,7 @@ Structure:
 Current scope:
 
 - shared NFS mount of `/mnt/user/backups`
+- Nextcloud coordinated maintenance-window backup
 - Mattermost nightly PostgreSQL logical dumps
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
 - Keycloak nightly PostgreSQL logical dumps
@@ -49,6 +50,8 @@ Fill and encrypt:
 
 Required values:
 
+- `nextcloud/secret.sops.yaml`
+  - `NEXTCLOUD_MYSQL_ROOT_PASSWORD`
 - `mattermost/secret.sops.yaml`
   - `MATTERMOST_POSTGRES_PASSWORD`
 - `keycloak/secret.sops.yaml`
@@ -62,6 +65,8 @@ Required values:
   - `25 3 * * *`
 - `keycloak-pgdump`
   - `40 3 * * *`
+- `nextcloud-backup`
+  - `00 3 * * *`
 
 Both jobs:
 
@@ -95,3 +100,16 @@ Primary restore artifact:
 
 The PostgreSQL dump is the authoritative restore path for Keycloak.
 Realm export remains optional and should be treated as a convenience export, not a primary backup mechanism.
+
+## Nextcloud restore notes
+
+Primary restore artifacts:
+
+1. MariaDB logical dump
+2. Nextcloud config archive from `/config`
+3. Unraid-side snapshots of:
+   - `/mnt/user/nextData`
+   - `/mnt/user/ebook_uploads`
+
+The in-cluster CronJob does not duplicate `/data` or `/ebook_uploads`.
+Instead, it puts Nextcloud into maintenance mode, captures the database and config, and writes a metadata marker that the Unraid-side data snapshot should be taken during the same maintenance window.

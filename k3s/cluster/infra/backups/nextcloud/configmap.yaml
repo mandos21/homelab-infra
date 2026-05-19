@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-backup-config
+  namespace: backups
+data:
+  BACKUP_ROOT: /backups/k3s
+  NEXTCLOUD_APP_NAME: nextcloud
+  NEXTCLOUD_DB_HOST: mariadb
+  NEXTCLOUD_DB_NAME: nextcloud
+  NEXTCLOUD_DB_KEEP: "14"
+  NEXTCLOUD_CONFIG_KEEP: "14"
