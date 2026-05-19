@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mattermost-backup-config
+  namespace: backups
+data:
+  BACKUP_ROOT: /backups/k3s
+  MATTERMOST_APP_NAME: mattermost
+  MATTERMOST_POSTGRES_HOST: postgres.mattermost.svc.cluster.local
+  MATTERMOST_POSTGRES_PORT: "5432"
+  MATTERMOST_POSTGRES_DB: mattermost
+  MATTERMOST_POSTGRES_USER: mattermost
+  MATTERMOST_PGDUMP_KEEP: "14"
+  MATTERMOST_MMCTL_KEEP: "14"

@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mattermost-mmctl-export
+  namespace: backups
+spec:
+  schedule: "25 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          serviceAccountName: mattermost-backup
+          restartPolicy: Never
+          containers:
+            - name: mmctl-export
+              image: alpine/k8s:1.35.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /scripts/mmctl-export.sh
+              envFrom:
+                - configMapRef:
+                    name: mattermost-backup-config
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-nfs
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755

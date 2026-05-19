@@ -101,6 +101,8 @@ spec:
             - name: shared
               mountPath: /mattermost/data
               subPath: data
+            - name: backups
+              mountPath: /backups
 
       volumes:
         - name: mattermost
@@ -109,4 +111,7 @@ spec:
         - name: shared
           persistentVolumeClaim:
             claimName: mattermost-shared
-
+        - name: backups
+          nfs:
+            server: 192.168.1.231
+            path: /mnt/user/backups

@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mattermost-pgdump
+  namespace: backups
+spec:
+  schedule: "10 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: pgdump
+              image: postgres:15
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /scripts/pgdump.sh
+              envFrom:
+                - configMapRef:
+                    name: mattermost-backup-config
+                - secretRef:
+                    name: mattermost-backup-secrets
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-nfs
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
