@@ -4,11 +4,16 @@ resources:
   - namespace.yaml
   - shared
   - mattermost
+  - keycloak
 configMapGenerator:
-  - name: backup-scripts
+  - name: mattermost-backup-scripts
     files:
       - shared/common.sh
       - mattermost/scripts/pgdump.sh
       - mattermost/scripts/mmctl-export.sh
+  - name: keycloak-backup-scripts
+    files:
+      - shared/common.sh
+      - keycloak/scripts/pgdump.sh
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: mattermost-mmctl-export
+  name: keycloak-pgdump
   namespace: backups
 spec:
-  schedule: "25 3 * * *"
+  schedule: "40 3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
@@ -13,18 +13,19 @@ spec:
       ttlSecondsAfterFinished: 86400
       template:
         spec:
-          serviceAccountName: mattermost-backup
           restartPolicy: Never
           containers:
-            - name: mmctl-export
-              image: alpine/k8s:1.35.2
+            - name: pgdump
+              image: postgres:16
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
-                - /scripts/mmctl-export.sh
+                - /scripts/pgdump.sh
               envFrom:
                 - configMapRef:
-                    name: mattermost-backup-config
+                    name: keycloak-backup-config
+                - secretRef:
+                    name: keycloak-backup-secrets
               volumeMounts:
                 - name: backups
                   mountPath: /backups
@@ -37,5 +38,5 @@ spec:
                 claimName: backups-nfs
             - name: scripts
               configMap:
-                name: mattermost-backup-scripts
+                name: keycloak-backup-scripts
                 defaultMode: 0755

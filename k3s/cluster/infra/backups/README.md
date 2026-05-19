@@ -15,6 +15,7 @@ Current scope:
 - shared NFS mount of `/mnt/user/backups`
 - Mattermost nightly PostgreSQL logical dumps
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
+- Keycloak nightly PostgreSQL logical dumps
 
 ## Backup target
 
@@ -48,7 +49,10 @@ Fill and encrypt:
 
 Required values:
 
-- `MATTERMOST_POSTGRES_PASSWORD`
+- `mattermost/secret.sops.yaml`
+  - `MATTERMOST_POSTGRES_PASSWORD`
+- `keycloak/secret.sops.yaml`
+  - `KEYCLOAK_POSTGRES_PASSWORD`
 
 ## Schedules
 
@@ -56,6 +60,8 @@ Required values:
   - `10 3 * * *`
 - `mattermost-mmctl-export`
   - `25 3 * * *`
+- `keycloak-pgdump`
+  - `40 3 * * *`
 
 Both jobs:
 
@@ -80,3 +86,12 @@ Primary restore artifacts:
 
 The database dump remains the lower-level authoritative restore path.
 The Mattermost export archive is the first-class application export path for re-import and portability.
+
+## Keycloak restore notes
+
+Primary restore artifact:
+
+1. `pg_dump` custom-format dump
+
+The PostgreSQL dump is the authoritative restore path for Keycloak.
+Realm export remains optional and should be treated as a convenience export, not a primary backup mechanism.

@@ -38,5 +38,5 @@ spec:
                 claimName: backups-nfs
             - name: scripts
               configMap:
-                name: backup-scripts
+                name: mattermost-backup-scripts
                 defaultMode: 0755
