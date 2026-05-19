@@ -5,10 +5,9 @@ metadata:
   namespace: backups
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: mattermost-backup
-  namespace: mattermost
 rules:
   - apiGroups: [""]
     resources:
@@ -24,15 +23,14 @@ rules:
       - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: mattermost-backup
-  namespace: mattermost
 subjects:
   - kind: ServiceAccount
     name: mattermost-backup
     namespace: backups
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: mattermost-backup
