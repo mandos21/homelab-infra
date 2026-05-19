@@ -36,19 +36,26 @@ extract_job_ids() {
   sed -n 's/.*"id":[[:space:]]*"\([^"]*\)".*/\1/p'
 }
 
-extract_pending_job_ids() {
+extract_active_job_ids() {
   awk '
-    /"id":[[:space:]]*"/ {
-      if (match($0, /"id":[[:space:]]*"[^"]*"/)) {
-        id = substr($0, RSTART, RLENGTH)
-        sub(/^.*"id":[[:space:]]*"/, "", id)
-        sub(/".*$/, "", id)
-      }
+    BEGIN {
+      RS="}";
     }
-    /"status":[[:space:]]*"(pending|in_progress|inprogress|started)"/ {
-      if (id != "") {
-        print id
-        id = ""
+    {
+      id = "";
+      status = "";
+      if (match($0, /"id":[[:space:]]*"[^"]*"/)) {
+        id = substr($0, RSTART, RLENGTH);
+        sub(/^.*"id":[[:space:]]*"/, "", id);
+        sub(/".*$/, "", id);
+      }
+      if (match($0, /"status":[[:space:]]*"[^"]*"/)) {
+        status = substr($0, RSTART, RLENGTH);
+        sub(/^.*"status":[[:space:]]*"/, "", status);
+        sub(/".*$/, "", status);
+      }
+      if (id != "" && status ~ /^(pending|in_progress|inprogress|started|cancel_requested)$/) {
+        print id;
       }
     }
   '
@@ -61,14 +68,18 @@ jobs_file="$(mktemp)"
 trap 'rm -f "$before_file" "$after_file" "$create_file" "$jobs_file"' EXIT
 
 list_export_jobs > "$jobs_file" || true
-running_job_ids="$(extract_pending_job_ids < "$jobs_file" | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
-if [ -n "$running_job_ids" ]; then
-  echo "refusing to start a new Mattermost export while export job(s) are already running: $running_job_ids" >&2
+active_job_ids="$(extract_active_job_ids < "$jobs_file" | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+if [ -n "$active_job_ids" ]; then
+  echo "refusing to start a new Mattermost export while export job(s) are active: $active_job_ids" >&2
   exit 1
 fi
 
 list_exports | extract_names > "$before_file" || true
-kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export create --include-archived-channels --include-profile-pictures > "$create_file"
+if ! kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export create --include-archived-channels --include-profile-pictures > "$create_file" 2>&1; then
+  echo "failed to start Mattermost export job" >&2
+  cat "$create_file" >&2
+  exit 1
+fi
 job_id="$(extract_job_ids < "$create_file" | head -n1)"
 
 if [ -z "$job_id" ]; then
