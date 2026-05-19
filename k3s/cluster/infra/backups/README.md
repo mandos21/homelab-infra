@@ -17,6 +17,7 @@ Current scope:
 - Mattermost nightly PostgreSQL logical dumps
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
 - Keycloak nightly PostgreSQL logical dumps
+- Firefly nightly MariaDB logical dumps
 
 ## Backup target
 
@@ -56,6 +57,8 @@ Required values:
   - `MATTERMOST_POSTGRES_PASSWORD`
 - `keycloak/secret.sops.yaml`
   - `KEYCLOAK_POSTGRES_PASSWORD`
+- `firefly/secret.sops.yaml`
+  - `FIREFLY_DB_PASSWORD`
 
 ## Schedules
 
@@ -65,6 +68,8 @@ Required values:
   - `25 3 * * *`
 - `keycloak-pgdump`
   - `40 3 * * *`
+- `firefly-dbdump`
+  - `50 3 * * *`
 - `nextcloud-backup`
   - `00 3 * * *`
 
@@ -113,3 +118,12 @@ Primary restore artifacts:
 
 The in-cluster CronJob does not duplicate `/data` or `/ebook_uploads`.
 Instead, it puts Nextcloud into maintenance mode, captures the database and config, and writes a metadata marker that the Unraid-side data snapshot should be taken during the same maintenance window.
+
+## Firefly restore notes
+
+Primary restore artifact:
+
+1. MariaDB logical dump
+
+Firefly in this cluster does not have a separate persistent app-data volume.
+The MariaDB dump is the primary restore artifact.

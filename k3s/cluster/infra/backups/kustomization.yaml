@@ -7,6 +7,7 @@ resources:
   - mattermost
   - keycloak
   - nextcloud
+  - firefly
 configMapGenerator:
   - name: mattermost-backup-scripts
     files:
@@ -21,5 +22,9 @@ configMapGenerator:
     files:
       - shared/common.sh
       - nextcloud/scripts/backup.sh
+  - name: firefly-backup-scripts
+    files:
+      - shared/common.sh
+      - firefly/scripts/dbdump.sh
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: firefly-backup-config
+  namespace: backups
+data:
+  BACKUP_ROOT: /backups/k3s
+  FIREFLY_APP_NAME: firefly
+  FIREFLY_DB_HOST: mariadb.firefly.svc.cluster.local
+  FIREFLY_DB_PORT: "3306"
+  FIREFLY_DB_NAME: firefly
+  FIREFLY_DB_USER: firefly
+  FIREFLY_DB_KEEP: "14"

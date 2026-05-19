@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: firefly-dbdump
+  namespace: backups
+spec:
+  schedule: "50 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: dbdump
+              image: mariadb:11.4.10
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /scripts/dbdump.sh
+              envFrom:
+                - configMapRef:
+                    name: firefly-backup-config
+                - secretRef:
+                    name: firefly-backup-secrets
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-nfs
+            - name: scripts
+              configMap:
+                name: firefly-backup-scripts
+                defaultMode: 0755
