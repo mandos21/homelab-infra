@@ -28,37 +28,35 @@ list_export_jobs() {
   kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export job list 2>/dev/null || true
 }
 
+compact_json() {
+  tr -d '\n\r\t '
+}
+
 extract_names() {
-  sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | sort -u
+  compact_json | sed 's/^\[//; s/\]$//; s/},{/}\n{/g' | sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | sort -u
 }
 
 extract_job_ids() {
-  sed -n 's/.*"id":[[:space:]]*"\([^"]*\)".*/\1/p'
+  compact_json | sed -n 's/.*"id":"\([^"]*\)".*/\1/p'
+}
+
+extract_statuses() {
+  compact_json | sed -n 's/.*"status":"\([^"]*\)".*/\1/p'
 }
 
 extract_active_job_ids() {
-  awk '
-    BEGIN {
-      RS="}";
-    }
-    {
-      id = "";
-      status = "";
-      if (match($0, /"id":[[:space:]]*"[^"]*"/)) {
-        id = substr($0, RSTART, RLENGTH);
-        sub(/^.*"id":[[:space:]]*"/, "", id);
-        sub(/".*$/, "", id);
-      }
-      if (match($0, /"status":[[:space:]]*"[^"]*"/)) {
-        status = substr($0, RSTART, RLENGTH);
-        sub(/^.*"status":[[:space:]]*"/, "", status);
-        sub(/".*$/, "", status);
-      }
-      if (id != "" && status ~ /^(pending|in_progress|inprogress|started|cancel_requested)$/) {
-        print id;
-      }
-    }
-  '
+  compact_json \
+    | sed 's/^\[//; s/\]$//; s/},{/}\n{/g' \
+    | while IFS= read -r obj; do
+        [ -z "$obj" ] && continue
+        id="$(printf '%s\n' "$obj" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
+        status="$(printf '%s\n' "$obj" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')"
+        case "$status" in
+          pending|in_progress|inprogress|started|cancel_requested)
+            [ -n "$id" ] && printf '%s\n' "$id"
+            ;;
+        esac
+      done
 }
 
 before_file="$(mktemp)"
@@ -90,12 +88,12 @@ fi
 
 while true; do
   status_json="$(kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export job show "$job_id")"
-  status="$(printf '%s' "$status_json" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p' | head -n1)"
+  status="$(printf '%s\n' "$status_json" | extract_statuses | head -n1)"
   case "$status" in
     success)
       break
       ;;
-    pending|in_progress|inprogress|started)
+    pending|in_progress|inprogress|started|cancel_requested)
       sleep 15
       ;;
     *)
