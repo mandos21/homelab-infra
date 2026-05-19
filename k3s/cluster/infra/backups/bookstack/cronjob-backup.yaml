@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: bookstack-backup
+  namespace: backups
+spec:
+  schedule: "55 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          serviceAccountName: bookstack-backup
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: alpine/k8s:1.35.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /scripts/backup.sh
+              envFrom:
+                - configMapRef:
+                    name: bookstack-backup-config
+                - secretRef:
+                    name: bookstack-backup-secrets
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-nfs
+            - name: scripts
+              configMap:
+                name: bookstack-backup-scripts
+                defaultMode: 0755

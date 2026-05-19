@@ -18,6 +18,7 @@ Current scope:
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
 - Keycloak nightly PostgreSQL logical dumps
 - Firefly nightly MariaDB logical dumps
+- BookStack nightly MariaDB dump plus `/config` archive
 
 ## Backup target
 
@@ -59,6 +60,8 @@ Required values:
   - `KEYCLOAK_POSTGRES_PASSWORD`
 - `firefly/secret.sops.yaml`
   - `FIREFLY_DB_PASSWORD`
+- `bookstack/secret.sops.yaml`
+  - `BOOKSTACK_DB_ROOT_PASSWORD`
 
 ## Schedules
 
@@ -70,6 +73,8 @@ Required values:
   - `40 3 * * *`
 - `firefly-dbdump`
   - `50 3 * * *`
+- `bookstack-backup`
+  - `55 3 * * *`
 - `nextcloud-backup`
   - `00 3 * * *`
 
@@ -127,3 +132,13 @@ Primary restore artifact:
 
 Firefly in this cluster does not have a separate persistent app-data volume.
 The MariaDB dump is the primary restore artifact.
+
+## BookStack restore notes
+
+Primary restore artifacts:
+
+1. MariaDB logical dump
+2. `/config` archive
+
+BookStack stores persistent application data under `/config`.
+This workflow captures both the MariaDB database and the app config/storage volume.

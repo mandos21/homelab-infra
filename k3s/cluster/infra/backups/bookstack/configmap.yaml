@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstack-backup-config
+  namespace: backups
+data:
+  BACKUP_ROOT: /backups/k3s
+  BOOKSTACK_APP_NAME: bookstack
+  BOOKSTACK_DB_NAME: bookstack
+  BOOKSTACK_DB_KEEP: "14"
+  BOOKSTACK_CONFIG_KEEP: "14"
