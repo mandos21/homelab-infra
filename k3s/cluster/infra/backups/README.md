@@ -53,7 +53,7 @@ Fill and encrypt:
 Required values:
 
 - `nextcloud/secret.sops.yaml`
-  - `NEXTCLOUD_MYSQL_ROOT_PASSWORD`
+  - `NEXTCLOUD_DB_PASSWORD`
 - `mattermost/secret.sops.yaml`
   - `MATTERMOST_POSTGRES_PASSWORD`
 - `keycloak/secret.sops.yaml`
@@ -123,6 +123,7 @@ Primary restore artifacts:
 
 The in-cluster CronJob does not duplicate `/data` or `/ebook_uploads`.
 Instead, it puts Nextcloud into maintenance mode, captures the database and config, and writes a metadata marker that the Unraid-side data snapshot should be taken during the same maintenance window.
+The Nextcloud backup job uses the application database user credentials, not MariaDB root.
 
 ## Firefly restore notes
 

@@ -5,8 +5,10 @@ set -eu
 require_env BACKUP_ROOT
 require_env NEXTCLOUD_APP_NAME
 require_env NEXTCLOUD_DB_HOST
+require_env NEXTCLOUD_DB_PORT
 require_env NEXTCLOUD_DB_NAME
-require_env NEXTCLOUD_MYSQL_ROOT_PASSWORD
+require_env NEXTCLOUD_DB_USER
+require_env NEXTCLOUD_DB_PASSWORD
 require_env NEXTCLOUD_DB_KEEP
 require_env NEXTCLOUD_CONFIG_KEEP
 
@@ -38,7 +40,7 @@ trap maintenance_off EXIT INT TERM
 kubectl exec -n nextcloud "$nextcloud_pod" -- /bin/sh -lc 'php /app/www/public/occ maintenance:mode --on'
 
 kubectl exec -n nextcloud "$mariadb_pod" -- /bin/sh -lc \
-  "MYSQL_PWD='${NEXTCLOUD_MYSQL_ROOT_PASSWORD}' /usr/bin/mariadb-dump --single-transaction --routines --events --hex-blob -u root '${NEXTCLOUD_DB_NAME}'" \
+  "MYSQL_PWD='${NEXTCLOUD_DB_PASSWORD}' /usr/bin/mariadb-dump --host='${NEXTCLOUD_DB_HOST}' --port='${NEXTCLOUD_DB_PORT}' --single-transaction --routines --events --hex-blob -u '${NEXTCLOUD_DB_USER}' '${NEXTCLOUD_DB_NAME}'" \
   | gzip -c > "$db_file"
 
 kubectl exec -n nextcloud "$nextcloud_pod" -- /bin/tar -C /config -cf - . | gzip -c > "$config_file"
