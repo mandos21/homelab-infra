@@ -32,12 +32,12 @@ compact_json() {
   tr -d '\n\r\t '
 }
 
-extract_names() {
-  compact_json | sed 's/^\[//; s/\]$//; s/},{/}\n{/g' | sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | sort -u
-}
-
 extract_job_ids() {
   compact_json | sed -n 's/.*"id":"\([^"]*\)".*/\1/p'
+}
+
+list_export_names() {
+  compact_json | sed 's/^\[//; s/\]$//' | tr ',' '\n' | sed 's/^"//; s/"$//' | sed '/^$/d'
 }
 
 extract_statuses() {
@@ -59,11 +59,9 @@ extract_active_job_ids() {
       done
 }
 
-before_file="$(mktemp)"
-after_file="$(mktemp)"
 create_file="$(mktemp)"
 jobs_file="$(mktemp)"
-trap 'rm -f "$before_file" "$after_file" "$create_file" "$jobs_file"' EXIT
+trap 'rm -f "$create_file" "$jobs_file"' EXIT
 
 list_export_jobs > "$jobs_file" || true
 active_job_ids="$(extract_active_job_ids < "$jobs_file" | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
@@ -72,7 +70,6 @@ if [ -n "$active_job_ids" ]; then
   exit 1
 fi
 
-list_exports | extract_names > "$before_file" || true
 if ! kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export create --include-archived-channels --include-profile-pictures > "$create_file" 2>&1; then
   echo "failed to start Mattermost export job" >&2
   cat "$create_file" >&2
@@ -104,18 +101,26 @@ while true; do
   esac
 done
 
-list_exports | extract_names > "$after_file" || true
-export_name="$(comm -13 "$before_file" "$after_file" | head -n1 || true)"
-if [ -z "$export_name" ]; then
-  export_name="$(tail -n1 "$after_file" || true)"
-fi
+export_name="${job_id}_export.zip"
 
 if [ -z "$export_name" ]; then
   echo "failed to determine Mattermost export artifact name" >&2
   exit 1
 fi
 
-kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local export download "$export_name" "$final_path" >/dev/null
+exports_now="$(list_exports | list_export_names || true)"
+if ! printf '%s\n' "$exports_now" | grep -Fxq "$export_name"; then
+  echo "expected Mattermost export artifact was not present in export list: ${export_name}" >&2
+  printf 'available_exports=%s\n' "$(printf '%s' "$exports_now" | tr '\n' ' ' | sed 's/[[:space:]]*$//')" >&2
+  exit 1
+fi
+
+if ! kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local export download "$export_name" "$final_path" >/dev/null 2>&1; then
+  echo "failed to download Mattermost export artifact: ${export_name}" >&2
+  printf 'job_id=%s\n' "$job_id" >&2
+  printf 'hint=%s\n' "expected export artifact name derived from job id" >&2
+  exit 1
+fi
 kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local export delete "$export_name" >/dev/null || true
 
 chmod 0600 "$final_path"
