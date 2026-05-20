@@ -13,6 +13,7 @@ Structure:
 Current scope:
 
 - shared NFS mount of `/mnt/user/backups`
+- validated app-consistent backup jobs for Mattermost, Keycloak, Nextcloud, Firefly, and BookStack
 - Nextcloud coordinated maintenance-window backup
 - Mattermost nightly PostgreSQL logical dumps
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
@@ -44,11 +45,9 @@ That keeps cluster-managed logical backups separate from:
 - `/mnt/user/backups/garage/...`
 - any non-k3s backup content already living in `/mnt/user/backups`
 
-## Mattermost secrets
+## Secrets
 
-Fill and encrypt:
-
-- `k3s/cluster/infra/backups/secret-mattermost.sops.yaml`
+Fill and encrypt the per-app secret files under `k3s/cluster/infra/backups/`.
 
 Required values:
 
@@ -78,7 +77,7 @@ Required values:
 - `nextcloud-backup`
   - `00 3 * * *`
 
-Both jobs:
+All jobs:
 
 - write timestamped artifacts
 - keep the most recent 14 artifacts of each type
@@ -99,8 +98,8 @@ Primary restore artifacts:
 1. `pg_dump` custom-format dump
 2. Mattermost export ZIP
 
-The database dump remains the lower-level authoritative restore path.
-The Mattermost export archive is the first-class application export path for re-import and portability.
+The database dump is the authoritative database restore path.
+For full application-level recovery of exported content, use the Mattermost export archive or the Longhorn restore path for the shared Mattermost volume.
 
 ## Keycloak restore notes
 

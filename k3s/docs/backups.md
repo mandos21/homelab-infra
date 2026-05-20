@@ -1,368 +1,242 @@
 # Backups and Restore
 
-This document describes the current backup posture for the homelab and the restore procedures that are valid right now.
+This document is the current backup source of truth for the k3s side of the homelab.
 
-It is intentionally conservative. If a backup path is not implemented yet, this document says so directly.
+Everything listed here is implemented and validated unless a section explicitly says otherwise.
+
+## Backup model
+
+Recovery is split into four layers:
+
+1. Control plane
+   - k3s embedded-etcd snapshots to local disk and Garage
+2. Storage layer
+   - Longhorn snapshots and backups to Garage
+3. Application-consistent backups
+   - logical database dumps and app-native exports written to `/mnt/user/backups/k3s`
+4. NAS-attached data
+   - Unraid-side datasets and snapshots outside Longhorn
+
+No single layer replaces the others.
 
 ## Current coverage
 
-### Protected now
+| Scope | Backup mechanism | Target | Validation status |
+| --- | --- | --- | --- |
+| k3s embedded etcd | scheduled `etcd-snapshot` + on-demand snapshot support | local snapshots + Garage bucket `homelab-etcd/cluster1` | validated |
+| Longhorn volumes | recurring snapshots + recurring backups | Garage bucket `homelab-longhorn/cluster1` | validated, including restore |
+| Mattermost database | nightly `pg_dump` custom-format dump | `/mnt/user/backups/k3s/apps/mattermost/database/postgres` | validated |
+| Mattermost export | nightly `mmctl` export archive | `/mnt/user/backups/k3s/apps/mattermost/exports` | validated |
+| Keycloak database | nightly `pg_dump` custom-format dump | `/mnt/user/backups/k3s/apps/keycloak/database/postgres` | validated |
+| Nextcloud database | nightly MariaDB logical dump | `/mnt/user/backups/k3s/apps/nextcloud/database/mariadb` | validated |
+| Nextcloud config | nightly `/config` archive during maintenance mode | `/mnt/user/backups/k3s/apps/nextcloud/files/config` | validated |
+| Firefly database | nightly MariaDB logical dump | `/mnt/user/backups/k3s/apps/firefly/database/mariadb` | validated |
+| BookStack database | nightly MariaDB logical dump | `/mnt/user/backups/k3s/apps/bookstack/database/mariadb` | validated |
+| BookStack config | nightly `/config` archive | `/mnt/user/backups/k3s/apps/bookstack/files/config` | validated |
+| Home Assistant | native Home Assistant backups | Garage-configured backup location, managed in the app | validated by app workflow |
 
-- K3s embedded-etcd control-plane state
-  - local snapshots on each server
-  - replicated snapshots in Garage bucket `homelab-etcd`, prefix `cluster1/`
+## Critical non-app artifacts
 
-### Not protected yet by the current K3s backup workflow
+Keep these backed up separately from Kubernetes workload data:
 
-- most application-level logical backups
-- NAS-attached data outside Longhorn-backed PVCs
-
-## Backup layers
-
-Think about recovery in layers:
-
-1. Control-plane recovery
-   - restore K3s etcd from snapshot
-2. Volume recovery
-   - restore Longhorn-backed PVC contents
-3. Application-consistent recovery
-   - restore logical dumps such as `pg_dump` or `mysqldump`
-4. NAS / Unraid data recovery
-   - restore external shares, media, and bind-mounted app data
-
-Right now:
-- layer 1 is active with etcd snapshots replicated to Garage
-- layer 2 is scaffolded in Git for Longhorn-to-Garage backups and recurring jobs, but still needs apply-and-verify
-
-## Critical artifacts to protect
-
-An etcd snapshot alone is not enough.
-
-Keep these backed up securely:
 - `/var/lib/rancher/k3s/server/token`
-  - required to decrypt confidential bootstrap data in the snapshot
-- SOPS age private key used for repo secrets
-  - without it, encrypted secrets in Git are operationally difficult to recover
-- this repo itself
-  - especially `k3s/ansible/`, `k3s/cluster/`, and SOPS-encrypted vars
+- the SOPS age private key
+- this Git repository
+- Unraid-side backup configuration and Garage configuration
 
-K3s backup and restore docs explicitly require the original server token when restoring to new hosts or when the token is not already present on disk:
-- https://docs.k3s.io/datastore/backup-restore
-- https://docs.k3s.io/cli/etcd-snapshot
+The etcd restore path depends on the original k3s server token. The repo secrets depend on the age private key.
 
-## etcd backup configuration
+## Storage locations
 
-The etcd backup configuration is managed by Ansible:
-- playbook: [k3s/ansible/playbooks/k3s-etcd-s3-backups.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/playbooks/k3s-etcd-s3-backups.yaml)
-- non-secret vars: [k3s/ansible/etcd-s3-backups.vars.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/etcd-s3-backups.vars.yaml)
-- secret vars: [k3s/ansible/group_vars/secrets.sops.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/group_vars/secrets.sops.yaml)
-- setup notes: [k3s/ansible/README-etcd-backups.md](/Users/mandos/dev/homelab-infra/k3s/ansible/README-etcd-backups.md)
+### Garage buckets
 
-Current intended settings:
+- `homelab-etcd`
+  - prefix: `cluster1/`
+- `homelab-longhorn`
+  - prefix: `cluster1/`
+- Home Assistant native backups also target Garage, but that configuration is managed inside Home Assistant rather than in Git.
+
+### Filesystem backup root
+
+In-cluster logical backups write to:
+
+- NFS server: `192.168.1.231`
+- exported path: `/mnt/user/backups`
+- cluster backup root: `/mnt/user/backups/k3s`
+
+Current layout:
+
+- `/mnt/user/backups/k3s/apps/mattermost/database/postgres`
+- `/mnt/user/backups/k3s/apps/mattermost/exports`
+- `/mnt/user/backups/k3s/apps/keycloak/database/postgres`
+- `/mnt/user/backups/k3s/apps/nextcloud/database/mariadb`
+- `/mnt/user/backups/k3s/apps/nextcloud/files/config`
+- `/mnt/user/backups/k3s/apps/nextcloud/metadata`
+- `/mnt/user/backups/k3s/apps/firefly/database/mariadb`
+- `/mnt/user/backups/k3s/apps/bookstack/database/mariadb`
+- `/mnt/user/backups/k3s/apps/bookstack/files/config`
+
+## Schedules and retention
+
+### etcd
+
+Managed by Ansible in `k3s/ansible/playbooks/k3s-etcd-s3-backups.yaml`.
+
 - schedule: every 6 hours
-- local retention: 7 snapshots
-- remote retention in Garage: 14 snapshots
+- local retention: 7
+- Garage retention: 14
 - compression: enabled
-- S3 endpoint: Garage over HTTP on the internal LAN
 
-### Routine checks
+### Longhorn
 
-Check the installed drop-in on a server:
+Defined in `k3s/cluster/infra/longhorn/recurring-jobs.yaml`.
 
-```bash
-sudo cat /etc/rancher/k3s/config.yaml.d/50-etcd-s3-backups.yaml
-```
+- `volume-snapshot-hourly`
+  - schedule: `0 * * * *`
+  - retain: 24
+- `volume-backup-nightly`
+  - schedule: `0 3 * * *`
+  - retain: 14
+- `volume-backup-weekly`
+  - schedule: `0 4 * * 0`
+  - retain: 8
+- `longhorn-system-backup-weekly`
+  - schedule: `30 4 * * 0`
+  - retain: 8
 
-List snapshots visible to the node:
+### App-consistent jobs
+
+Defined under `k3s/cluster/infra/backups/`.
+
+- `nextcloud-backup`
+  - schedule: `00 3 * * *`
+  - retains: 14 DB dumps, 14 config archives, 14 metadata markers
+- `mattermost-pgdump`
+  - schedule: `10 3 * * *`
+  - retains: 14 dumps
+- `mattermost-mmctl-export`
+  - schedule: `25 3 * * *`
+  - retains: 14 export archives
+- `keycloak-pgdump`
+  - schedule: `40 3 * * *`
+  - retains: 14 dumps
+- `firefly-dbdump`
+  - schedule: `50 3 * * *`
+  - retains: 14 dumps
+- `bookstack-backup`
+  - schedule: `55 3 * * *`
+  - retains: 14 DB dumps and 14 config archives
+
+## Application-specific notes
+
+### Mattermost
+
+Two restore-capable artifacts exist:
+
+1. PostgreSQL custom-format dump
+2. `mmctl` export ZIP
+
+The PostgreSQL dump is the authoritative database restore path.
+For a full application-level recovery that includes exported files and media, use either the `mmctl` export ZIP or the Longhorn restore path for the shared Mattermost volume.
+
+### Keycloak
+
+The PostgreSQL dump is the authoritative backup.
+
+Realm export is intentionally not automated. Keycloak's own import/export docs explicitly say that import/export is not a primary backup mechanism for a running system.
+
+### Nextcloud
+
+The in-cluster job backs up:
+
+- the MariaDB database
+- the Nextcloud `/config` tree
+
+It does **not** copy:
+
+- `/mnt/user/nextData`
+- `/mnt/user/ebook_uploads`
+
+Those datasets must be protected by Unraid-side snapshots or replication during the same maintenance window.
+
+### Firefly
+
+The durable state in this deployment is the MariaDB database. The DB dump is the primary restore artifact.
+
+### BookStack
+
+BookStack restore needs both:
+
+- the MariaDB dump
+- the `/config` archive
+
+### Home Assistant
+
+Home Assistant is intentionally backed up by its native backup system, with Longhorn remaining as a lower-level storage fallback.
+
+## Routine checks
+
+### etcd
 
 ```bash
 sudo k3s etcd-snapshot ls
-```
-
-Take an on-demand snapshot:
-
-```bash
-sudo k3s etcd-snapshot save --name on-demand-test
-```
-
-Check cluster-visible snapshot objects:
-
-```bash
 kubectl get etcdsnapshotfile
 ```
 
-Note: `k3s etcd-snapshot save` may warn about unrelated server flags such as `--disable` or `--etcd-snapshot-schedule-cron`. That is expected when the subcommand reads the full K3s config and ignores options that do not apply to the `save` command itself.
-
-## etcd restore procedure
-
-These procedures apply to the current three-server embedded-etcd cluster:
-- `minandras`
-- `tadandras`
-- `nelandras`
-
-Pick one server as the initial restore node. In practice, restore on `minandras` unless there is a reason not to.
-
-### Before any restore
-
-1. Confirm which snapshot you want.
-2. Confirm you have the original server token.
-3. Confirm whether you are restoring from:
-   - Garage/S3, or
-   - a local snapshot file on disk
-4. Record the current failure state before changing anything:
+### Longhorn
 
 ```bash
-kubectl get nodes -o wide
-kubectl get pods -A
-```
-
-If the API is already down, record what you can from system logs on the servers instead.
-
-### Snapshot selection
-
-On a healthy or partially healthy server:
-
-```bash
-sudo k3s etcd-snapshot ls
-```
-
-If the cluster is still reachable, also check:
-
-```bash
-kubectl get etcdsnapshotfile
-```
-
-Garage-backed restores use the snapshot filename, not the full `s3://` URL.
-
-### Restore to the existing hosts from Garage
-
-Use this when the current control-plane nodes still exist and you want to restore the cluster state from the Garage copy of a snapshot.
-
-1. Stop K3s on all server nodes:
-
-```bash
-sudo systemctl stop k3s
-```
-
-2. On the chosen restore node, run:
-
-```bash
-sudo k3s server \
-  --cluster-reset \
-  --cluster-reset-restore-path=<SNAPSHOT-FILENAME>
-```
-
-Because the current K3s server config already contains the Garage S3 settings, K3s will attempt to download the snapshot from the configured bucket when only the filename is supplied.
-
-3. Start K3s again on the restore node:
-
-```bash
-sudo systemctl start k3s
-```
-
-4. On the other server nodes, remove the old etcd data directory:
-
-```bash
-sudo rm -rf /var/lib/rancher/k3s/server/db/
-```
-
-5. Start K3s again on the peer servers so they rejoin the restored cluster:
-
-```bash
-sudo systemctl start k3s
-```
-
-This sequence follows the current K3s embedded-etcd restore procedure for multi-server clusters:
-- https://docs.k3s.io/cli/etcd-snapshot
-
-### Restore from a local snapshot file when S3 config is present
-
-If you want to restore from a local file on disk, and the server config still includes S3 settings, explicitly disable S3 for the restore command:
-
-```bash
-sudo k3s server \
-  --cluster-reset \
-  --etcd-s3=false \
-  --cluster-reset-restore-path=/var/lib/rancher/k3s/server/db/snapshots/<SNAPSHOT-FILE>
-```
-
-Then continue with the same peer rejoin steps:
-- start the restore node normally
-- delete `/var/lib/rancher/k3s/server/db/` on peer servers
-- start the peer servers normally
-
-K3s documents this local-restore override explicitly when S3 backup configuration exists in the server config:
-- https://docs.k3s.io/cli/etcd-snapshot
-
-### Restore to replacement hosts
-
-Use this when the original servers are gone or you are rebuilding the control plane onto new machines.
-
-Requirements:
-- the snapshot file
-- the original server token from `/var/lib/rancher/k3s/server/token`
-- equivalent K3s config for the replacement cluster
-
-On the first replacement server:
-
-```bash
-sudo k3s server \
-  --cluster-reset \
-  --cluster-reset-restore-path=<PATH-TO-SNAPSHOT> \
-  --token=<BACKED-UP-TOKEN-VALUE>
-```
-
-Important caveats from K3s:
-- if the K3s config file also contains a token, it must match the backed-up token
-- restored snapshots include Kubernetes `Node` resources, so old node objects may need to be deleted manually after the cluster is back
-
-Reference:
-- https://docs.k3s.io/cli/etcd-snapshot
-
-### Post-restore validation
-
-After the restore:
-
-```bash
-kubectl get nodes -o wide
-kubectl get pods -A
-kubectl get etcdsnapshotfile
-```
-
-Also check on each server:
-
-```bash
-sudo systemctl status k3s
-sudo journalctl -u k3s -n 100 --no-pager
-```
-
-Things to confirm:
-- all expected control-plane nodes rejoined
-- core infra pods are healthy
-- Flux resumes reconciliation
-- Traefik and cert-manager recover
-- application namespaces come back in expected order
-
-## Recovery expectations
-
-Current practical recovery scope:
-
-- Best case:
-  - restore control-plane state from Garage
-  - restart workloads whose persistent data is still intact on Longhorn volumes or external storage
-- Current limitation:
-  - if a workload's persistent data is lost and it is not separately backed up at the application layer, etcd restore alone does not recover that data
-
-That is the main reason Longhorn backup verification is the next operational step.
-
-## Longhorn backup status
-
-Longhorn backup-to-Garage is now defined in Git under:
-- [k3s/cluster/infra/longhorn/resources.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/resources.yaml)
-- [k3s/cluster/infra/longhorn/secret-backup-target.sops.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/secret-backup-target.sops.yaml)
-- [k3s/cluster/infra/longhorn/recurring-jobs.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/recurring-jobs.yaml)
-- [k3s/cluster/infra/longhorn/settings.yaml](/Users/mandos/dev/homelab-infra/k3s/cluster/infra/longhorn/settings.yaml)
-
-Intended target:
-- `s3://homelab-longhorn@garage/cluster1/`
-
-Credential secret keys:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_ENDPOINTS`
-- `AWS_REGION`
-
-Operational state still required:
-- Flux or manual apply must reconcile the new manifests
-- one manual backup must succeed
-- one restore test must succeed
-
-Until that validation is complete:
-- Longhorn protects availability and replica placement
-- Longhorn backup is configured in source control but not yet trusted as a recovery path
-- restore of deleted or corrupted PVC data still depends on verification and app-specific or external recovery paths
-
-### Longhorn recurring-job scaffolding
-
-The repo now defines:
-- hourly snapshots retained for 24 runs
-- nightly backups retained for 14 runs
-- weekly backups retained for 8 runs
-- weekly Longhorn system backups retained for 8 runs
-
-The recurring volume jobs are grouped under `default`, so new volumes with no explicit job assignment inherit the baseline policy. Longhorn supports this default-group behavior in recurring jobs.
-
-References:
-- backup target and credential secret settings: https://longhorn.io/docs/1.11.2/snapshots-and-backups/backup-and-restore/set-backup-target/
-- recurring job CRs, default groups, PVC/volume labels, and StorageClass selectors: https://longhorn.io/docs/1.11.0/snapshots-and-backups/scheduling-backups-and-snapshots/
-- system backup recurring jobs: https://longhorn.io/docs/1.11.2/advanced-resources/system-backup-restore/backup-longhorn-system/
-
-### Longhorn validation workflow
-
-After the manifests reconcile:
-
-1. Confirm the backup target is healthy in Longhorn.
-2. Confirm the credential secret exists in `longhorn-system`.
-3. Trigger one manual backup of a small test volume.
-4. Restore that backup to a new test volume.
-5. Confirm the restored volume attaches and serves data correctly.
-
-Useful checks:
-
-```bash
-kubectl -n longhorn-system get secret longhorn-backup-target
-kubectl -n longhorn-system get recurringjobs.longhorn.io
-kubectl -n longhorn-system get settings.longhorn.io backup-target backup-target-credential-secret
-kubectl -n longhorn-system get systembackup
-kubectl -n longhorn-system get backupvolumes.longhorn.io
+kubectl -n longhorn-system get backuptargets.longhorn.io
 kubectl -n longhorn-system get backups.longhorn.io
+kubectl -n longhorn-system get recurringjobs.longhorn.io
 ```
 
-### Longhorn restore paths
+### CronJobs
 
-Longhorn restore can be done from the UI or by creating a `Volume` custom resource from a backup URL. The CLI/custom-resource path requires:
-- the exact backup URL from `backup.longhorn.io`
-- the exact byte-sized volume size from backup status
-- manual PV/PVC creation if you restore by CR instead of the UI
+```bash
+kubectl get cronjobs -n backups
+kubectl get jobs -n backups --sort-by=.metadata.creationTimestamp
+```
 
-Reference:
-- https://longhorn.io/docs/1.11.2/snapshots-and-backups/backup-and-restore/restore-from-a-backup/
+### Backup artifacts on disk
 
-## Application-level backups
+```bash
+find /mnt/user/backups/k3s/apps -maxdepth 4 -type f | sort
+```
 
-Longhorn volume backups are not a substitute for logical database backups.
+## Remaining work outside this document
 
-For database-backed apps, keep or add explicit restore docs under the app directory. Existing examples:
-- [k3s/cluster/apps/replicated/keycloak/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/replicated/keycloak/README.md)
-- [stacks/moved-to-k3s/keycloak/README.md](/Users/mandos/dev/homelab-infra/stacks/moved-to-k3s/keycloak/README.md)
+These items are intentionally outside the in-cluster backup framework:
 
-Use that pattern for future stateful services:
-- identify the logical backup command
-- document the backup destination
-- document a tested restore path
-- state whether the app also relies on Longhorn backup, NAS backup, or both
+- Unraid-side snapshot and replication policy for NAS-attached datasets
+- offsite replication of `/mnt/user/backups/k3s`
+- offsite replication strategy for Garage buckets
 
-## NAS-attached workloads
+The most important NAS-attached dataset split is Nextcloud:
 
-NAS-attached workloads are a separate backup problem.
+- in-cluster: DB + `/config`
+- Unraid-side: `/mnt/user/nextData` and `/mnt/user/ebook_uploads`
 
-Examples:
-- NFS-backed PVCs
-- static PVs backed by Unraid shares
-- media libraries
-- application data kept outside Longhorn
+## Restore playbooks
 
-These are not recovered by restoring k3s etcd.
+Restore procedures live in `k3s/docs/restores/`:
 
-Treat their backup source of truth as:
-- the underlying Unraid/NAS backup workflow
-- any app-specific export/dump procedure documented under the workload directory
+- `k3s/docs/restores/README.md`
+- `k3s/docs/restores/etcd.md`
+- `k3s/docs/restores/longhorn.md`
+- `k3s/docs/restores/mattermost.md`
+- `k3s/docs/restores/keycloak.md`
+- `k3s/docs/restores/nextcloud.md`
+- `k3s/docs/restores/firefly.md`
+- `k3s/docs/restores/bookstack.md`
+- `k3s/docs/restores/home-assistant.md`
 
-## Review cadence
+Use those playbooks for actual recovery work rather than re-deriving commands under pressure.
 
-Revisit this document whenever any of these change:
-- K3s snapshot schedule or retention
-- Garage endpoint, bucket, or credential model
-- Longhorn backup target
-- app-level backup ownership
-- node replacement or disaster-recovery procedure
+## External references
+
+- k3s etcd backup and restore: https://docs.k3s.io/datastore/backup-restore
+- k3s etcd snapshot CLI: https://docs.k3s.io/cli/etcd-snapshot
+- Keycloak import/export limitations: https://www.keycloak.org/server/importExport
+- Mattermost export and import documentation: https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool.html
+- Home Assistant backup and restore: https://www.home-assistant.io/common-tasks/general/

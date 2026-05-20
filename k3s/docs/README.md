@@ -235,3 +235,16 @@ See `k3s/docs/flux-debugging.md`.
 ## 13) Add nodes later
 
 See `k3s/docs/adding-nodes.md`.
+
+## Backup and restore docs
+
+- `k3s/docs/backups.md`: current backup coverage, schedules, artifact locations, and validated status
+- `k3s/docs/restores/README.md`: restore playbook index
+- `k3s/docs/restores/etcd.md`: embedded-etcd restore
+- `k3s/docs/restores/longhorn.md`: Longhorn volume restore
+- `k3s/docs/restores/mattermost.md`: Mattermost database and `mmctl` export restore
+- `k3s/docs/restores/keycloak.md`: Keycloak PostgreSQL restore
+- `k3s/docs/restores/nextcloud.md`: Nextcloud coordinated restore
+- `k3s/docs/restores/firefly.md`: Firefly MariaDB restore
+- `k3s/docs/restores/bookstack.md`: BookStack DB and `/config` restore
+- `k3s/docs/restores/home-assistant.md`: Home Assistant native backup restore

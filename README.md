@@ -117,12 +117,12 @@ Examples of workload-level docs that matter during migrations or restore work:
 
 Current state:
 - embedded etcd snapshots are configured on the k3s servers and replicated to Garage
-- local etcd snapshots still exist on each server node
-- Longhorn backup-to-Garage is scaffolded in Git but still needs apply-and-verify
-- application-level logical backups are still service-specific, not centralized
-- NAS-attached data is not covered by the k3s control-plane backup path
+- Longhorn recurring backup-to-Garage is live and restore-tested
+- application-consistent backup jobs are live and validated for Mattermost, Keycloak, Nextcloud, Firefly, and BookStack
+- Home Assistant uses its native backup workflow, with Longhorn retained as a storage fallback
+- NAS-attached datasets still require Unraid-side snapshot and offsite replication policy outside the cluster manifests
 
-Read [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md) before making storage or recovery changes. That file is the source of truth for current backup and restore procedure.
+Read [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md) before making storage or recovery changes. That file is the source of truth for current backup coverage, artifact locations, and restore procedure.
 
 ## Legacy notes
 
