@@ -61,20 +61,22 @@ spec:
             httpGet:
               path: /ping
               port: http
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 2
           livenessProbe:
             httpGet:
               path: /ping
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
+            timeoutSeconds: 2
           resources:
             requests:
               cpu: 100m
               memory: 256Mi
             limits:
-              memory: 1Gi
+              memory: 2Gi
           lifecycle:
             preStop:
               exec:
