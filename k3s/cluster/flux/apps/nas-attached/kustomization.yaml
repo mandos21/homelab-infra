@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - kustomization-audiobookshelf.yaml
+  - kustomization-calibre.yaml
+  - kustomization-media-stack.yaml
+  - kustomization-music-ingest.yaml
+  - kustomization-nas-common.yaml
+  - kustomization-navidrome.yaml
+  - kustomization-nextcloud.yaml
+  - kustomization-ollama.yaml
+  - kustomization-picard.yaml
