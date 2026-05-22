@@ -11,7 +11,7 @@ spec:
     fsGroup: 33
   containers:
     - name: migrate
-      image: alpine:3.22
+      image: alpine:3.23
       command:
         - sh
         - -c
