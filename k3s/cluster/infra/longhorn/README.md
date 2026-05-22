@@ -59,3 +59,17 @@ kubectl -n longhorn-system get recurringjobs.longhorn.io
 
 4. Run one manual backup of a small test volume.
 5. Restore that backup to a new test volume and verify it.
+
+## UI Access
+
+The Longhorn UI is exposed through `oauth2-proxy` on:
+
+- `https://longhorn.dege.app`
+
+Access is restricted through Keycloak group membership:
+
+- `homelab-admins`
+
+The proxy secret scaffold is:
+
+- `../observability/auth/longhorn/secret-oauth2-proxy.sops.yaml`

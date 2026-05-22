@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - audiobookshelf
   - calibre
-  - common
   - media-stack
   - music-ingest
   - navidrome
