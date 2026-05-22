@@ -28,6 +28,8 @@ spec:
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
+      cookie-csrf-per-request: "true"
+      cookie-csrf-expire: 5m
       cookie-name: __Secure-grafana_oauth2_proxy
       skip-provider-button: "true"
       pass-user-headers: "true"
