@@ -1,22 +1,19 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: observability-core
+  name: observability-logs-alloy
   namespace: observability
 spec:
   interval: 30m0s
   chart:
     spec:
-      chart: kube-prometheus-stack
-      version: "85.2.0"
+      chart: alloy
+      version: "1.8.1"
       sourceRef:
         kind: HelmRepository
-        name: prometheus-community
+        name: grafana
         namespace: flux-system
   valuesFrom:
     - kind: ConfigMap
-      name: observability-core-values
-      valuesKey: values.yaml
-    - kind: Secret
-      name: observability-core-secret-values
+      name: observability-logs-alloy-values
       valuesKey: values.yaml

@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backup-jobs
+  namespace: observability
+spec:
+  groups:
+    - name: backups.rules
+      rules:
+        - alert: BackupCronJobLastSuccessStale
+          expr: |
+            time() - kube_cronjob_status_last_successful_time{namespace="backups",cronjob=~"nextcloud-backup|mattermost-pgdump|mattermost-mmctl-export|keycloak-pgdump|firefly-dbdump|bookstack-backup"} > 129600
+          for: 15m
+          labels:
+            severity: warning
+            category: backups
+          annotations:
+            summary: Backup CronJob has not succeeded within the expected window
+            description: CronJob {{ $labels.cronjob }} in namespace {{ $labels.namespace }} has not recorded a successful run in the last 36 hours.

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observability-logs-alloy-values
+  namespace: observability
+data:
+  values.yaml: |
+    fullnameOverride: alloy-logs
+
+    controller:
+      type: deployment
+      replicas: 1
+      nodeSelector:
+        node-type: baremetal
+
+    alloy:
+      configMap:
+        create: false
+        name: observability-alloy-logs-config
+        key: config.alloy
+      storagePath: /tmp/alloy
+      enableReporting: false
+      stabilityLevel: generally-available
+      mounts:
+        varlog: false
+        dockercontainers: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+    serviceMonitor:
+      enabled: true
