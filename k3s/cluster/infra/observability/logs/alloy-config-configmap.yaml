@@ -57,7 +57,7 @@ data:
     loki.process "pod_logs" {
       stage.static_labels {
         values = {
-          cluster = "cluster1"
+          cluster = "cluster1",
         }
       }
 
@@ -72,7 +72,7 @@ data:
     loki.process "kubernetes_events" {
       stage.static_labels {
         values = {
-          cluster = "cluster1"
+          cluster = "cluster1",
         }
       }
 
