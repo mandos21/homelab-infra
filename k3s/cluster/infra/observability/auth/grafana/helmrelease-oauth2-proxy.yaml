@@ -19,28 +19,12 @@ spec:
       existingSecret: grafana-oauth2-proxy-secrets
       emailDomains:
         - "*"
-    alphaConfig:
-      enabled: true
-      configData:
-        providers:
-          - id: keycloak
-            provider: keycloak-oidc
-            clientID: ${OAUTH2_PROXY_CLIENT_ID}
-            clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
-            scope: openid email profile groups
-            oidcConfig:
-              issuerURL: https://id.mdegenaro.com/realms/theborocrew
-        upstreamConfig:
-          upstreams:
-            - id: grafana
-              path: ^/(.*)$
-              rewriteTarget: /$1
-              uri: http://observability-core-grafana.observability.svc.cluster.local:80
-              passHostHeader: true
-              proxyWebSockets: true
-              flushInterval: 1s
     extraArgs:
+      provider: keycloak-oidc
+      oidc-issuer-url: https://id.mdegenaro.com/realms/theborocrew
+      scope: openid email profile groups
       redirect-url: https://grafana.dege.app/oauth2/callback
+      upstream: http://observability-core-grafana.observability.svc.cluster.local:80
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
