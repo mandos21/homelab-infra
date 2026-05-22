@@ -33,6 +33,7 @@ spec:
       cookie-name: __Secure-grafana_oauth2_proxy
       skip-provider-button: "true"
       pass-user-headers: "true"
+      skip-auth-route: GET=^/favicon\.ico$
       allowed-group: homelab-admins
       oidc-groups-claim: groups
     service:

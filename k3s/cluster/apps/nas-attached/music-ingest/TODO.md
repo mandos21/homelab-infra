@@ -3,10 +3,9 @@
 ## Before First Deploy
 - Fill and encrypt `workload/secret.sops.yaml`.
 - Build and push the custom beets image from `image/`.
-- Reconcile `music-ingest` and verify FileBrowser OIDC and beets workloads.
+- Reconcile `music-ingest` and verify beets workloads.
 
 ## Ingest Pipeline Follow-Up
-- Verify FileBrowser native OIDC user creation and permissions.
 - Verify beets state on `local-path` is stable and decide backup strategy for the PVC.
 - Create the Unraid directories if missing:
   - `/mnt/user/uploads/music-ingest`

@@ -24,8 +24,6 @@ Path consolidation is no longer relevant because the upload UI is not publicly e
   Namespace and storage primitives: static NFS PVs, their PVCs, and the local beets-state PVC.
 - `workload/`
   Runtime layer for the service. Shared secret and Traefik middleware live here.
-- `workload/filebrowser/`
-  Upload UI manifests for the internal-only ingest service.
 - `workload/beets/`
   Single-replica admin runtime, scheduled import/maintenance jobs, suspended manual repair jobs, and the beets ConfigMap.
 - `workload/postgres/`
@@ -147,7 +145,7 @@ Because `beets-state` now uses `local-path`, the workload is effectively tied to
 
 ## Public Exposure
 
-The ingest upload UI is no longer publicly exposed. Use SFTP for ingest uploads until a replacement workflow exists.
+There is no public UI for music ingest. Use SFTP for ingest uploads until a replacement workflow exists.
 
 ## Secrets
 
@@ -181,10 +179,6 @@ This is intentionally separate from the aggregate `apps-nas-attached` tree so yo
   Proposed future ingest pipeline design: queue layout, plugin boundaries, and Spotify enrichment flow.
 - `workload/beets/configmap-beets.yaml`
   Contains `bootstrap.sh`, the beets config template, and lastgenre support files.
-- `workload/filebrowser/configmap-filebrowser.yaml`
-  FileBrowser config template with native OIDC and no password auth.
-- `workload/filebrowser/deployment-filebrowser.yaml`
-  Upload UI using the shared uploads PVC and a subdirectory on the beets-state PVC for its lightweight state. An initContainer renders OIDC secrets into the runtime config file.
 - `workload/beets/deployment-beets-admin.yaml`
   Long-running internal operator pod for manual imports, review, and repairs.
 - `workload/beets/cronjob-auto-import.yaml`
