@@ -4,3 +4,4 @@ resources:
   - kustomization-observability-core.yaml
   - kustomization-observability-logs.yaml
   - kustomization-observability-alerts.yaml
+  - kustomization-observability-auth.yaml

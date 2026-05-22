@@ -10,11 +10,27 @@ data:
 
     grafana:
       enabled: true
-      # Keep Grafana internal until ingress and auth are designed.
+      # Exposed through oauth2-proxy; keep the Grafana service itself internal.
       ingress:
         enabled: false
       service:
         type: ClusterIP
+      grafana.ini:
+        server:
+          root_url: https://grafana.dege.app
+        auth:
+          disable_login_form: true
+        auth.proxy:
+          enabled: true
+          header_name: X-Forwarded-User
+          header_property: username
+          auto_sign_up: true
+          sync_ttl: 15
+          whitelist: 10.42.0.0/16
+          headers: Email:X-Forwarded-Email
+        users:
+          auto_assign_org: true
+          auto_assign_org_role: Admin
       persistence:
         enabled: true
         type: pvc
