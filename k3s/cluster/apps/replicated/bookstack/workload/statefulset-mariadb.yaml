@@ -24,7 +24,7 @@ spec:
       terminationGracePeriodSeconds: 120
       containers:
         - name: mariadb
-          image: mariadb:11.4.10
+          image: mariadb:11.8.7
           imagePullPolicy: IfNotPresent
           ports:
             - name: mysql

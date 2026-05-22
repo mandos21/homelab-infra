@@ -47,7 +47,7 @@ spec:
                   key: KC_DB_URL_DATABASE
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.5.0
+          image: quay.io/keycloak/keycloak:26.6.2
           imagePullPolicy: IfNotPresent
           args:
             - start

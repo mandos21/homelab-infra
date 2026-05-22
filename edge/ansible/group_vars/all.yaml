@@ -137,7 +137,7 @@ edge_kuma_legacy_container_name: edge-kuma-1
 edge_kuma_legacy_volume_name: edge_kuma_data
 
 step_ca_name: Homelab K3s PKI
-step_ca_image: smallstep/step-ca:0.29.0
+step_ca_image: smallstep/step-ca:0.30.2
 step_ca_container_name: k3s-step-ca
 step_ca_base_dir: /opt/k3s-step-ca
 step_ca_dns_names:

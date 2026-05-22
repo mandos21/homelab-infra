@@ -23,7 +23,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: bookstack
-          image: lscr.io/linuxserver/bookstack:26.03.3
+          image: lscr.io/linuxserver/bookstack:26.03.20260315
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

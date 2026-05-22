@@ -16,7 +16,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: dbdump
-              image: mariadb:11.4.10
+              image: mariadb:11.8.7
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
