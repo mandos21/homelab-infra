@@ -29,7 +29,7 @@ spec:
             clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
             scope: openid email profile
             oidcConfig:
-              issuerURL: https://id.mdegenaro.com/realms/theborocrew
+              issuerURL: https://id.dege.app/realms/theborocrew
         upstreamConfig:
           upstreams:
             - id: picard

@@ -10,7 +10,7 @@ data:
   TZ: America/New_York
   CRON_MIN: "*/20"
   OIDC_ENABLED: "1"
-  OIDC_PROVIDER_METADATA_URL: https://id.mdegenaro.com/realms/theborocrew/.well-known/openid-configuration
+  OIDC_PROVIDER_METADATA_URL: https://id.dege.app/realms/theborocrew/.well-known/openid-configuration
   OIDC_CLIENT_ID: freshrss
   OIDC_REMOTE_USER_CLAIM: preferred_username
   OIDC_SCOPES: openid profile email

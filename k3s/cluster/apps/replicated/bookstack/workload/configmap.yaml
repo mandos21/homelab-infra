@@ -23,6 +23,6 @@ data:
   AUTH_AUTO_INITIATE: "true"
   OIDC_CLIENT_ID: bookstack
   OIDC_DISPLAY_NAME_CLAIMS: name
-  OIDC_ISSUER: https://id.mdegenaro.com/realms/theborocrew
+  OIDC_ISSUER: https://id.dege.app/realms/theborocrew
   OIDC_ISSUER_DISCOVER: "true"
   ALLOWED_IFRAME_SOURCES: https://open.spotify.com

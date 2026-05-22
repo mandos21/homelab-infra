@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: id.mdegenaro.com
+    - host: id.dege.app
       http:
         paths:
           - path: /

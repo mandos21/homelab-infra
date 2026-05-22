@@ -5,7 +5,7 @@ This stack runs Keycloak and its Postgres database.
 - Postgres: `keycloak-db` (image: `postgres:16`)
 - Keycloak: `keycloak` (image: `quay.io/keycloak/keycloak:26.x`)
 - DB volume: `keycloak-db-data` mounted at `/var/lib/postgresql/data`
-- External access: proxied to `https://id.mdegenaro.com` via NPM (for now)
+- External access: proxied to `https://id.dege.app` via NPM (for now)
 
 The `docker-compose.yml` for this stack is designed to be used with Portainer’s Git-backed stacks. Secrets such as `POSTGRES_PASSWORD` and `KC_BOOTSTRAP_ADMIN_PASSWORD` are provided via Portainer’s stack environment variables.
 
@@ -130,7 +130,7 @@ docker start keycloak
 Then check:
 
 * Portainer: both `keycloak` and `keycloak-db` are running and healthy.
-* `https://id.mdegenaro.com` loads as expected.
+* `https://id.dege.app` loads as expected.
 * Keycloak admin UI shows the expected realms, clients, and users.
 
 ---

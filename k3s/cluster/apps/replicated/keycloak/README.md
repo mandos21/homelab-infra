@@ -4,7 +4,7 @@ This app includes:
 - Postgres database
 - Keycloak
 
-Keycloak is exposed at `id.mdegenaro.com`.
+Keycloak is exposed at `id.dege.app`.
 
 ## Migration
 

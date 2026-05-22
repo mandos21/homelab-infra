@@ -94,7 +94,7 @@ http:
       service: mattermost
 
     keycloak:
-      rule: Host(`id.mdegenaro.com`)
+      rule: Host(`id.dege.app`)
       entryPoints:
         - websecure
       tls: {}
