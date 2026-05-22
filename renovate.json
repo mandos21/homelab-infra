@@ -7,17 +7,95 @@
   ],
   "timezone": "America/New_York",
   "dependencyDashboard": true,
-
   "includePaths": [
-    "stacks/**",
+    "edge/**",
     "k3s/**"
   ],
-
+  "ignorePaths": [
+    "stacks/**"
+  ],
+  "enabledManagers": [
+    "docker-compose",
+    "dockerfile",
+    "helm-values",
+    "kubernetes",
+    "regex"
+  ],
   "packageRules": [
     {
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "docker minor/patch updates"
+    },
+    {
+      "matchManagers": [
+        "regex"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
+      "matchPackageNames": [
+        "alloy",
+        "cert-manager",
+        "kube-prometheus-stack",
+        "longhorn",
+        "metallb",
+        "nvidia-device-plugin",
+        "oauth2-proxy",
+        "step-issuer",
+        "traefik"
+      ],
+      "registryUrls": [
+        "https://charts.longhorn.io",
+        "https://charts.jetstack.io",
+        "https://prometheus-community.github.io/helm-charts",
+        "https://grafana.github.io/helm-charts",
+        "https://grafana-community.github.io/helm-charts",
+        "https://metallb.github.io/metallb",
+        "https://oauth2-proxy.github.io/manifests",
+        "https://smallstep.github.io/helm-charts",
+        "https://traefik.github.io/charts",
+        "https://nvidia.github.io/k8s-device-plugin"
+      ]
+    }
+  ],
+  "regexManagers": [
+    {
+      "description": "HelmRelease chart versions in Flux manifests",
+      "fileMatch": [
+        "(^|/)k3s/.+\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>[^\\s]+)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm"
+    },
+    {
+      "description": "Ansible image variables",
+      "fileMatch": [
+        "(^|/)edge/ansible/group_vars/all\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "edge_kuma_image:\\s+(?<depName>[^:\\s]+(?:/[^:\\s]+)*):(?<currentValue>[^\\s]+)",
+        "step_ca_image:\\s+(?<depName>[^:\\s]+(?:/[^:\\s]+)*):(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "description": "k3s version variable",
+      "fileMatch": [
+        "(^|/)k3s/ansible/group_vars/all\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "K3S_VERSION:\\s+\"?(?<currentValue>v?[^\"\\s]+)\"?"
+      ],
+      "depNameTemplate": "k3s-io/k3s",
+      "datasourceTemplate": "github-releases"
     }
   ]
 }

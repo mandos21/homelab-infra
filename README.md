@@ -17,7 +17,7 @@ homelab-infra/
 ├── edge/                      # edge host automation and docs
 ├── k3s/                       # active cluster code, runbooks, and app manifests
 ├── stacks/                    # mostly legacy compose stacks and migration artifacts
-└── renovate.json              # image update automation
+└── renovate.json              # update automation for live edge/k3s assets
 ```
 
 ## What lives where
