@@ -17,5 +17,4 @@ spec:
       name: sops-age
   dependsOn:
     - name: infra
-    - name: nas-common
   timeout: 10m0s
