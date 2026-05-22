@@ -31,49 +31,119 @@
         "patch"
       ],
       "groupName": "docker minor/patch updates"
-    },
-    {
-      "matchManagers": [
-        "regex"
-      ],
-      "matchDatasources": [
-        "helm"
-      ],
-      "matchPackageNames": [
-        "alloy",
-        "cert-manager",
-        "kube-prometheus-stack",
-        "longhorn",
-        "metallb",
-        "nvidia-device-plugin",
-        "oauth2-proxy",
-        "step-issuer",
-        "traefik"
-      ],
-      "registryUrls": [
-        "https://charts.longhorn.io",
-        "https://charts.jetstack.io",
-        "https://prometheus-community.github.io/helm-charts",
-        "https://grafana.github.io/helm-charts",
-        "https://grafana-community.github.io/helm-charts",
-        "https://metallb.github.io/metallb",
-        "https://oauth2-proxy.github.io/manifests",
-        "https://smallstep.github.io/helm-charts",
-        "https://traefik.github.io/charts",
-        "https://nvidia.github.io/k8s-device-plugin"
-      ]
     }
   ],
   "regexManagers": [
     {
-      "description": "HelmRelease chart versions in Flux manifests",
+      "description": "Longhorn HelmRelease chart version",
       "fileMatch": [
-        "(^|/)k3s/.+\\.ya?ml$"
+        "(^|/)k3s/cluster/infra/longhorn/resources\\.ya?ml$"
       ],
       "matchStrings": [
-        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>[^\\s]+)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>longhorn)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
       ],
-      "datasourceTemplate": "helm"
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.longhorn.io"
+    },
+    {
+      "description": "MetalLB HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/metallb/resources\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>metallb)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://metallb.github.io/metallb"
+    },
+    {
+      "description": "NVIDIA device plugin HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/nvidia-device-plugin/resources\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>nvidia-device-plugin)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://nvidia.github.io/k8s-device-plugin"
+    },
+    {
+      "description": "Step issuer HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/step-issuer/resources\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>step-issuer)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://smallstep.github.io/helm-charts"
+    },
+    {
+      "description": "Traefik HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/traefik/resources\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>traefik)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://traefik.github.io/charts"
+    },
+    {
+      "description": "Cert-manager HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/cert-manager/resources\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>cert-manager)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.jetstack.io"
+    },
+    {
+      "description": "Observability core HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/observability/core/helmrelease\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>kube-prometheus-stack)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://prometheus-community.github.io/helm-charts"
+    },
+    {
+      "description": "Observability Loki HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/observability/logs/helmrelease-loki\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>loki)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://grafana.github.io/helm-charts"
+    },
+    {
+      "description": "Observability Alloy HelmRelease chart version",
+      "fileMatch": [
+        "(^|/)k3s/cluster/infra/observability/logs/helmrelease-alloy\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>alloy)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://grafana.github.io/helm-charts"
+    },
+    {
+      "description": "OAuth2 Proxy HelmRelease chart versions",
+      "fileMatch": [
+        "(^|/)k3s/cluster/apps/nas-attached/picard/workload/helmrelease-oauth2-proxy\\.ya?ml$",
+        "(^|/)k3s/cluster/infra/observability/auth/grafana/helmrelease-oauth2-proxy\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "chart:\\s*\\n(?:.*\\n)*?\\s+chart:\\s+(?<depName>oauth2-proxy)\\s*\\n\\s+version:\\s+\"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://oauth2-proxy.github.io/manifests"
     },
     {
       "description": "Ansible image variables",
