@@ -22,7 +22,7 @@ spec:
     extraArgs:
       provider: keycloak-oidc
       oidc-issuer-url: https://id.mdegenaro.com/realms/theborocrew
-      scope: openid email profile groups
+      scope: openid email profile
       redirect-url: https://grafana.dege.app/oauth2/callback
       upstream: http://observability-core-grafana.observability.svc.cluster.local:80
       reverse-proxy: "true"
