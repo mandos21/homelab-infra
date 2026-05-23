@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntfy-config
+  namespace: ntfy
+data:
+  NTFY_BASE_URL: https://ntfy.dege.app
+  NTFY_BEHIND_PROXY: "true"
+  NTFY_LISTEN_HTTP: :80
+  NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+  NTFY_CACHE_DURATION: 24h
+  NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
+  NTFY_AUTH_DEFAULT_ACCESS: deny-all
+  NTFY_ENABLE_LOGIN: "true"
+  NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+  NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT: 5G
+  NTFY_ATTACHMENT_FILE_SIZE_LIMIT: 50M
+  NTFY_WEB_PUSH_FILE: /var/lib/ntfy/webpush.db
+  NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
