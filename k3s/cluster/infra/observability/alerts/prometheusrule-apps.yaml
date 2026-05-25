@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: critical-apps
+  namespace: observability
+  labels:
+    release: observability-core
+spec:
+  groups:
+    - name: apps.rules
+      rules:
+        - alert: CriticalAppUnavailable
+          expr: |
+            kube_deployment_spec_replicas{namespace=~"audiobookshelf|firefly|freshrss|media-stack",deployment=~"audiobookshelf|firefly|freshrss|plex"} > 0
+            and on (namespace, deployment)
+            kube_deployment_status_replicas_available{namespace=~"audiobookshelf|firefly|freshrss|media-stack",deployment=~"audiobookshelf|firefly|freshrss|plex"} == 0
+          for: 10m
+          labels:
+            severity: critical
+            category: apps
+          annotations:
+            summary: Critical application is unavailable
+            description: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has had zero available replicas for at least 10 minutes.

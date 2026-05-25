@@ -6,3 +6,7 @@ resources:
   - deployment-alertmanager-ntfy.yaml
   - service-alertmanager-ntfy.yaml
   - prometheusrule-backups.yaml
+  - prometheusrule-longhorn.yaml
+  - prometheusrule-observability.yaml
+  - prometheusrule-ingress.yaml
+  - prometheusrule-apps.yaml

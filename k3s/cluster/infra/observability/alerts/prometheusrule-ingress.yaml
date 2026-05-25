@@ -1,0 +1,50 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ingress
+  namespace: observability
+  labels:
+    release: observability-core
+spec:
+  groups:
+    - name: ingress.rules
+      rules:
+        - alert: TraefikUnavailable
+          expr: |
+            kube_deployment_spec_replicas{namespace="traefik-system",deployment="traefik"} > 0
+            and on (namespace, deployment)
+            kube_deployment_status_replicas_available{namespace="traefik-system",deployment="traefik"} == 0
+          for: 10m
+          labels:
+            severity: critical
+            category: ingress
+          annotations:
+            summary: Traefik is unavailable
+            description: The Traefik deployment has had zero available replicas for at least 10 minutes.
+
+        - alert: TraefikConfigReloadFailed
+          expr: traefik_config_last_reload_success != 1
+          for: 10m
+          labels:
+            severity: warning
+            category: ingress
+          annotations:
+            summary: Traefik config reload failed
+            description: Traefik reports that its last configuration reload was not successful.
+
+        - alert: TraefikHigh5xxRate
+          expr: |
+            (
+              sum(rate(traefik_entrypoint_requests_total{entrypoint="websecure",code=~"5.."}[10m]))
+              /
+              sum(rate(traefik_entrypoint_requests_total{entrypoint="websecure"}[10m]))
+            ) > 0.05
+            and
+            sum(rate(traefik_entrypoint_requests_total{entrypoint="websecure"}[10m])) > 1
+          for: 10m
+          labels:
+            severity: warning
+            category: ingress
+          annotations:
+            summary: Traefik 5xx rate is elevated
+            description: More than 5% of Traefik websecure requests have been returning 5xx responses for at least 10 minutes.

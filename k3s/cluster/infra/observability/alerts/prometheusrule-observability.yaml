@@ -1,0 +1,36 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: observability-components
+  namespace: observability
+  labels:
+    release: observability-core
+spec:
+  groups:
+    - name: observability.rules
+      rules:
+        - alert: ObservabilityDeploymentUnavailable
+          expr: |
+            kube_deployment_spec_replicas{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|grafana-oauth2-proxy|observability-core-grafana"} > 0
+            and on (namespace, deployment)
+            kube_deployment_status_replicas_available{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|grafana-oauth2-proxy|observability-core-grafana"} == 0
+          for: 10m
+          labels:
+            severity: critical
+            category: observability
+          annotations:
+            summary: Observability deployment is unavailable
+            description: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has had zero available replicas for at least 10 minutes.
+
+        - alert: ObservabilityStatefulSetUnavailable
+          expr: |
+            kube_statefulset_replicas{namespace="observability",statefulset=~"alertmanager-observability-core-kube-pr-alertmanager|loki|prometheus-observability-core-kube-pr-prometheus"} > 0
+            and on (namespace, statefulset)
+            kube_statefulset_status_replicas_ready{namespace="observability",statefulset=~"alertmanager-observability-core-kube-pr-alertmanager|loki|prometheus-observability-core-kube-pr-prometheus"} == 0
+          for: 10m
+          labels:
+            severity: critical
+            category: observability
+          annotations:
+            summary: Observability stateful workload is unavailable
+            description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has had zero ready replicas for at least 10 minutes.
