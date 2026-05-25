@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: observability-logs-loki-values
   namespace: observability
+  labels:
+    reconcile.fluxcd.io/watch: "Enabled"
 data:
   values.yaml: |
     fullnameOverride: loki
