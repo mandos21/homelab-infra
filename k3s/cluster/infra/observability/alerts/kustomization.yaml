@@ -6,4 +6,3 @@ resources:
   - deployment-alertmanager-ntfy.yaml
   - service-alertmanager-ntfy.yaml
   - prometheusrule-backups.yaml
-  - prometheusrule-test-alert.yaml
