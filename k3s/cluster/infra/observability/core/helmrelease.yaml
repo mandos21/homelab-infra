@@ -17,6 +17,3 @@ spec:
     - kind: ConfigMap
       name: observability-core-values
       valuesKey: values.yaml
-    - kind: Secret
-      name: observability-core-secret-values
-      valuesKey: values.yaml
