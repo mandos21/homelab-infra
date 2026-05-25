@@ -69,6 +69,9 @@ data:
             - matchers:
                 - alertname = "Watchdog"
               receiver: "null"
+            - matchers:
+                - alertname = "InfoInhibitor"
+              receiver: "null"
         inhibit_rules:
           - source_matchers:
               - severity="critical"
@@ -76,6 +79,19 @@ data:
               - severity="warning"
             equal:
               - alertname
+              - namespace
+          - source_matchers:
+              - severity="warning"
+            target_matchers:
+              - severity="info"
+            equal:
+              - alertname
+              - namespace
+          - source_matchers:
+              - alertname="InfoInhibitor"
+            target_matchers:
+              - severity="info"
+            equal:
               - namespace
         receivers:
           - name: "null"
