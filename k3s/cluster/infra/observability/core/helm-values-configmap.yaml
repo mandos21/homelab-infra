@@ -115,6 +115,7 @@ data:
     prometheus:
       enabled: true
       prometheusSpec:
+        externalUrl: https://prometheus.dege.app
         retention: 15d
         retentionSize: 40GiB
         nodeSelector:
