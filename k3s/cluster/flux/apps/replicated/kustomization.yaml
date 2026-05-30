@@ -5,6 +5,7 @@ resources:
   - kustomization-firefly.yaml
   - kustomization-freshrss.yaml
   - kustomization-home-assistant.yaml
+  - kustomization-it-tools.yaml
   - kustomization-keycloak.yaml
   - kustomization-mattermost.yaml
   - kustomization-static-web.yaml

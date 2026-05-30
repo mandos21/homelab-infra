@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - firefly
   - freshrss
+  - it-tools
   - static-web
   - vaultwarden
   - home-assistant
