@@ -28,6 +28,20 @@ spec:
         name: nvdp
         namespace: flux-system
   values:
+    config:
+      default: default
+      map:
+        default: |-
+          version: v1
+          flags:
+            migStrategy: none
+          sharing:
+            timeSlicing:
+              renameByDefault: true
+              failRequestsGreaterThanOne: true
+              resources:
+                - name: nvidia.com/gpu
+                  replicas: 2
     nodeSelector:
       gpu: nvidia
     affinity: {}

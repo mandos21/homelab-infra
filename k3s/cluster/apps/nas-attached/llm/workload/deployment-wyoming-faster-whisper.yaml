@@ -20,8 +20,10 @@ spec:
         app.kubernetes.io/name: wyoming-faster-whisper
         app.kubernetes.io/component: app
     spec:
+      runtimeClassName: nvidia
       nodeSelector:
-        node-type: vm
+        gpu: nvidia
+        kubernetes.io/hostname: nimgerianor
       terminationGracePeriodSeconds: 30
       containers:
         - name: wyoming-faster-whisper
@@ -57,8 +59,10 @@ spec:
             requests:
               cpu: 500m
               memory: 1Gi
+              nvidia.com/gpu.shared: 1
             limits:
               memory: 8Gi
+              nvidia.com/gpu.shared: 1
           volumeMounts:
             - name: data
               mountPath: /data
