@@ -25,21 +25,43 @@ spec:
         gpu: nvidia
         kubernetes.io/hostname: nimgerianor
       terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 100
       containers:
         - name: wyoming-faster-whisper
-          image: rhasspy/wyoming-whisper:3.1.0
+          image: lscr.io/linuxserver/faster-whisper:3.1.0-gpu
           imagePullPolicy: IfNotPresent
-          args:
-            - --model
-            - small.en
-            - --language
-            - en
-            - --uri
-            - tcp://0.0.0.0:10300
-            - --data-dir
-            - /data
-            - --download-dir
-            - /data
+          env:
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: PUID
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: PGID
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: TZ
+            - name: WHISPER_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: WHISPER_MODEL
+            - name: WHISPER_LANG
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: WHISPER_LANG
+            - name: WHISPER_BEAM
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-config
+                  key: WHISPER_BEAM
           ports:
             - name: wyoming
               containerPort: 10300
@@ -65,7 +87,7 @@ spec:
               nvidia.com/gpu.shared: 1
           volumeMounts:
             - name: data
-              mountPath: /data
+              mountPath: /config
       volumes:
         - name: data
           persistentVolumeClaim:

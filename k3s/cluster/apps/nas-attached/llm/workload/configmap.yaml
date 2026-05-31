@@ -26,3 +26,8 @@ data:
   OAUTH_ROLES_CLAIM: groups
   OAUTH_ADMIN_ROLES: homelab-admins
   OLLAMA_BASE_URL: http://ollama:11434
+  PUID: "99"
+  PGID: "100"
+  WHISPER_MODEL: small.en
+  WHISPER_LANG: en
+  WHISPER_BEAM: "1"
