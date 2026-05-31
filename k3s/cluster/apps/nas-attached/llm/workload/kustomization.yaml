@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - configmap.yaml
+  - secret.sops.yaml
+  - deployment-ollama.yaml
+  - service-ollama.yaml
+  - deployment-openwebui.yaml
+  - service-openwebui.yaml
+  - ingress-openwebui.yaml
+  - deployment-kokoro.yaml
+  - service-kokoro.yaml
+  - deployment-openwakeword.yaml
+  - service-openwakeword.yaml
+  - deployment-wyoming-faster-whisper.yaml
+  - service-wyoming-faster-whisper.yaml

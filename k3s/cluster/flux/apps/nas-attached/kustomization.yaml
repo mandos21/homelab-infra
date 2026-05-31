@@ -3,9 +3,9 @@ kind: Kustomization
 resources:
   - kustomization-audiobookshelf.yaml
   - kustomization-calibre.yaml
+  - kustomization-llm.yaml
   - kustomization-media-stack.yaml
   - kustomization-music-ingest.yaml
   - kustomization-navidrome.yaml
   - kustomization-nextcloud.yaml
-  - kustomization-ollama.yaml
   - kustomization-picard.yaml

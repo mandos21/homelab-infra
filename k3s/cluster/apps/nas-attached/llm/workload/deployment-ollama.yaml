@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ollama
-  namespace: ollama
+  namespace: llm
   labels:
     app.kubernetes.io/name: ollama
     app.kubernetes.io/component: app
@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: ollama-config
+                name: llm-config
           ports:
             - name: http
               containerPort: 11434
