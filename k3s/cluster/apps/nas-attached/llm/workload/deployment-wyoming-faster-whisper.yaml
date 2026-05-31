@@ -29,7 +29,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --model
-            - tiny-int8
+            - small.en
             - --language
             - en
             - --uri
