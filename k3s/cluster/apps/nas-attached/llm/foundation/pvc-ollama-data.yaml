@@ -12,4 +12,4 @@ spec:
     requests:
       storage: 500Gi
   storageClassName: ""
-  volumeName: llm-ollama-data
+  volumeName: ollama-data
