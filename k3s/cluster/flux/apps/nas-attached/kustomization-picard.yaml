@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./k3s/cluster/apps/nas-attached/picard
+  path: ./k3s/cluster/apps/nas-attached/music-stack/picard
   prune: true
   deletionPolicy: Orphan
   sourceRef:

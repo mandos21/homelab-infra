@@ -21,7 +21,7 @@ Recommended sequence:
 
 ```bash
 kubectl scale deployment/navidrome -n navidrome --replicas=0
-kubectl apply -f k3s/cluster/apps/nas-attached/navidrome/migration/pod-copy-appdata.yaml
+kubectl apply -f k3s/cluster/apps/nas-attached/music-stack/navidrome/migration/pod-copy-appdata.yaml
 kubectl wait --for=condition=Ready pod/navidrome-copy-appdata -n navidrome --timeout=2m
 kubectl exec -n navidrome pod/navidrome-copy-appdata -- sh -c 'cd /source && tar cpf - . | tar xpf - -C /target'
 kubectl exec -n navidrome pod/navidrome-copy-appdata -- sh -c 'chown -R 1000:1000 /target'

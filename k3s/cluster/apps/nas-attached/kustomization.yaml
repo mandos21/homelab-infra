@@ -4,8 +4,6 @@ resources:
   - audiobookshelf
   - calibre
   - media-stack
-  - music-ingest
-  - navidrome
+  - music-stack
   - nextcloud
   - ollama
-  - picard

@@ -4,10 +4,21 @@ K3S_VERSION: "v1.35.2+k3s1"
 # Which host should initialize the embedded etcd cluster
 k3s_init_host: "minandras"
 
-# API address or VIP you will use to access the cluster
-k3s_api_tls_san: "192.168.1.245"
-# Endpoint used by servers to join the cluster (API address or VIP)
-k3s_api_endpoint: "192.168.1.245"
+# Dedicated control-plane VIP on the management network.
+# This must be a free address on the LAN and must not match any node's mgmt_ip.
+k3s_api_vip: "192.168.1.250"
+# Current endpoint to use while migrating existing servers to the VIP.
+k3s_api_migration_endpoint: "192.168.1.245"
+# Interface that should carry the control-plane VIP.
+k3s_api_vip_interface: "mgmt0"
+# API address or VIP you will use to access the cluster.
+k3s_api_endpoint: "{{ k3s_api_vip }}"
+# Subject Alternative Names to place on the API server certificate.
+k3s_api_tls_sans:
+  - "{{ k3s_api_vip }}"
+# Keepalived settings for the control-plane VIP.
+k3s_api_vrid: 51
+k3s_api_vrrp_instance: "K3S_API"
 
 # Optional k3s server flags
 k3s_disable_servicelb: true

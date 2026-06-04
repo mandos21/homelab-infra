@@ -1,0 +1,53 @@
+- name: Reconfigure k3s servers to use the control-plane VIP
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yaml
+  serial: 1
+
+  vars:
+    k3s_disable_flags: >-
+      {% set flags = [] -%}
+      {% if k3s_disable_servicelb | default(false) %}{% set _ = flags.append('--disable servicelb') %}{% endif -%}
+      {% if k3s_disable_traefik | default(false) %}{% set _ = flags.append('--disable traefik') %}{% endif -%}
+      {{ flags | join(' ') }}
+    k3s_tls_san_flags: >-
+      {% set sans = k3s_api_tls_sans | default([k3s_api_endpoint]) -%}
+      {% set flags = [] -%}
+      {% for san in sans %}{% set _ = flags.append('--tls-san ' ~ san) %}{% endfor -%}
+      {{ flags | join(' ') }}
+
+  tasks:
+    - name: Re-run the k3s installer on the init server
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          sh -s - server \
+          --cluster-init \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
+          {{ k3s_tls_san_flags }} \
+          --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
+          {{ k3s_disable_flags }}
+      args:
+        executable: /bin/bash
+      when: inventory_hostname == k3s_init_host
+
+    - name: Re-run the k3s installer on joining servers
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ K3S_VERSION }} \
+          K3S_URL=https://{{ k3s_api_migration_endpoint }}:6443 \
+          K3S_TOKEN=$(cat /var/lib/rancher/k3s/server/node-token) \
+          sh -s - server \
+          --node-name {{ inventory_hostname }} \
+          --node-ip {{ stor_ip }} \
+          --flannel-iface {{ stor_iface_name }} \
+          {{ k3s_tls_san_flags }} \
+          --write-kubeconfig-mode {{ k3s_write_kubeconfig_mode }} \
+          {{ k3s_disable_flags }}
+      args:
+        executable: /bin/bash
+      when: inventory_hostname != k3s_init_host

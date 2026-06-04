@@ -100,7 +100,7 @@ Example from the host, after the `metadata-import` pod is running:
 
 ```bash
 kubectl cp \
-  k3s/cluster/apps/nas-attached/music-ingest/migration/spotify-postgres \
+  k3s/cluster/apps/nas-attached/music-stack/music-ingest/migration/spotify-postgres \
   music-ingest/metadata-import:/scratch/spotify-postgres
 
 kubectl exec -it -n music-ingest pod/metadata-import -- bash -lc '

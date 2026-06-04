@@ -11,6 +11,21 @@
       ansible.builtin.hostname:
         name: "{{ inventory_hostname }}"
 
+    - name: Disable cloud-init network management
+      ansible.builtin.copy:
+        dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+        mode: "0644"
+        content: |
+          network:
+            config: disabled
+      register: cloudinit_network_cfg
+
+    - name: Remove cloud-init netplan to avoid mgmt DHCP override
+      ansible.builtin.file:
+        path: /etc/netplan/50-cloud-init.yaml
+        state: absent
+      register: cloudinit_netplan
+
     - name: Ensure NIC vars are defined
       ansible.builtin.assert:
         that:
@@ -46,7 +61,7 @@
     - name: Write netplan configuration
       ansible.builtin.copy:
         dest: /etc/netplan/50-k3s.yaml
-        mode: "0644"
+        mode: "0600"
         content: |
           network:
             version: 2
@@ -78,7 +93,8 @@
     - name: Validate netplan configuration with netplan generate
       ansible.builtin.command: netplan generate
       changed_when: false
-      when: netplan_cfg.changed
+      when:
+        - netplan_cfg.changed or cloudinit_network_cfg.changed or cloudinit_netplan.changed
 
     - name: Reboot to apply NIC renaming
       ansible.builtin.reboot:
@@ -89,7 +105,7 @@
       ansible.builtin.command: netplan apply
       changed_when: false
       when:
-        - netplan_cfg.changed
+        - netplan_cfg.changed or cloudinit_network_cfg.changed or cloudinit_netplan.changed
         - not udev_rules.changed
 
     - name: Disable swap immediately

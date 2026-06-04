@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./k3s/cluster/apps/nas-attached/navidrome
+  path: ./k3s/cluster/apps/nas-attached/music-stack/navidrome
   prune: true
   deletionPolicy: Orphan
   sourceRef:

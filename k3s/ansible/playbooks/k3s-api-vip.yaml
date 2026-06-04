@@ -1,0 +1,92 @@
+- name: Configure a floating K3s API VIP on control-plane nodes
+  hosts: k3s_servers
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yaml
+
+  vars:
+    k3s_api_server_index: "{{ (groups['k3s_servers'] | list).index(inventory_hostname) }}"
+    k3s_api_priority: "{{ 200 if inventory_hostname == k3s_init_host else 190 - k3s_api_server_index }}"
+    k3s_api_unicast_peers: >-
+      {{ groups['k3s_servers']
+         | map('extract', hostvars, 'mgmt_ip')
+         | reject('equalto', mgmt_ip)
+         | list }}
+
+  handlers:
+    - name: Restart keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        state: restarted
+
+  tasks:
+    - name: Assert VIP does not overlap a node management IP
+      ansible.builtin.assert:
+        that:
+          - k3s_api_vip not in (groups['k3s_cluster'] | map('extract', hostvars, 'mgmt_ip') | list)
+        fail_msg: "k3s_api_vip must be a dedicated free address and must not overlap any mgmt_ip."
+
+    - name: Install keepalived
+      ansible.builtin.apt:
+        name: keepalived
+        state: present
+        update_cache: false
+
+    - name: Install K3s API health check script
+      ansible.builtin.copy:
+        dest: /usr/local/bin/check-k3s-apiserver.sh
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          set -eu
+          systemctl is-active --quiet k3s
+          ss -H -ltn sport = :6443 | grep -q LISTEN
+      notify: Restart keepalived
+
+    - name: Write keepalived configuration for the API VIP
+      ansible.builtin.copy:
+        dest: /etc/keepalived/keepalived.conf
+        mode: "0644"
+        content: |
+          global_defs {
+            router_id {{ inventory_hostname }}
+            enable_script_security
+            script_user root
+          }
+
+          vrrp_script chk_k3s_apiserver {
+            script "/usr/local/bin/check-k3s-apiserver.sh"
+            interval 5
+            timeout 3
+            fall 2
+            rise 2
+            weight -25
+          }
+
+          vrrp_instance {{ k3s_api_vrrp_instance }} {
+            state BACKUP
+            interface {{ k3s_api_vip_interface }}
+            virtual_router_id {{ k3s_api_vrid }}
+            priority {{ k3s_api_priority }}
+            advert_int 1
+            unicast_src_ip {{ mgmt_ip }}
+            unicast_peer {
+          {% for peer in k3s_api_unicast_peers %}
+              {{ peer }}
+          {% endfor %}
+            }
+            virtual_ipaddress {
+              {{ k3s_api_vip }}/{{ mgmt_prefix }} dev {{ k3s_api_vip_interface }}
+            }
+            track_script {
+              chk_k3s_apiserver
+            }
+          }
+      notify: Restart keepalived
+
+    - name: Enable and start keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        enabled: true
+        state: started
