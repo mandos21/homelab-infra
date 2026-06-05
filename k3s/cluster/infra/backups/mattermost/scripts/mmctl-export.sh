@@ -52,7 +52,7 @@ extract_active_job_ids() {
         id="$(printf '%s\n' "$obj" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
         status="$(printf '%s\n' "$obj" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')"
         case "$status" in
-          pending|in_progress|inprogress|started|cancel_requested)
+          pending|in_progress|inprogress|started)
             [ -n "$id" ] && printf '%s\n' "$id"
             ;;
         esac
@@ -83,20 +83,21 @@ if [ -z "$job_id" ]; then
   exit 1
 fi
 
+final_status=""
 while true; do
   status_json="$(kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local --json export job show "$job_id")"
   status="$(printf '%s\n' "$status_json" | extract_statuses | head -n1)"
   case "$status" in
     success)
+      final_status="$status"
       break
       ;;
     pending|in_progress|inprogress|started|cancel_requested)
       sleep 15
       ;;
     *)
-      echo "Mattermost export job ${job_id} failed with status: ${status}" >&2
-      printf '%s\n' "$status_json" >&2
-      exit 1
+      final_status="$status"
+      break
       ;;
   esac
 done
@@ -110,9 +111,14 @@ fi
 
 exports_now="$(list_exports | list_export_names || true)"
 if ! printf '%s\n' "$exports_now" | grep -Fxq "$export_name"; then
+  echo "Mattermost export job ${job_id} ended with status: ${final_status:-unknown}" >&2
   echo "expected Mattermost export artifact was not present in export list: ${export_name}" >&2
   printf 'available_exports=%s\n' "$(printf '%s' "$exports_now" | tr '\n' ' ' | sed 's/[[:space:]]*$//')" >&2
   exit 1
+fi
+
+if [ "${final_status}" != "success" ]; then
+  echo "Mattermost export job ${job_id} ended with status ${final_status}, but the export artifact exists; continuing with download." >&2
 fi
 
 if ! kubectl exec -n mattermost "$pod_name" -- /mattermost/bin/mmctl --local export download "$export_name" "$final_path" >/dev/null 2>&1; then

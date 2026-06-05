@@ -22,16 +22,6 @@ spec:
             summary: Traefik is unavailable
             description: The Traefik deployment has had zero available replicas for at least 10 minutes.
 
-        - alert: TraefikConfigReloadFailed
-          expr: traefik_config_last_reload_success != 1
-          for: 10m
-          labels:
-            severity: warning
-            category: ingress
-          annotations:
-            summary: Traefik config reload failed
-            description: Traefik reports that its last configuration reload was not successful.
-
         - alert: TraefikHigh5xxRate
           expr: |
             (

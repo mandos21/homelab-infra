@@ -5,6 +5,26 @@ metadata:
   namespace: observability
 data:
   values.yaml: |
+    defaultRules:
+      rules:
+        etcd: false
+        kubeControllerManager: false
+        kubeProxy: false
+        kubeSchedulerAlerting: false
+        kubeSchedulerRecording: false
+
+    kubeControllerManager:
+      enabled: false
+
+    kubeEtcd:
+      enabled: false
+
+    kubeProxy:
+      enabled: false
+
+    kubeScheduler:
+      enabled: false
+
     crds:
       enabled: true
 

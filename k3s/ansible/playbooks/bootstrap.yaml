@@ -145,6 +145,31 @@
           APT::Periodic::Unattended-Upgrade "1";
       when: bootstrap_install_unattended_upgrades
 
+    - name: Ensure systemd-timesyncd override directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/system/systemd-timesyncd.service.d
+        state: directory
+        mode: "0755"
+      when: bootstrap_configure_timesyncd
+
+    - name: Keep systemd-timesyncd running if it exits unexpectedly
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/systemd-timesyncd.service.d/10-restart.conf
+        mode: "0644"
+        content: |
+          [Service]
+          Restart=always
+          RestartSec=5s
+      register: timesyncd_override
+      when: bootstrap_configure_timesyncd
+
+    - name: Reload systemd when timesyncd override changes
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+      when:
+        - bootstrap_configure_timesyncd
+        - timesyncd_override.changed
+
     - name: Enable systemd-timesyncd
       ansible.builtin.systemd:
         name: systemd-timesyncd
