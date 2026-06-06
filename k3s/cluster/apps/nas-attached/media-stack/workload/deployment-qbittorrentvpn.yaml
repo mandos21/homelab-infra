@@ -135,14 +135,14 @@ spec:
           readinessProbe:
             tcpSocket:
               port: webui
-            initialDelaySeconds: 120
+            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 12
           livenessProbe:
             tcpSocket:
               port: webui
-            initialDelaySeconds: 120
+            initialDelaySeconds: 180
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
