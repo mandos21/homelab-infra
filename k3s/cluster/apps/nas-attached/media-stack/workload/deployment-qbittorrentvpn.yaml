@@ -132,17 +132,21 @@ spec:
                 configMapKeyRef:
                   name: media-stack-config
                   key: PGID
+          startupProbe:
+            tcpSocket:
+              port: webui
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 36
           readinessProbe:
             tcpSocket:
               port: webui
-            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 12
           livenessProbe:
             tcpSocket:
               port: webui
-            initialDelaySeconds: 180
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
