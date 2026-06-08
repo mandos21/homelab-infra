@@ -4,6 +4,7 @@ This folder groups the music-related `nas-attached` applications so they can
 evolve together without changing their independent Flux reconciliation model.
 
 Current members:
+- `audiomuseai`
 - `music-ingest`
 - `navidrome`
 - `picard`

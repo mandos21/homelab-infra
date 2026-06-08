@@ -1,0 +1,43 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: audiomuseai
+  namespace: audiomuseai
+spec:
+  interval: 30m0s
+  chart:
+    spec:
+      chart: audiomuse-ai
+      version: "1.1.6"
+      sourceRef:
+        kind: HelmRepository
+        name: audiomuse-ai
+        namespace: flux-system
+  values:
+    timezone: America/New_York
+    flask:
+      service:
+        type: LoadBalancer
+        port: 8000
+      nodeSelector:
+        node-type: vm
+    worker:
+      nodeSelector:
+        node-type: vm
+    redis:
+      nodeSelector:
+        node-type: vm
+    postgres:
+      nodeSelector:
+        node-type: vm
+      existingSecret: audiomuseai-postgres
+      existingSecretKeys:
+        user: POSTGRES_USER
+        password: POSTGRES_PASSWORD
+        db: POSTGRES_DB
+      persistence:
+        enabled: true
+        size: 20Gi
+        storageClassName: local-path-retain
+    ingress:
+      enabled: false
