@@ -17,7 +17,7 @@ spec:
     timezone: America/New_York
     flask:
       service:
-        type: LoadBalancer
+        type: ClusterIP
         port: 8000
       nodeSelector:
         node-type: vm

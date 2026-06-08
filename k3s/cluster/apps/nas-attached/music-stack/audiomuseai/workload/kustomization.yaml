@@ -4,3 +4,5 @@ resources:
   - secret.sops.yaml
   - helmrepository.yaml
   - helmrelease.yaml
+  - secret-oauth2.sops.yaml
+  - helmrelease-oauth2-proxy.yaml
