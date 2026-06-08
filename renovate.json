@@ -146,7 +146,7 @@
       "customType": "regex",
       "description": "OAuth2 Proxy HelmRelease chart versions",
       "managerFilePatterns": [
-        "/(^|/)k3s/cluster/apps/nas-attached/picard/workload/helmrelease-oauth2-proxy\\.ya?ml$/",
+        "/(^|/)k3s/cluster/apps/nas-attached/music-stack/picard/workload/helmrelease-oauth2-proxy\\.ya?ml$/",
         "/(^|/)k3s/cluster/infra/observability/auth/grafana/helmrelease-oauth2-proxy\\.ya?ml$/"
       ],
       "matchStrings": [

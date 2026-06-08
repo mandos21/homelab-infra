@@ -60,9 +60,9 @@ If a service is active in k3s, prefer the docs and manifests under `k3s/` over a
 ### Cluster lifecycle
 
 Use Ansible for node preparation and K3s lifecycle:
-- inventory: [k3s/ansible/inventory/hosts.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/inventory/hosts.yaml)
-- shared defaults: [k3s/ansible/group_vars/all.yaml](/Users/mandos/dev/homelab-infra/k3s/ansible/group_vars/all.yaml)
-- main runbook: [k3s/docs/README.md](/Users/mandos/dev/homelab-infra/k3s/docs/README.md)
+- inventory: [k3s/ansible/inventory/hosts.yaml](k3s/ansible/inventory/hosts.yaml)
+- shared defaults: [k3s/ansible/group_vars/all.yaml](k3s/ansible/group_vars/all.yaml)
+- main runbook: [k3s/docs/README.md](k3s/docs/README.md)
 
 ### Cluster desired state
 
@@ -80,38 +80,38 @@ SOPS is used in two contexts:
 - `k3s/.sops.yaml` and `edge/.sops.yaml` for Ansible-side encrypted vars
 
 Relevant docs:
-- [k3s/docs/secrets.md](/Users/mandos/dev/homelab-infra/k3s/docs/secrets.md)
-- [edge/docs/README.md](/Users/mandos/dev/homelab-infra/edge/docs/README.md)
+- [k3s/docs/secrets.md](k3s/docs/secrets.md)
+- [edge/docs/README.md](edge/docs/README.md)
 
 ## Documentation index
 
 ### Core runbooks
 
-- [k3s/docs/README.md](/Users/mandos/dev/homelab-infra/k3s/docs/README.md): primary K3s setup and operations runbook
-- [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md): current backup coverage, restore procedures, and gaps
-- [k3s/docs/adding-nodes.md](/Users/mandos/dev/homelab-infra/k3s/docs/adding-nodes.md): adding or replacing nodes
-- [k3s/docs/ingress.md](/Users/mandos/dev/homelab-infra/k3s/docs/ingress.md): ingress and traffic flow
-- [k3s/docs/flux-debugging.md](/Users/mandos/dev/homelab-infra/k3s/docs/flux-debugging.md): Flux troubleshooting
-- [k3s/docs/secrets.md](/Users/mandos/dev/homelab-infra/k3s/docs/secrets.md): SOPS + age workflow
+- [k3s/docs/README.md](k3s/docs/README.md): primary K3s setup and operations runbook
+- [k3s/docs/backups.md](k3s/docs/backups.md): current backup coverage, restore procedures, and gaps
+- [k3s/docs/adding-nodes.md](k3s/docs/adding-nodes.md): adding or replacing nodes
+- [k3s/docs/ingress.md](k3s/docs/ingress.md): ingress and traffic flow
+- [k3s/docs/flux-debugging.md](k3s/docs/flux-debugging.md): Flux troubleshooting
+- [k3s/docs/secrets.md](k3s/docs/secrets.md): SOPS + age workflow
 
 ### Storage and backup docs
 
-- [k3s/ansible/README-etcd-backups.md](/Users/mandos/dev/homelab-infra/k3s/ansible/README-etcd-backups.md): playbook-level etcd backup setup
-- [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md): operational restore procedures and current backup status
-- [k3s/cluster/apps/replicated/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/replicated/README.md): replicated app conventions
-- [k3s/cluster/apps/nas-attached/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/nas-attached/README.md): NAS-attached app conventions
+- [k3s/ansible/README-etcd-backups.md](k3s/ansible/README-etcd-backups.md): playbook-level etcd backup setup
+- [k3s/docs/backups.md](k3s/docs/backups.md): operational restore procedures and current backup status
+- [k3s/cluster/apps/replicated/README.md](k3s/cluster/apps/replicated/README.md): replicated app conventions
+- [k3s/cluster/apps/nas-attached/README.md](k3s/cluster/apps/nas-attached/README.md): NAS-attached app conventions
 
 ### Edge docs
 
-- [edge/docs/README.md](/Users/mandos/dev/homelab-infra/edge/docs/README.md): edge automation overview
-- [edge/docs/step-ca.md](/Users/mandos/dev/homelab-infra/edge/docs/step-ca.md): dedicated step-ca notes
+- [edge/docs/README.md](edge/docs/README.md): edge automation overview
+- [edge/docs/step-ca.md](edge/docs/step-ca.md): dedicated step-ca notes
 
 ### Service-specific docs
 
 Examples of workload-level docs that matter during migrations or restore work:
-- [k3s/cluster/apps/replicated/keycloak/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/replicated/keycloak/README.md)
-- [k3s/cluster/apps/nas-attached/navidrome/README.md](/Users/mandos/dev/homelab-infra/k3s/cluster/apps/nas-attached/navidrome/README.md)
-- [stacks/moved-to-k3s/keycloak/README.md](/Users/mandos/dev/homelab-infra/stacks/moved-to-k3s/keycloak/README.md)
+- [k3s/cluster/apps/replicated/keycloak/README.md](k3s/cluster/apps/replicated/keycloak/README.md)
+- [k3s/cluster/apps/nas-attached/music-stack/navidrome/README.md](k3s/cluster/apps/nas-attached/music-stack/navidrome/README.md)
+- [stacks/moved-to-k3s/keycloak/README.md](stacks/moved-to-k3s/keycloak/README.md)
 
 ## Backup status
 
@@ -122,12 +122,12 @@ Current state:
 - Home Assistant uses its native backup workflow, with Longhorn retained as a storage fallback
 - NAS-attached datasets still require Unraid-side snapshot and offsite replication policy outside the cluster manifests
 
-Read [k3s/docs/backups.md](/Users/mandos/dev/homelab-infra/k3s/docs/backups.md) before making storage or recovery changes. That file is the source of truth for current backup coverage, artifact locations, and restore procedure.
+Read [k3s/docs/backups.md](k3s/docs/backups.md) before making storage or recovery changes. That file is the source of truth for current backup coverage, artifact locations, and restore procedure.
 
 ## Legacy notes
 
 Historical notes remain under:
-- [docs/migration-notes.md](/Users/mandos/dev/homelab-infra/docs/migration-notes.md)
+- [docs/migration-notes.md](docs/migration-notes.md)
 - `stacks/`
 
 Treat them as reference material unless a service is still intentionally running there.
