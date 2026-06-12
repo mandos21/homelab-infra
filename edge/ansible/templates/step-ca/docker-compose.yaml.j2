@@ -3,6 +3,8 @@ services:
     image: {{ _step_ca_image }}
     container_name: {{ _step_ca_container_name }}
     restart: unless-stopped
+    extra_hosts:
+      - "{{ _step_ca_dns_names[0] }}:127.0.0.1"
     ports:
       - "{{ _step_ca_host_bind_address }}:{{ _step_ca_host_port }}:9000"
     volumes:
