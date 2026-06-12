@@ -6,10 +6,7 @@
 (common_tls) {
   tls {
     dns cloudflare {env.{{ edge_caddy_cloudflare_token_env }}}
-    resolvers
-{% for resolver in edge_caddy_resolvers %}
-      {{ resolver }}
-{% endfor %}
+    resolvers {{ edge_caddy_resolvers | join(' ') }}
     propagation_delay {{ edge_caddy_propagation_delay }}
     propagation_timeout {{ edge_caddy_propagation_timeout }}
   }
