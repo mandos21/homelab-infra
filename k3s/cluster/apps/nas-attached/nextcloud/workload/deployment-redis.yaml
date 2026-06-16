@@ -25,7 +25,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: redis:7.4-alpine
+          image: redis:8.8-alpine
           imagePullPolicy: IfNotPresent
           command:
             - redis-server
