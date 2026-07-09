@@ -35,7 +35,7 @@ This is the main platform.
 - `k3s/cluster/`
   - Flux-managed cluster manifests
   - infra components such as Traefik, Longhorn, MetalLB, cert-manager
-  - app manifests split into `replicated/` and `nas-attached/`
+  - app manifests split into `longhorn-backed/` and `nas-attached/`
 - `k3s/docs/`
   - operational runbooks and recovery docs
 
@@ -98,7 +98,7 @@ Relevant docs:
 
 - [k3s/ansible/README-etcd-backups.md](k3s/ansible/README-etcd-backups.md): playbook-level etcd backup setup
 - [k3s/docs/backups.md](k3s/docs/backups.md): operational restore procedures and current backup status
-- [k3s/cluster/apps/replicated/README.md](k3s/cluster/apps/replicated/README.md): replicated app conventions
+- [k3s/cluster/apps/longhorn-backed/README.md](k3s/cluster/apps/longhorn-backed/README.md): Longhorn-backed app conventions
 - [k3s/cluster/apps/nas-attached/README.md](k3s/cluster/apps/nas-attached/README.md): NAS-attached app conventions
 
 ### Edge docs
@@ -109,7 +109,7 @@ Relevant docs:
 ### Service-specific docs
 
 Examples of workload-level docs that matter during migrations or restore work:
-- [k3s/cluster/apps/replicated/keycloak/README.md](k3s/cluster/apps/replicated/keycloak/README.md)
+- [k3s/cluster/apps/longhorn-backed/keycloak/README.md](k3s/cluster/apps/longhorn-backed/keycloak/README.md)
 - [k3s/cluster/apps/nas-attached/music-stack/navidrome/README.md](k3s/cluster/apps/nas-attached/music-stack/navidrome/README.md)
 - [stacks/moved-to-k3s/keycloak/README.md](stacks/moved-to-k3s/keycloak/README.md)
 

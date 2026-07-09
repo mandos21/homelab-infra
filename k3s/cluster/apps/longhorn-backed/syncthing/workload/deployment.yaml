@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing
+  namespace: syncthing
+  labels:
+    app.kubernetes.io/name: syncthing
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: syncthing
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: syncthing
+        app.kubernetes.io/component: app
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        longhorn: "enabled"
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: init-data-dir
+          image: alpine:3.23
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p /var/syncthing/Logseq
+              chown -R 1000:1000 /var/syncthing
+              find /var/syncthing -type d -exec chmod 775 {} \;
+              find /var/syncthing -type f -exec chmod 664 {} \;
+          volumeMounts:
+            - name: data
+              mountPath: /var/syncthing
+      containers:
+        - name: syncthing
+          image: syncthing/syncthing:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - name: gui
+              containerPort: 8384
+            - name: sync-tcp
+              containerPort: 22000
+              protocol: TCP
+            - name: sync-udp
+              containerPort: 22000
+              protocol: UDP
+            - name: discovery
+              containerPort: 21027
+              protocol: UDP
+          envFrom:
+            - configMapRef:
+                name: syncthing-config
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - wget -qO- http://127.0.0.1:8384/rest/noauth/health | grep -q OK
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - wget -qO- http://127.0.0.1:8384/rest/noauth/health | grep -q OK
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - wget -qO- http://127.0.0.1:8384/rest/noauth/health | grep -q OK
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/syncthing
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: syncthing-data
+

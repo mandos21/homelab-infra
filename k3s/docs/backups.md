@@ -33,6 +33,7 @@ No single layer replaces the others.
 | Firefly database | nightly MariaDB logical dump | `/mnt/user/backups/k3s/apps/firefly/database/mariadb` | validated |
 | BookStack database | nightly MariaDB logical dump | `/mnt/user/backups/k3s/apps/bookstack/database/mariadb` | validated |
 | BookStack config | nightly `/config` archive | `/mnt/user/backups/k3s/apps/bookstack/files/config` | validated |
+| Syncthing Logseq graph | nightly tar archive from the Syncthing pod | `/mnt/user/backups/k3s/apps/syncthing/files/logseq` | implemented, not yet validated |
 | Home Assistant | native Home Assistant backups | Garage-configured backup location, managed in the app | validated by app workflow |
 
 ## Critical non-app artifacts
@@ -75,6 +76,7 @@ Current layout:
 - `/mnt/user/backups/k3s/apps/firefly/database/mariadb`
 - `/mnt/user/backups/k3s/apps/bookstack/database/mariadb`
 - `/mnt/user/backups/k3s/apps/bookstack/files/config`
+- `/mnt/user/backups/k3s/apps/syncthing/files/logseq`
 
 ## Schedules and retention
 
@@ -126,6 +128,9 @@ Defined under `k3s/cluster/infra/backups/`.
 - `bookstack-backup`
   - schedule: `55 3 * * *`
   - retains: 14 DB dumps and 14 config archives
+- `syncthing-backup`
+  - schedule: `5 3 * * *`
+  - retains: 14 Logseq graph archives
 
 ## Application-specific notes
 
@@ -169,6 +174,11 @@ BookStack restore needs both:
 
 - the MariaDB dump
 - the `/config` archive
+
+### Syncthing
+
+The Syncthing pod is the durable cluster peer for the Logseq graph.
+The nightly backup captures the Logseq folder from the Syncthing PVC so the graph can be restored independently of the Longhorn volume.
 
 ### Home Assistant
 

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: syncthing
+  labels:
+    app.kubernetes.io/part-of: syncthing
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+

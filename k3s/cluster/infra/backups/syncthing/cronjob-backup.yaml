@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: syncthing-backup
+  namespace: backups
+spec:
+  schedule: "5 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          serviceAccountName: syncthing-backup
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: alpine/k8s:1.36.1
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /scripts/backup.sh
+              envFrom:
+                - configMapRef:
+                    name: syncthing-backup-config
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-nfs
+            - name: scripts
+              configMap:
+                name: syncthing-backup-scripts
+                defaultMode: 0755
+

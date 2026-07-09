@@ -210,7 +210,7 @@ See `k3s/docs/ingress.md`.
 ## 9) Add apps
 
 Use the repo split consistently:
-- `k3s/cluster/apps/replicated/` for Longhorn-backed HA workloads
+- `k3s/cluster/apps/longhorn-backed/` for Longhorn-backed HA workloads
 - `k3s/cluster/apps/nas-attached/` for workloads coupled to Unraid or NAS storage
 
 Scheduling defaults:

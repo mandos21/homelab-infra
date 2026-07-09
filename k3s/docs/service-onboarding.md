@@ -8,9 +8,9 @@ The goal is to answer two questions for every service:
 
 ## 1. Decide the service category
 
-- `replicated/`
+- `longhorn-backed/`
   - Use for Longhorn-backed workloads that should run on the bare-metal storage nodes.
-  - Repo location: `k3s/cluster/apps/replicated/<service>/`
+  - Repo location: `k3s/cluster/apps/longhorn-backed/<service>/`
 
 - `nas-attached/`
   - Use for workloads that depend on Unraid/NFS storage and can run on VM nodes.
@@ -76,7 +76,7 @@ Typical things to set:
 
 ## 6. Scheduling
 
-- `replicated/` services usually need:
+- `longhorn-backed/` services usually need:
   - `nodeSelector: { longhorn: "enabled" }`
   - `storageClassName: longhorn` or `longhorn-3replicas`
 
@@ -219,7 +219,7 @@ Questions:
 - Add the service directory to the appropriate app tree kustomization.
 
 Repo locations:
-- `k3s/cluster/apps/replicated/kustomization.yaml`
+- `k3s/cluster/apps/longhorn-backed/kustomization.yaml`
 - `k3s/cluster/apps/nas-attached/kustomization.yaml`
 
 Questions:

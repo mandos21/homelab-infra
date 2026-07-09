@@ -24,11 +24,23 @@ db_file="${db_dir}/nextcloud-mariadb-${stamp}.sql.gz"
 config_file="${config_dir}/nextcloud-config-${stamp}.tar.gz"
 meta_file="${meta_dir}/nextcloud-maintenance-window-${stamp}.meta"
 
-nextcloud_pod="$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud,app.kubernetes.io/component=app -o jsonpath='{.items[0].metadata.name}')"
-mariadb_pod="$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=mariadb,app.kubernetes.io/component=database -o jsonpath='{.items[0].metadata.name}')"
+mariadb_pod="$(
+  kubectl get pod -n nextcloud \
+    -l app.kubernetes.io/name=mariadb,app.kubernetes.io/component=database \
+    -o jsonpath='{range .items[?(@.status.phase=="Running")]}{.metadata.name}{"\n"}{end}' \
+    | sed -n '1p'
+)"
+
+nextcloud_pod="$(
+  kubectl get pod -n nextcloud \
+    -l app.kubernetes.io/name=nextcloud,app.kubernetes.io/component=app \
+    -o jsonpath='{range .items[?(@.status.phase=="Running")]}{.metadata.name}{"\n"}{end}' \
+    | head -n1
+)"
 
 if [ -z "$nextcloud_pod" ] || [ -z "$mariadb_pod" ]; then
-  echo "failed to locate running Nextcloud or MariaDB pod" >&2
+  echo "failed to locate a running Nextcloud or MariaDB pod" >&2
+  kubectl get pod -n nextcloud -l app.kubernetes.io/part-of=nextcloud >&2 || true
   exit 1
 fi
 

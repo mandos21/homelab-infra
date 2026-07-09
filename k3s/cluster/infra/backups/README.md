@@ -14,6 +14,7 @@ Current scope:
 
 - shared NFS mount of `/mnt/user/backups`
 - validated app-consistent backup jobs for Mattermost, Keycloak, Nextcloud, Firefly, and BookStack
+- nightly Logseq graph backup from the Syncthing pod
 - Nextcloud coordinated maintenance-window backup
 - Mattermost nightly PostgreSQL logical dumps
 - Mattermost nightly export archives produced via the in-cluster `mmctl` binary running in local mode
@@ -62,6 +63,8 @@ Required values:
 - `bookstack/secret.sops.yaml`
   - `BOOKSTACK_DB_ROOT_PASSWORD`
 
+Syncthing backup jobs do not require a secret.
+
 ## Schedules
 
 - `mattermost-pgdump`
@@ -74,6 +77,8 @@ Required values:
   - `50 3 * * *`
 - `bookstack-backup`
   - `55 3 * * *`
+- `syncthing-backup`
+  - `5 3 * * *`
 - `nextcloud-backup`
   - `00 3 * * *`
 

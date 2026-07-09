@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syncthing-backup-config
+  namespace: backups
+data:
+  BACKUP_ROOT: /backups/k3s
+  SYNCTHING_APP_NAME: syncthing
+  SYNCTHING_NAMESPACE: syncthing
+  SYNCTHING_FOLDER_PATH: /var/syncthing/Logseq
+  SYNCTHING_KEEP: "14"
+

@@ -9,6 +9,7 @@ resources:
   - nextcloud
   - firefly
   - bookstack
+  - syncthing
 configMapGenerator:
   - name: mattermost-backup-scripts
     files:
@@ -31,5 +32,9 @@ configMapGenerator:
     files:
       - shared/common.sh
       - bookstack/scripts/backup.sh
+  - name: syncthing-backup-scripts
+    files:
+      - shared/common.sh
+      - syncthing/scripts/backup.sh
 generatorOptions:
   disableNameSuffixHash: true
