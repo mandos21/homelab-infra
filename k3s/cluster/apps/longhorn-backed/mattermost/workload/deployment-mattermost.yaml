@@ -34,7 +34,7 @@ spec:
       terminationGracePeriodSeconds: 60
       initContainers:
         - name: wait-for-postgres
-          image: postgres:15
+          image: postgres:18
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
