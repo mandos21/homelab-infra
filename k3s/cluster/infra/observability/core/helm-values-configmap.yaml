@@ -60,6 +60,7 @@ data:
         size: 10Gi
       deploymentStrategy:
         type: Recreate
+        rollingUpdate: null
       nodeSelector:
         node-type: baremetal
       adminUser: admin
