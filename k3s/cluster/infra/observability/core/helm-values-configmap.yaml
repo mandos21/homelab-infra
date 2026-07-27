@@ -58,6 +58,8 @@ data:
         accessModes:
           - ReadWriteOnce
         size: 10Gi
+      deploymentStrategy:
+        type: Recreate
       nodeSelector:
         node-type: baremetal
       adminUser: admin
