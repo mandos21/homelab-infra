@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: observability
 resources:
   - namespace.yaml
   - helmrepository.yaml
@@ -10,6 +9,7 @@ resources:
   - podmonitor-traefik.yaml
 configMapGenerator:
   - name: grafana-dashboard-kubernetes-cluster-overview
+    namespace: observability
     files:
       - dashboards/kubernetes-cluster-overview.json
     options:
