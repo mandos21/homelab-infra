@@ -9,5 +9,5 @@ FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /out/unraid-exporter /unraid-exporter
 EXPOSE 9108
-USER nonroot:nonroot
+USER 65532:65532
 ENTRYPOINT ["/unraid-exporter"]
