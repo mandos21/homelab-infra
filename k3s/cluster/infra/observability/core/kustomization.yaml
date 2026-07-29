@@ -7,6 +7,8 @@ resources:
   - helmrelease.yaml
   - servicemonitor-longhorn.yaml
   - podmonitor-traefik.yaml
+  - secret-unraid-exporter.sops.yaml
+  - unraid-exporter.yaml
 configMapGenerator:
   - name: grafana-dashboard-kubernetes-cluster-overview
     namespace: observability
@@ -17,5 +19,14 @@ configMapGenerator:
         grafana_dashboard: "1"
       annotations:
         grafana_folder: Kubernetes
+  - name: grafana-dashboard-unraid-overview
+    namespace: observability
+    files:
+      - dashboards/unraid-overview.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      annotations:
+        grafana_folder: Infrastructure
 generatorOptions:
   disableNameSuffixHash: true
