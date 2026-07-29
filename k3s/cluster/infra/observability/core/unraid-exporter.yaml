@@ -23,7 +23,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: unraid-exporter
-          image: ghcr.io/mandos21/unraid-exporter:v0.1.0
+          image: ghcr.io/mandos21/unraid-exporter:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: metrics
