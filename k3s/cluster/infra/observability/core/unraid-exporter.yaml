@@ -26,16 +26,13 @@ spec:
       containers:
         - name: unraid-exporter
           image: ghcr.io/mandos21/unraid-exporter:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: metrics
               containerPort: 9108
           env:
             - name: UNRAID_GRAPHQL_URL
-              valueFrom:
-                secretKeyRef:
-                  name: unraid-exporter-secrets
-                  key: UNRAID_GRAPHQL_URL
+              value: https://192.168.1.231:4443/graphql
             - name: UNRAID_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -45,6 +42,8 @@ spec:
               value: ":9108"
             - name: SCRAPE_TIMEOUT
               value: 10s
+            - name: UNRAID_TLS_SKIP_VERIFY
+              value: "true"
           readinessProbe:
             httpGet:
               path: /healthz

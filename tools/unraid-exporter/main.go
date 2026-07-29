@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,17 +22,51 @@ const graphQLQuery = `query UnraidExporterArrayMetrics {
   array {
     state
     capacity {
-      disks {
+      kilobytes {
         free
         used
         total
       }
     }
+    parityCheckStatus {
+      status
+      progress
+      speed
+      duration
+      correcting
+      paused
+      running
+    }
     disks {
+      name
+      size
+      fsSize
+      fsUsed
+      status
+      temp
+      numErrors
+      isSpinning
+      type
+    }
+    parities {
       name
       size
       status
       temp
+      numErrors
+      isSpinning
+      type
+    }
+    caches {
+      name
+      size
+      fsSize
+      fsUsed
+      status
+      temp
+      numErrors
+      isSpinning
+      type
     }
   }
 }`
@@ -41,6 +76,7 @@ type config struct {
 	apiKey        string
 	listenAddr    string
 	scrapeTimeout time.Duration
+	tlsSkipVerify bool
 }
 
 type exporter struct {
@@ -66,30 +102,53 @@ type graphQLError struct {
 }
 
 type arrayData struct {
-	State    string       `json:"state"`
-	Capacity capacityData `json:"capacity"`
-	Disks    []diskData   `json:"disks"`
+	State             string            `json:"state"`
+	Capacity          capacityData      `json:"capacity"`
+	ParityCheckStatus parityCheckStatus `json:"parityCheckStatus"`
+	Disks             []diskData        `json:"disks"`
+	Parities          []diskData        `json:"parities"`
+	Caches            []diskData        `json:"caches"`
 }
 
 type capacityData struct {
-	Disks capacityDiskData `json:"disks"`
+	Kilobytes capacityKilobyteData `json:"kilobytes"`
 }
 
-type capacityDiskData struct {
+type capacityKilobyteData struct {
 	Free  flexibleFloat `json:"free"`
 	Used  flexibleFloat `json:"used"`
 	Total flexibleFloat `json:"total"`
 }
 
+type parityCheckStatus struct {
+	Status     string        `json:"status"`
+	Progress   flexibleFloat `json:"progress"`
+	Speed      flexibleFloat `json:"speed"`
+	Duration   flexibleFloat `json:"duration"`
+	Correcting flexibleBool  `json:"correcting"`
+	Paused     flexibleBool  `json:"paused"`
+	Running    flexibleBool  `json:"running"`
+}
+
 type diskData struct {
-	Name   string        `json:"name"`
-	Size   flexibleFloat `json:"size"`
-	Status string        `json:"status"`
-	Temp   flexibleFloat `json:"temp"`
+	Name       string        `json:"name"`
+	Size       flexibleFloat `json:"size"`
+	FSSize     flexibleFloat `json:"fsSize"`
+	FSUsed     flexibleFloat `json:"fsUsed"`
+	Status     string        `json:"status"`
+	Temp       flexibleFloat `json:"temp"`
+	NumErrors  flexibleFloat `json:"numErrors"`
+	IsSpinning flexibleBool  `json:"isSpinning"`
+	Type       string        `json:"type"`
 }
 
 type flexibleFloat struct {
 	value float64
+	valid bool
+}
+
+type flexibleBool struct {
+	value bool
 	valid bool
 }
 
@@ -101,7 +160,7 @@ func main() {
 	}
 
 	exp := exporter{
-		client: &http.Client{Timeout: cfg.scrapeTimeout + 2*time.Second},
+		client: newHTTPClient(cfg),
 		config: cfg,
 	}
 
@@ -130,6 +189,7 @@ func loadConfig() (config, error) {
 		apiKey:        strings.TrimSpace(os.Getenv("UNRAID_API_KEY")),
 		listenAddr:    getenvDefault("LISTEN_ADDR", ":9108"),
 		scrapeTimeout: 10 * time.Second,
+		tlsSkipVerify: parseBoolEnv("UNRAID_TLS_SKIP_VERIFY"),
 	}
 
 	if raw := strings.TrimSpace(os.Getenv("SCRAPE_TIMEOUT")); raw != "" {
@@ -148,6 +208,18 @@ func loadConfig() (config, error) {
 	}
 
 	return cfg, nil
+}
+
+func newHTTPClient(cfg config) *http.Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if cfg.tlsSkipVerify {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
+	return &http.Client{
+		Timeout:   cfg.scrapeTimeout + 2*time.Second,
+		Transport: transport,
+	}
 }
 
 func (e exporter) handleMetrics(w http.ResponseWriter, r *http.Request) {
@@ -222,23 +294,67 @@ func writeArrayMetrics(writer *metricWriter, array arrayData) {
 		writer.writeGauge("unraid_array_state", "Current Unraid array state as a labelled gauge.", map[string]string{"state": state}, 1)
 	}
 
-	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array disk capacity in bytes.", map[string]string{"type": "free"}, array.Capacity.Disks.Free)
-	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array disk capacity in bytes.", map[string]string{"type": "used"}, array.Capacity.Disks.Used)
-	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array disk capacity in bytes.", map[string]string{"type": "total"}, array.Capacity.Disks.Total)
+	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array usable filesystem capacity in bytes.", map[string]string{"type": "free"}, kibToBytes(array.Capacity.Kilobytes.Free))
+	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array usable filesystem capacity in bytes.", map[string]string{"type": "used"}, kibToBytes(array.Capacity.Kilobytes.Used))
+	writer.writeOptionalGauge("unraid_array_capacity_bytes", "Unraid array usable filesystem capacity in bytes.", map[string]string{"type": "total"}, kibToBytes(array.Capacity.Kilobytes.Total))
+	writeParityMetrics(writer, array.ParityCheckStatus)
 
-	for _, disk := range array.Disks {
+	for _, disk := range append(append(array.Disks, array.Parities...), array.Caches...) {
 		name := strings.TrimSpace(disk.Name)
 		if name == "" {
 			continue
 		}
 		status := strings.TrimSpace(disk.Status)
-		labels := map[string]string{"disk": name, "status": status}
-		writer.writeOptionalGauge("unraid_disk_size_bytes", "Unraid disk size in bytes.", labels, disk.Size)
+		deviceType := strings.TrimSpace(disk.Type)
+		labels := map[string]string{"disk": name, "status": status, "type": deviceType}
+		writer.writeOptionalGauge("unraid_disk_size_bytes", "Unraid disk raw size in bytes.", labels, kibToBytes(disk.Size))
+		writer.writeOptionalGauge("unraid_disk_filesystem_size_bytes", "Unraid disk filesystem size in bytes.", labels, kibToBytes(disk.FSSize))
+		writer.writeOptionalGauge("unraid_disk_filesystem_used_bytes", "Unraid disk filesystem used space in bytes.", labels, kibToBytes(disk.FSUsed))
 		writer.writeOptionalGauge("unraid_disk_temperature_celsius", "Unraid disk temperature in Celsius.", labels, disk.Temp)
+		writer.writeOptionalGauge("unraid_disk_errors", "Current Unraid disk error count.", labels, disk.NumErrors)
+		writer.writeOptionalGauge("unraid_disk_spinning", "Whether the Unraid disk is currently spinning.", labels, boolMetric(disk.IsSpinning))
 		if status != "" {
 			writer.writeGauge("unraid_disk_status", "Current Unraid disk status as a labelled gauge.", labels, 1)
 		}
 	}
+}
+
+func writeParityMetrics(writer *metricWriter, parity parityCheckStatus) {
+	status := strings.TrimSpace(parity.Status)
+	if status != "" {
+		writer.writeGauge("unraid_parity_check_status", "Current Unraid parity check status as a labelled gauge.", map[string]string{"status": status}, 1)
+	}
+	writer.writeOptionalGauge("unraid_parity_check_progress_ratio", "Current Unraid parity check progress as a ratio.", nil, ratioMetric(parity.Progress))
+	writer.writeOptionalGauge("unraid_parity_check_speed_kilobytes_per_second", "Current Unraid parity check speed in KiB/s as reported by Unraid.", nil, parity.Speed)
+	writer.writeOptionalGauge("unraid_parity_check_duration_seconds", "Current or most recent Unraid parity check duration in seconds.", nil, parity.Duration)
+	writer.writeOptionalGauge("unraid_parity_check_correcting", "Whether the current or most recent parity check is correcting.", nil, boolMetric(parity.Correcting))
+	writer.writeOptionalGauge("unraid_parity_check_paused", "Whether the current parity check is paused.", nil, boolMetric(parity.Paused))
+	writer.writeOptionalGauge("unraid_parity_check_running", "Whether a parity check is running.", nil, boolMetric(parity.Running))
+}
+
+func kibToBytes(value flexibleFloat) flexibleFloat {
+	if !value.valid {
+		return value
+	}
+	value.value *= 1024
+	return value
+}
+
+func ratioMetric(value flexibleFloat) flexibleFloat {
+	if !value.valid {
+		return value
+	}
+	if value.value > 1 {
+		value.value /= 100
+	}
+	return value
+}
+
+func boolMetric(value flexibleBool) flexibleFloat {
+	if !value.valid {
+		return flexibleFloat{}
+	}
+	return flexibleFloat{value: boolFloat(value.value), valid: true}
 }
 
 type metricWriter struct {
@@ -325,6 +441,15 @@ func getenvDefault(key, fallback string) string {
 	return fallback
 }
 
+func parseBoolEnv(key string) bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(key))) {
+	case "1", "t", "true", "y", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
 func (f *flexibleFloat) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, []byte("null")) {
 		*f = flexibleFloat{}
@@ -352,5 +477,32 @@ func (f *flexibleFloat) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	*f = flexibleFloat{value: parsed, valid: true}
+	return nil
+}
+
+func (b *flexibleBool) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		*b = flexibleBool{}
+		return nil
+	}
+
+	var value bool
+	if err := json.Unmarshal(data, &value); err == nil {
+		*b = flexibleBool{value: value, valid: true}
+		return nil
+	}
+
+	var text string
+	if err := json.Unmarshal(data, &text); err != nil {
+		return err
+	}
+	switch strings.ToLower(strings.TrimSpace(text)) {
+	case "1", "t", "true", "y", "yes", "on":
+		*b = flexibleBool{value: true, valid: true}
+	case "0", "f", "false", "n", "no", "off":
+		*b = flexibleBool{value: false, valid: true}
+	default:
+		*b = flexibleBool{}
+	}
 	return nil
 }

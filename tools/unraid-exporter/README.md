@@ -8,6 +8,7 @@ Small Prometheus exporter for Unraid's GraphQL API.
 - `UNRAID_API_KEY`: Unraid API key passed as the `x-api-key` header
 - `LISTEN_ADDR`: exporter listen address, default `:9108`
 - `SCRAPE_TIMEOUT`: GraphQL request timeout, default `10s`
+- `UNRAID_TLS_SKIP_VERIFY`: set to `true` for internal Unraid HTTPS certificates that do not match the IP endpoint
 
 ## Build
 
