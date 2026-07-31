@@ -27,7 +27,7 @@ spec:
       containers:
         - name: qbittorrentvpn
           image: binhex/arch-qbittorrentvpn:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             privileged: false
             capabilities:
