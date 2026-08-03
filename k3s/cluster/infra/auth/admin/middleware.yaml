@@ -5,7 +5,7 @@ metadata:
   namespace: traefik-system
 spec:
   forwardAuth:
-    address: http://admin-auth.traefik-system.svc.cluster.local/
+    address: http://admin-auth-oauth2-proxy.traefik-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders:
       - X-Auth-Request-User
