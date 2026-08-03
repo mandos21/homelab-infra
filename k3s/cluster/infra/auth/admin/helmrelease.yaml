@@ -26,7 +26,7 @@ spec:
     extraArgs:
       provider: keycloak-oidc
       oidc-issuer-url: https://id.dege.app/realms/theborocrew
-      scope: openid email profile groups
+      scope: openid email profile
       redirect-url: https://auth.admin.dege.app/oauth2/callback
       upstream: static://202
       reverse-proxy: "true"
