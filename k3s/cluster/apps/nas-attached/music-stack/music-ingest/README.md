@@ -7,7 +7,7 @@ Music ingest is a `nas-attached` service because it depends on Unraid-backed med
 You asked about consolidating related services under one host:
 
 - `music.dege.app` for Navidrome
-- `music.dege.app/tags` for Picard
+- `picard.admin.dege.app` for Picard
 - no public upload host; use SFTP for ingest inputs
 
 This is feasible, but not equally clean for every app.

@@ -29,7 +29,6 @@
       - { namespace: nextcloud, name: nextcloud, replicas: 1 }
       - { namespace: nextcloud, name: redis, replicas: 1 }
       - { namespace: picard, name: picard, replicas: 1 }
-      - { namespace: picard, name: picard-oauth2-proxy, replicas: 1 }
     vm_statefulsets:
       - { namespace: nextcloud, name: mariadb, replicas: 1 }
     vm_cronjobs:

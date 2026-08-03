@@ -62,14 +62,14 @@ kubectl -n longhorn-system get recurringjobs.longhorn.io
 
 ## UI Access
 
-The Longhorn UI is exposed through `oauth2-proxy` on:
+The Longhorn UI is exposed through the shared admin authentication middleware on:
 
-- `https://longhorn.dege.app`
+- `https://longhorn.admin.dege.app`
 
 Access is restricted through Keycloak group membership:
 
 - `homelab-admins`
 
-The proxy secret scaffold is:
+The shared proxy secret scaffold is:
 
-- `../observability/auth/longhorn/secret-oauth2-proxy.sops.yaml`
+- `../auth/admin/secret.sops.yaml.example`

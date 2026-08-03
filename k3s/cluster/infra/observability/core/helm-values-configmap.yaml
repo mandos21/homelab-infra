@@ -30,14 +30,14 @@ data:
 
     grafana:
       enabled: true
-      # Exposed through oauth2-proxy; keep the Grafana service itself internal.
+      # Exposed through the shared admin ForwardAuth middleware; keep the Grafana service itself internal.
       ingress:
         enabled: false
       service:
         type: ClusterIP
       grafana.ini:
         server:
-          root_url: https://grafana.dege.app
+          root_url: https://grafana.admin.dege.app
         auth:
           disable_login_form: true
         auth.proxy:
@@ -146,7 +146,7 @@ data:
     prometheus:
       enabled: true
       prometheusSpec:
-        externalUrl: https://prometheus.dege.app
+        externalUrl: https://prometheus.admin.dege.app
         retention: 15d
         retentionSize: 40GiB
         nodeSelector:

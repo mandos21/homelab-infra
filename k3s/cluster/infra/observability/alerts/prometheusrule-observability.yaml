@@ -11,9 +11,9 @@ spec:
       rules:
         - alert: ObservabilityDeploymentUnavailable
           expr: |
-            kube_deployment_spec_replicas{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|grafana-oauth2-proxy|observability-core-grafana"} > 0
+            kube_deployment_spec_replicas{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|observability-core-grafana"} > 0
             and on (namespace, deployment)
-            kube_deployment_status_replicas_available{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|grafana-oauth2-proxy|observability-core-grafana"} == 0
+            kube_deployment_status_replicas_available{namespace="observability",deployment=~"alertmanager-ntfy|alloy-logs|observability-core-grafana"} == 0
           for: 10m
           labels:
             severity: critical

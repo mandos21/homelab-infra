@@ -1,8 +1,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: prometheus-oauth2-proxy
-  namespace: observability
+  name: admin-auth
+  namespace: traefik-system
 spec:
   interval: 30m0s
   chart:
@@ -16,24 +16,26 @@ spec:
   values:
     replicaCount: 1
     config:
-      existingSecret: prometheus-oauth2-proxy-secrets
+      existingSecret: admin-auth-secrets
       emailDomains:
         - "*"
     extraArgs:
       provider: keycloak-oidc
       oidc-issuer-url: https://id.dege.app/realms/theborocrew
-      scope: openid email profile
-      redirect-url: https://prometheus.dege.app/oauth2/callback
-      upstream: http://observability-core-kube-pr-prometheus.observability.svc.cluster.local:9090
+      scope: openid email profile groups
+      redirect-url: https://auth.admin.dege.app/oauth2/callback
+      upstream: static://202
       reverse-proxy: "true"
       cookie-secure: "true"
       cookie-samesite: lax
+      cookie-domain: .admin.dege.app
+      cookie-name: __Secure-admin_oauth2_proxy
       cookie-csrf-per-request: "true"
       cookie-csrf-expire: 5m
-      cookie-name: __Secure-prometheus_oauth2_proxy
+      cookie-refresh: 1h
       skip-provider-button: "true"
       pass-user-headers: "true"
-      skip-auth-route: GET=^/favicon\.ico$
+      set-xauthrequest: "true"
       allowed-group: homelab-admins
       oidc-groups-claim: groups
     service:
@@ -45,7 +47,7 @@ spec:
       path: /
       pathType: Prefix
       hosts:
-        - prometheus.dege.app
+        - auth.admin.dege.app
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"

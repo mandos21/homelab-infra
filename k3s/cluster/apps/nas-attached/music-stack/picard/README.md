@@ -1,10 +1,10 @@
 # Picard
 
-Picard is being prepared for path-based exposure at `music.dege.app/tags`.
+Picard is exposed at `https://picard.admin.dege.app` behind the shared admin
+ForwardAuth middleware.
 
 Current assumptions:
 - config/state uses a VM-local PVC via `local-path`
 - music library access remains NFS-backed from `/mnt/user/jfData/music`
-- oauth2-proxy callback: `https://music.dege.app/tags/oauth2/callback`
 
 This scaffold assumes path-based routing and therefore keeps the auth proxy and Picard ingress rules explicit.

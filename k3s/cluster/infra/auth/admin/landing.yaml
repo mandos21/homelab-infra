@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-landing
+  namespace: traefik-system
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Homelab Admin</title>
+    </head>
+    <body>
+      <main>
+        <h1>Homelab Admin</h1>
+        <ul>
+          <li><a href="https://soulsync.admin.dege.app">SoulSync</a></li>
+          <li><a href="https://slskd.admin.dege.app">slskd</a></li>
+          <li><a href="https://grafana.admin.dege.app">Grafana</a></li>
+          <li><a href="https://prometheus.admin.dege.app">Prometheus</a></li>
+          <li><a href="https://longhorn.admin.dege.app">Longhorn</a></li>
+          <li><a href="https://picard.admin.dege.app">Picard</a></li>
+        </ul>
+      </main>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-landing
+  namespace: traefik-system
+  labels:
+    app.kubernetes.io/name: admin-landing
+    app.kubernetes.io/component: admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: admin-landing
+      app.kubernetes.io/component: admin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: admin-landing
+        app.kubernetes.io/component: admin
+    spec:
+      nodeSelector:
+        node-type: baremetal
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: html
+          configMap:
+            name: admin-landing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-landing
+  namespace: traefik-system
+spec:
+  selector:
+    app.kubernetes.io/name: admin-landing
+    app.kubernetes.io/component: admin
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-landing
+  namespace: traefik-system
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-system-admin-auth@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: admin.dege.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-landing
+                port:
+                  name: http

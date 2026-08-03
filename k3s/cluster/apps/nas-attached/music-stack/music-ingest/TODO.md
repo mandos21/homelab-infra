@@ -16,7 +16,6 @@
 
 ## Routing Consolidation
 - Move Navidrome from `music.dege.app` to either `music.dege.app/listen` or keep it at `/` and mount other tools under subpaths.
-- Move Picard from `tags.dege.app` to `music.dege.app/tags`.
 - Update edge/Caddy routing once the final path layout is chosen.
 - Verify base-path behavior for Navidrome and Picard after path changes.
 
