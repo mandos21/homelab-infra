@@ -9,7 +9,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   mountOptions: [nfsvers=4.2]
-  nfs: {server: 192.168.1.231, path: /mnt/user/downloads}
+  nfs: {server: 192.168.1.231, path: /mnt/user/downloads/soulseek}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -35,7 +35,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   mountOptions: [nfsvers=4.2]
-  nfs: {server: 192.168.1.231, path: /mnt/user/music/managed}
+  nfs: {server: 192.168.1.231, path: /mnt/user/music/library}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
