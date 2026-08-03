@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: slskd
+  namespace: soulsync
+spec:
+  selector:
+    app.kubernetes.io/name: slskd
+    app.kubernetes.io/component: downloader
+  ports:
+    - name: http
+      port: 5030
+      targetPort: http
+    - name: peer
+      port: 50300
+      targetPort: peer

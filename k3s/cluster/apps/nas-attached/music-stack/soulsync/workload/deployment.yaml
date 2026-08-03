@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soulsync
+  namespace: soulsync
+  labels:
+    app.kubernetes.io/name: soulsync
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: soulsync
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: soulsync
+        app.kubernetes.io/component: app
+    spec:
+      nodeSelector:
+        node-type: vm
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 100
+      containers:
+        - name: soulsync
+          image: boulderbadgedad/soulsync:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: UMASK
+              value: "022"
+            - name: PYTHONPATH
+              value: /app
+            - name: SOULSYNC_CONFIG_PATH
+              value: /app/config/config.json
+            - name: TZ
+              value: America/New_York
+            - name: SOULSYNC_SPOTIFY_CALLBACK_PORT
+              value: "8888"
+            - name: SOULSYNC_TIDAL_CALLBACK_PORT
+              value: "8889"
+          ports:
+            - name: http
+              containerPort: 8008
+            - name: spotify-oauth
+              containerPort: 8888
+            - name: tidal-oauth
+              containerPort: 8889
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: logs
+              mountPath: /app/logs
+            - name: data
+              mountPath: /app/data
+            - name: downloads
+              mountPath: /app/downloads
+            - name: transfer
+              mountPath: /app/Transfer
+            - name: staging
+              mountPath: /app/Staging
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: soulsync-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: soulsync-logs
+        - name: data
+          persistentVolumeClaim:
+            claimName: soulsync-data
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: soulsync-downloads
+        - name: transfer
+          persistentVolumeClaim:
+            claimName: soulsync-transfer
+        - name: staging
+          persistentVolumeClaim:
+            claimName: soulsync-staging

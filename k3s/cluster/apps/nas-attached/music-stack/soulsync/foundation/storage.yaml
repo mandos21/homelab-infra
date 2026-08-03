@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: soulsync-downloads
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  capacity: {storage: 4Ti}
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.2]
+  nfs: {server: 192.168.1.231, path: /mnt/user/downloads}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: soulsync-staging
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  capacity: {storage: 250Gi}
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.2]
+  nfs: {server: 192.168.1.231, path: /mnt/user/uploads/music-ingest}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: soulsync-transfer
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  capacity: {storage: 2Ti}
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.2]
+  nfs: {server: 192.168.1.231, path: /mnt/user/music/managed}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: soulsync-config, namespace: soulsync}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path-retain
+  resources: {requests: {storage: 5Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: soulsync-logs, namespace: soulsync}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path-retain
+  resources: {requests: {storage: 5Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: soulsync-data, namespace: soulsync}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path-retain
+  resources: {requests: {storage: 20Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-downloads
+  namespace: soulsync
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: soulsync-downloads
+  resources: {requests: {storage: 4Ti}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-staging
+  namespace: soulsync
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: soulsync-staging
+  resources: {requests: {storage: 250Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-transfer
+  namespace: soulsync
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: soulsync-transfer
+  resources: {requests: {storage: 2Ti}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: slskd-data, namespace: soulsync}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path-retain
+  resources: {requests: {storage: 5Gi}}
