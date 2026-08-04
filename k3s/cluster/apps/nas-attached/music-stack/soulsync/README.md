@@ -23,10 +23,11 @@ host directory there can overwrite the application modules.
 
 Open the UI and configure the download paths exactly as the container paths
 above. slskd is available to SoulSync at
-`http://slskd.soulsync.svc.cluster.local:5030`. Use a temporary port-forward to
-configure the Soulseek account and create an API key, then enter that URL and
-key in SoulSync's Settings → Downloads → Soulseek. Configure shared folders in
-slskd as `/music` to avoid Soulseek bans.
+`http://slskd.soulsync.svc.cluster.local:5030`. The slskd API key is supplied
+through the SOPS secret as `SLSKD_API_KEY` and injected into slskd as its
+primary API key. Replace the sample value in `workload/secret.sops.yaml`, then
+enter the same key in SoulSync's Settings → Downloads → Soulseek. Configure
+shared folders in slskd as `/music` to avoid Soulseek bans.
 
 Spotify is prepared through SoulSync's persisted Settings UI. The upstream
 release documents entering the Spotify Client ID and Client Secret there, not

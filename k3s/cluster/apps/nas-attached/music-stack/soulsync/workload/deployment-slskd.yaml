@@ -70,6 +70,9 @@ spec:
             - name: SLSKD_SLSK_PASSWORD
               valueFrom:
                 secretKeyRef: {name: soulsync-slskd-secrets, key: SLSKD_SLSK_PASSWORD}
+            - name: SLSKD_API_KEY
+              valueFrom:
+                secretKeyRef: {name: soulsync-slskd-secrets, key: SLSKD_API_KEY}
           ports:
             - {name: http, containerPort: 5030}
             - {name: peer, containerPort: 50300}
