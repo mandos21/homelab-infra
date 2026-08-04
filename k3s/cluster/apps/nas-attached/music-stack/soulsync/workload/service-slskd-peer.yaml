@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: slskd-peer
+  namespace: soulsync
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster
+  selector:
+    app.kubernetes.io/name: slskd
+    app.kubernetes.io/component: downloader
+  ports:
+    - name: peer
+      port: 50300
+      targetPort: peer
+      protocol: TCP
+      nodePort: 30300
