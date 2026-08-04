@@ -9,7 +9,20 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   mountOptions: [nfsvers=4.2]
-  nfs: {server: 192.168.1.231, path: /mnt/user/downloads/soulseek}
+  nfs: {server: 192.168.1.231, path: /mnt/user/downloads/soulseek/complete}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: soulsync-incomplete
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  capacity: {storage: 4Ti}
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.2]
+  nfs: {server: 192.168.1.231, path: /mnt/user/downloads/soulseek/incomplete}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -71,6 +84,18 @@ spec:
   accessModes: [ReadWriteMany]
   storageClassName: ""
   volumeName: soulsync-downloads
+  resources: {requests: {storage: 4Ti}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-incomplete
+  namespace: soulsync
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: soulsync-incomplete
   resources: {requests: {storage: 4Ti}}
 ---
 apiVersion: v1

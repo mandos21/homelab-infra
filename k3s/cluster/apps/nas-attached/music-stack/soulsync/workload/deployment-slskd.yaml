@@ -32,7 +32,7 @@ spec:
             - {name: SLSKD_REMOTE_CONFIGURATION, value: "true"}
             - {name: SLSKD_SHARED_DIR, value: /music}
             - {name: SLSKD_DOWNLOADS_DIR, value: /downloads}
-            - {name: SLSKD_INCOMPLETE_DIR, value: /downloads/incomplete}
+            - {name: SLSKD_INCOMPLETE_DIR, value: /incomplete}
             - {name: SLSKD_UMASK, value: "022"}
             - {name: TZ, value: America/New_York}
           ports:
@@ -54,11 +54,14 @@ spec:
           volumeMounts:
             - {name: data, mountPath: /app}
             - {name: downloads, mountPath: /downloads}
+            - {name: incomplete, mountPath: /incomplete}
             - {name: music, mountPath: /music, readOnly: true}
       volumes:
         - name: data
           persistentVolumeClaim: {claimName: slskd-data}
         - name: downloads
           persistentVolumeClaim: {claimName: soulsync-downloads}
+        - name: incomplete
+          persistentVolumeClaim: {claimName: soulsync-incomplete}
         - name: music
           persistentVolumeClaim: {claimName: soulsync-transfer}

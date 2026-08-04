@@ -7,8 +7,12 @@ there is currently no ingress or public route.
 ## Storage
 
 - `/app/config`, `/app/logs`, and `/app/data` use VM-local retained PVCs.
-- `/app/downloads` uses `/mnt/user/downloads`.
-- `/app/Transfer` uses the managed music library at `/mnt/user/music/managed`.
+- `/app/downloads` and slskd `/downloads` use the completed-download tree at
+  `/mnt/user/downloads/soulseek/complete`.
+- slskd `/incomplete` uses `/mnt/user/downloads/soulseek/incomplete`, separate
+  from the completed-download tree so cleanup cannot treat incomplete files as
+  completed downloads.
+- `/app/Transfer` uses the Navidrome music library at `/mnt/user/music/library`.
 - `/app/Staging` shares the music-ingest staging area at `/mnt/user/uploads/music-ingest`.
 
 The `/app/data` PVC is intentionally separate: upstream warns that mounting a
