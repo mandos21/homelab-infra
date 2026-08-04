@@ -35,12 +35,12 @@ spec:
             - name: OPENVPN_USER
               valueFrom:
                 secretKeyRef:
-                  name: soulsync-vpn-secrets
+                  name: soulsync-slskd-secrets
                   key: VPN_USER
             - name: OPENVPN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: soulsync-vpn-secrets
+                  name: soulsync-slskd-secrets
                   key: VPN_PASS
             - {name: VPN_PORT_FORWARDING, value: "on"}
             - {name: VPN_PORT_FORWARDING_PROVIDER, value: private internet access}
@@ -56,16 +56,20 @@ spec:
           env:
             - {name: PUID, value: "99"}
             - {name: PGID, value: "100"}
-            - {name: SLSKD_REMOTE_CONFIGURATION, value: "true"}
+            - {name: SLSKD_REMOTE_CONFIGURATION, value: "false"}
+            - {name: SLSKD_REMOTE_FILE_MANAGEMENT, value: "false"}
+            - {name: SLSKD_CONFIG, value: /etc/slskd/slskd.yml}
             - {name: SLSKD_SHARED_DIR, value: /music}
             - {name: SLSKD_DOWNLOADS_DIR, value: /downloads}
             - {name: SLSKD_INCOMPLETE_DIR, value: /incomplete}
             - {name: SLSKD_UMASK, value: "022"}
             - {name: TZ, value: America/New_York}
-            - {name: SLSKD_VPN, value: "true"}
-            - {name: SLSKD_VPN_PORT_FORWARDING, value: "true"}
-            - {name: SLSKD_VPN_POLLING_INTERVAL, value: "2500"}
-            - {name: SLSKD_VPN_GLUETUN_URL, value: http://127.0.0.1:8000}
+            - name: SLSKD_SLSK_USERNAME
+              valueFrom:
+                secretKeyRef: {name: soulsync-slskd-secrets, key: SLSKD_SLSK_USERNAME}
+            - name: SLSKD_SLSK_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: soulsync-slskd-secrets, key: SLSKD_SLSK_PASSWORD}
           ports:
             - {name: http, containerPort: 5030}
             - {name: peer, containerPort: 50300}
@@ -83,6 +87,7 @@ spec:
             requests: {cpu: 100m, memory: 256Mi}
             limits: {memory: 1Gi}
           volumeMounts:
+            - {name: slskd-config, mountPath: /etc/slskd}
             - {name: data, mountPath: /app}
             - {name: downloads, mountPath: /downloads}
             - {name: incomplete, mountPath: /incomplete}
@@ -92,6 +97,9 @@ spec:
           hostPath:
             path: /dev/net/tun
             type: CharDevice
+        - name: slskd-config
+          configMap:
+            name: slskd-config
         - name: data
           persistentVolumeClaim: {claimName: slskd-data}
         - name: downloads

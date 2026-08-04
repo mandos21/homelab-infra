@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slskd-config
+  namespace: soulsync
+data:
+  slskd.yml: |
+    debug: false
+    headless: false
+    remote_configuration: false
+    remote_file_management: false
+
+    directories:
+      downloads: /downloads
+      incomplete: /incomplete
+
+    shares:
+      directories:
+        - /music
+      filters:
+        - \.ini$
+        - Thumbs.db$
+        - \.DS_Store$
+      cache:
+        storage_mode: memory
+        workers: 16
+        retention: ~
+
+    transfers:
+      upload:
+        slots: 5
+        speed_limit: 1000
+      download:
+        slots: 500
+        speed_limit: 2147483647
+        retry:
+          partial: resume
+          attempts: 3
+          delay: 5000
+          max_delay: 60000
+        destination:
+          subdirectory: ${SOURCE_DIRECTORY}
+          exists: rename
+
+    retention:
+      search: 10080
+      transfers:
+        upload:
+          succeeded: 1440
+          errored: 30
+          cancelled: 5
+          failed: 180
+        download:
+          succeeded: 1440
+          errored: 20160
+          cancelled: 5
+          failed: 180
+      files:
+        complete: 20160
+        incomplete: 43200
+      logs: 180
+
+    web:
+      port: 5030
+      ip_address: 0.0.0.0
+      url_base: /
+      https:
+        disabled: true
+      authentication:
+        disabled: true
+
+    metrics:
+      enabled: false
+
+    feature:
+      swagger: false
+
+    soulseek:
+      address: vps.slsknet.org
+      port: 2271
+      listen_ip_address: 0.0.0.0
+      listen_port: 50300
+      diagnostic_level: Info
+      distributed_network:
+        disabled: false
+        disable_children: false
+        child_limit: 25
+        logging: false
+
+    integration:
+      vpn:
+        enabled: true
+        port_forwarding: true
+        polling_interval: 2500
+        gluetun:
+          url: http://127.0.0.1:8000
+          timeout: 1000
+          auth: none

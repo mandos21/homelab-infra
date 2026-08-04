@@ -42,11 +42,12 @@ integration waits for Gluetun's control server and forwarded-port status before
 allowing slskd to connect to Soulseek. The home-router port forward is not used
 for this design; PIA supplies the public forwarded port.
 
-Create the `soulsync-vpn-secrets` Secret in this namespace with the same PIA
-credentials used by `media-stack-secrets`, using SOPS. Do not place those
-credentials in plaintext or commit a decrypted Secret. Gluetun's control API
-is bound inside the shared Pod network namespace and is intentionally not
-exposed as a Service.
+Replace the sample values in `workload/secret.sops.yaml` with the Soulseek
+credentials and the PIA credentials used by `media-stack-secrets`, then keep
+the file SOPS-encrypted. slskd's own web authentication is disabled because
+the admin Ingress is protected by the centralized Keycloak middleware.
+Gluetun's control API is bound inside the shared Pod network namespace and is
+intentionally not exposed as a Service.
 
 ## Upstream
 
