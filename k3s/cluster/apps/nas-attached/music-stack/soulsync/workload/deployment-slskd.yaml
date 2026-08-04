@@ -40,7 +40,7 @@ spec:
             - {name: peer, containerPort: 50300}
           startupProbe:
             httpGet: {path: /, port: http}
-            periodSeconds: 10
+            periodSeconds: 20
             failureThreshold: 40
           readinessProbe:
             httpGet: {path: /, port: http}
