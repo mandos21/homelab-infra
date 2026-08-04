@@ -41,7 +41,7 @@ spec:
           startupProbe:
             httpGet: {path: /, port: http}
             periodSeconds: 10
-            failureThreshold: 36
+            failureThreshold: 40
           readinessProbe:
             httpGet: {path: /, port: http}
             periodSeconds: 10
