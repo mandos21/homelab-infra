@@ -23,6 +23,33 @@ spec:
       terminationGracePeriodSeconds: 30
       securityContext: {fsGroup: 100}
       containers:
+        - name: gluetun
+          image: qmcgaw/gluetun:v3.41.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN]
+          env:
+            - {name: VPN_SERVICE_PROVIDER, value: private internet access}
+            - {name: VPN_TYPE, value: openvpn}
+            - name: OPENVPN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: soulsync-vpn-secrets
+                  key: VPN_USER
+            - name: OPENVPN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: soulsync-vpn-secrets
+                  key: VPN_PASS
+            - {name: VPN_PORT_FORWARDING, value: "on"}
+            - {name: VPN_PORT_FORWARDING_PROVIDER, value: private internet access}
+            - {name: SERVER_REGIONS, value: Netherlands}
+            - {name: FIREWALL_OUTBOUND_SUBNETS, value: 10.42.0.0/16,10.43.0.0/16,192.168.1.0/24,192.168.3.0/24}
+            - {name: HTTP_CONTROL_SERVER_ADDRESS, value: ":8000"}
+            - {name: TZ, value: America/New_York}
+          volumeMounts:
+            - {name: dev-net-tun, mountPath: /dev/net/tun}
         - name: slskd
           image: slskd/slskd:latest
           imagePullPolicy: IfNotPresent
@@ -35,6 +62,10 @@ spec:
             - {name: SLSKD_INCOMPLETE_DIR, value: /incomplete}
             - {name: SLSKD_UMASK, value: "022"}
             - {name: TZ, value: America/New_York}
+            - {name: SLSKD_VPN, value: "true"}
+            - {name: SLSKD_VPN_PORT_FORWARDING, value: "true"}
+            - {name: SLSKD_VPN_POLLING_INTERVAL, value: "2500"}
+            - {name: SLSKD_VPN_GLUETUN_URL, value: http://127.0.0.1:8000}
           ports:
             - {name: http, containerPort: 5030}
             - {name: peer, containerPort: 50300}
@@ -57,6 +88,10 @@ spec:
             - {name: incomplete, mountPath: /incomplete}
             - {name: music, mountPath: /music, readOnly: true}
       volumes:
+        - name: dev-net-tun
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
         - name: data
           persistentVolumeClaim: {claimName: slskd-data}
         - name: downloads

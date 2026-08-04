@@ -1,8 +1,9 @@
 # SoulSync
 
 SoulSync and slskd are deployed as single-replica NAS-attached music automation
-services in the `soulsync` namespace. They are internal-only ClusterIP services;
-there is currently no ingress or public route.
+services in the `soulsync` namespace. SoulSync remains on normal cluster
+networking. slskd shares its Pod network namespace with Gluetun and uses a PIA
+OpenVPN tunnel with VPN port forwarding.
 
 ## Storage
 
@@ -33,6 +34,19 @@ environment variables, so credentials are intentionally not placed in a Secret
 the application would ignore. Use a temporary port-forward for the UI and its
 OAuth callback port, then register the matching local redirect URI in Spotify's
 developer dashboard. Callback ports 8888 and 8889 remain available internally.
+
+## slskd VPN
+
+The slskd Pod uses Gluetun with Private Internet Access/OpenVPN. The VPN
+integration waits for Gluetun's control server and forwarded-port status before
+allowing slskd to connect to Soulseek. The home-router port forward is not used
+for this design; PIA supplies the public forwarded port.
+
+Create the `soulsync-vpn-secrets` Secret in this namespace with the same PIA
+credentials used by `media-stack-secrets`, using SOPS. Do not place those
+credentials in plaintext or commit a decrypted Secret. Gluetun's control API
+is bound inside the shared Pod network namespace and is intentionally not
+exposed as a Service.
 
 ## Upstream
 
