@@ -42,12 +42,12 @@ data:
           disable_login_form: true
         auth.proxy:
           enabled: true
-          header_name: X-Forwarded-User
+          header_name: X-Auth-Request-User
           header_property: username
           auto_sign_up: true
           sync_ttl: 15
           whitelist: 10.42.0.0/16
-          headers: Email:X-Forwarded-Email
+          headers: Email:X-Auth-Request-Email
         users:
           auto_assign_org: true
           auto_assign_org_role: Admin
