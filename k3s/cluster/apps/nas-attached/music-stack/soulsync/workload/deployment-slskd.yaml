@@ -50,6 +50,19 @@ spec:
             - {name: TZ, value: America/New_York}
           volumeMounts:
             - {name: dev-net-tun, mountPath: /dev/net/tun}
+        # Temporary diagnostic container. It shares the Pod network namespace,
+        # so its traffic exits through Gluetun. Remove after testing.
+        - name: speedtest
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - >-
+              pip install --no-cache-dir speedtest-cli
+              && tail -f /dev/null
+          resources:
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {cpu: 250m, memory: 256Mi}
         - name: slskd
           image: slskd/slskd:latest
           imagePullPolicy: IfNotPresent
