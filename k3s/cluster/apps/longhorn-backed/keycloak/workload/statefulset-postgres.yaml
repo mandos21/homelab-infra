@@ -24,7 +24,7 @@ spec:
       terminationGracePeriodSeconds: 60
       initContainers:
         - name: init-pgdata
-          image: postgres:16
+          image: postgres:18
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -35,7 +35,7 @@ spec:
               mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
-          image: postgres:16
+          image: postgres:18
           imagePullPolicy: IfNotPresent
           ports:
             - name: postgres

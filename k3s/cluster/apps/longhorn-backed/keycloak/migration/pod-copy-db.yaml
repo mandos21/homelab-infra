@@ -9,7 +9,7 @@ spec:
     longhorn: "enabled"
   containers:
     - name: shell
-      image: postgres:16
+      image: postgres:18
       command: ["/bin/sh", "-c", "sleep infinity"]
       securityContext:
         runAsUser: 0
