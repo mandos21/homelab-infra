@@ -29,7 +29,7 @@ spec:
         fsGroup: 1000
       initContainers:
         - name: init-data-dir
-          image: alpine:3.23
+          image: alpine:3.24
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 0

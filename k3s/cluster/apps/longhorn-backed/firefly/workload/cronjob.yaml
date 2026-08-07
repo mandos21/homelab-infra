@@ -25,7 +25,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: cron
-              image: alpine:3.23
+              image: alpine:3.24
               imagePullPolicy: IfNotPresent
               envFrom:
                 - configMapRef:

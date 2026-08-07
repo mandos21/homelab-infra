@@ -17,7 +17,7 @@ spec:
         node-type: baremetal
       containers:
         - name: ntfy
-          image: binwiederhier/ntfy:v2.22
+          image: binwiederhier/ntfy:v2.27
           args:
             - serve
           ports:

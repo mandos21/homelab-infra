@@ -29,7 +29,7 @@ spec:
         fsGroup: 100
       containers:
         - name: wyoming-faster-whisper
-          image: lscr.io/linuxserver/faster-whisper:3.1.0-gpu
+          image: lscr.io/linuxserver/faster-whisper:3.5.0-gpu
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
