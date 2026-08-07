@@ -51,7 +51,7 @@ spec:
         node-type: baremetal
       containers:
         - name: nginx
-          image: nginx:1.29-alpine
+          image: nginx:1.31-alpine
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

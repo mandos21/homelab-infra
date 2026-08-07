@@ -24,7 +24,7 @@ spec:
       securityContext: {fsGroup: 100}
       containers:
         - name: gluetun
-          image: qmcgaw/gluetun:v3.41.1
+          image: qmcgaw/gluetun:v3.41.3
           imagePullPolicy: IfNotPresent
           securityContext:
             capabilities:
@@ -53,7 +53,7 @@ spec:
         # Temporary diagnostic container. It shares the Pod network namespace,
         # so its traffic exits through Gluetun. Remove after testing.
         - name: speedtest
-          image: python:3.12-alpine
+          image: python:3.14-alpine
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:

@@ -15,7 +15,7 @@ spec:
       - 100
   containers:
     - name: shell
-      image: alpine:3.23
+      image: alpine:3.24
       command: ["/bin/sh", "-c", "sleep infinity"]
       volumeMounts:
         - name: source-mosquitto

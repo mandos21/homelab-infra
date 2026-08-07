@@ -15,7 +15,7 @@ spec:
       - 2000
   containers:
     - name: shell
-      image: alpine:3.23
+      image: alpine:3.24
       command: ["/bin/sh", "-c", "sleep infinity"]
       volumeMounts:
         - name: mattermost

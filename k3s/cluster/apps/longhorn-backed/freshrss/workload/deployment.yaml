@@ -28,7 +28,7 @@ spec:
         fsGroup: 33
       initContainers:
         - name: init-data-dirs
-          image: alpine:3.23
+          image: alpine:3.24
           securityContext:
             runAsUser: 0
             runAsGroup: 0
